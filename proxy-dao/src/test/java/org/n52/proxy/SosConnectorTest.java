@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -54,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-//@Ignore
+@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:artic-sea-test.xml"})
 public class SosConnectorTest {
@@ -172,7 +173,7 @@ public class SosConnectorTest {
 //        LOGGER.info(uom.getName().toString());
     }
 
-    @Test
+//    @Test
     public void collectNestedOfferingsSOS() {
         DataSourceConfiguration config = new DataSourceConfiguration();
         String serviceName = "nestedOfferingsSOS";
