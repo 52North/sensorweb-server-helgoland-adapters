@@ -26,40 +26,38 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.n52.proxy.db.da;
 
-@Ignore
-public class SandboxTest {
+import com.google.common.base.Strings;
+import org.hibernate.Session;
+import org.n52.io.response.TimeseriesMetadataOutput;
+import org.n52.io.response.dataset.DatasetOutput;
+import org.n52.series.db.DataAccessException;
+import org.n52.series.db.beans.MeasurementDatasetEntity;
+import org.n52.series.db.da.TimeseriesRepository;
+import org.n52.series.db.dao.DbQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 
-    @Test
-    public void when_concreteTypePassedToClassWithOverloadedMethods_then_mostConcreteMethodIsUsed() {
-        final AbstractOverloader overloader = new ConcreteOverloader();
-        Assert.assertTrue(overloader.pass(new ConcreteType()));
-    }
+/**
+ * @author jansch
+ */
+public class ProxyTimeseriesRepository extends TimeseriesRepository {
 
-    @Test
-    public void when_abstractTypePassedToClassWithOverloadedMethods_then_abstractMethodIsUsed() {
-        final AbstractOverloader overloader = new ConcreteOverloader();
-        Assert.assertFalse(overloader.pass(new AbstractType() {}));
-    }
+    @Autowired
+    private ProxyDatasetRepository datasetRepository;
 
-    private static abstract class AbstractType {}
-
-    private static class ConcreteType extends AbstractType {}
-
-    private abstract static class AbstractOverloader {
-        abstract boolean pass(Object type);
-    }
-
-    private static class ConcreteOverloader extends AbstractOverloader {
-        @Override
-        boolean pass(Object type) {
-            return false;
+    @Override
+    protected TimeseriesMetadataOutput createExpanded(MeasurementDatasetEntity series, DbQuery query, Session session) throws DataAccessException {
+        TimeseriesMetadataOutput output = super.createExpanded(series, query, session);
+        if (Strings.isNullOrEmpty(output.getUom())) {
+            DatasetOutput datasetOutput = datasetRepository.createExpanded(series, query, session);
+            output.setUom(datasetOutput.getUom());
         }
-        boolean pass(ConcreteType type) {
-            return true;
-        }
+        return output;
     }
 }
