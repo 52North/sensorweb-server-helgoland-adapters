@@ -30,7 +30,6 @@ package org.n52.proxy.connector;
 
 import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.utils.ConnectorHelper;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.shetland.ogc.ows.extension.Extension;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -53,7 +52,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, String serviceUri) {
 
-        String offeringId = ConnectorHelper.addOffering(obsOff, serviceConstellation);
+//        String offeringId = ConnectorHelper.addOffering(obsOff, serviceConstellation);
 
         Optional<Extension<?>> extension = obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS);
         LOGGER.info(extension.toString());

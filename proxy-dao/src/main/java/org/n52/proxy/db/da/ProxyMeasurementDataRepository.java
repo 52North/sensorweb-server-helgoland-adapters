@@ -41,7 +41,7 @@ import org.n52.series.db.beans.MeasurementDataEntity;
 import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.dao.DbQuery;
 
-public class MeasurementDataRepository
+public class ProxyMeasurementDataRepository
         extends org.n52.series.db.da.MeasurementDataRepository
         implements ProxyDataRepository<MeasurementDatasetEntity, MeasurementValue> {
 
