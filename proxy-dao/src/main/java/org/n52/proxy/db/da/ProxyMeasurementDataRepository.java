@@ -70,12 +70,14 @@ public class ProxyMeasurementDataRepository
     }
 
     @Override
-    protected MeasurementData assembleDataWithReferenceValues(MeasurementDatasetEntity datasetEntity, DbQuery dbQuery, Session session) throws DataAccessException {
+    protected MeasurementData assembleDataWithReferenceValues(MeasurementDatasetEntity datasetEntity, DbQuery dbQuery,
+            Session session) throws DataAccessException {
         return assembleData(datasetEntity, dbQuery, session);
     }
 
     @Override
-    protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+    protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session)
+            throws DataAccessException {
         AbstractSosConnector connector = this.getConnector(seriesEntity);
         MeasurementData result = new MeasurementData();
         List<DataEntity> observations = connector.getObservations(seriesEntity, query);

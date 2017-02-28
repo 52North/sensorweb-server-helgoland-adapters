@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 
 public class InsertRepository extends SessionAwareRepository {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(InsertRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InsertRepository.class);
 
     public synchronized void prepareInserting(ProxyServiceEntity service) {
         Session session = getSession();
@@ -104,6 +104,10 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
+    
+    private ProxyServiceEntity insertService(ProxyServiceEntity service, Session session) {
+        return new ProxyServiceDao(session).getOrInsertInstance(service);
+    }
 
     public void insertOffering(OfferingEntity offeringEntity) {
         Session session = getSession();
@@ -115,7 +119,10 @@ public class InsertRepository extends SessionAwareRepository {
         } finally {
             returnSession(session);
         }
-
+    }
+    
+    private OfferingEntity insertOffering(OfferingEntity offering, Session session) {
+        return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
 
     public synchronized void insertDataset(DatasetEntity dataset) {
@@ -143,6 +150,19 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
+    
+    private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
+            OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon, Session session) {
+        dataset.setCategory(category);
+        dataset.setProcedure(procedure);
+        dataset.setOffering(offering);
+        dataset.setFeature(feature);
+        dataset.setPhenomenon(phenomenon);
+        if (dataset.getUnit() != null) {
+            dataset.getUnit().setService(dataset.getService());
+        }
+        return new ProxyDatasetDao(session).getOrInsertInstance(dataset);
+    }
 
     public synchronized void insertRelatedFeature(Collection<RelatedFeatureEntity> relatedFeatures) {
         Session session = getSession();
@@ -154,14 +174,27 @@ public class InsertRepository extends SessionAwareRepository {
             session.flush();
             transaction.commit();
         } catch (HibernateException e) {
-            LOGGER.error("Error occured while saving dataset: ", e);
+            LOGGER.error("Error occured while saving related feature: ", e);
         } finally {
             returnSession(session);
         }
     }
-
-    private ProxyServiceEntity insertService(ProxyServiceEntity service, Session session) {
-        return new ProxyServiceDao(session).getOrInsertInstance(service);
+    
+    private RelatedFeatureEntity insertRelatedFeature(RelatedFeatureEntity relatedFeature, Session session) {
+        // insert related feature roles
+        Set<RelatedFeatureRoleEntity> roles
+                = new HashSet<RelatedFeatureRoleEntity>(relatedFeature.getRelatedFeatureRoles().size());
+        for (RelatedFeatureRoleEntity relatedFeatureRole : relatedFeature.getRelatedFeatureRoles()) {
+            roles.add(insertRelatedFeatureRole(relatedFeatureRole, session));
+        }
+        relatedFeature.setRelatedFeatureRoles(roles);
+        // insert offerings
+        Set<OfferingEntity> offerings = new HashSet<OfferingEntity>(relatedFeature.getOfferings().size());
+        for (OfferingEntity offering : relatedFeature.getOfferings()) {
+            offerings.add(insertOffering(offering, session));
+        }
+        relatedFeature.setOfferings(offerings);
+        return new ProxyRelatedFeatureDao(session).getOrInsertInstance(relatedFeature);
     }
 
     private ProcedureEntity insertProcedure(ProcedureEntity procedure, Session session) {
@@ -180,41 +213,9 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyPhenomenonDao(session).getOrInsertInstance(phenomenon);
     }
 
-    private OfferingEntity insertOffering(OfferingEntity offering, Session session) {
-        return new ProxyOfferingDao(session).getOrInsertInstance(offering);
-    }
-
-    private RelatedFeatureEntity insertRelatedFeature(RelatedFeatureEntity relatedFeature, Session session) {
-        // insert related feature roles
-        Set<RelatedFeatureRoleEntity> roles
-                = new HashSet<RelatedFeatureRoleEntity>(relatedFeature.getRelatedFeatureRoles().size());
-        for (RelatedFeatureRoleEntity relatedFeatureRole : relatedFeature.getRelatedFeatureRoles()) {
-            roles.add(insertRelatedFeatureRole(relatedFeatureRole, session));
-        }
-        relatedFeature.setRelatedFeatureRoles(roles);
-        // insert offerings
-        Set<OfferingEntity> offerings = new HashSet<OfferingEntity>(relatedFeature.getOfferings().size());
-        for (OfferingEntity offering : relatedFeature.getOfferings()) {
-            offerings.add(insertOffering(offering, session));
-        }
-        relatedFeature.setOfferings(offerings);
-        return new ProxyRelatedFeatureDao(session).getOrInsertInstance(relatedFeature);
-    }
-
-    private RelatedFeatureRoleEntity insertRelatedFeatureRole(RelatedFeatureRoleEntity relatedFeatureRole, Session session) {
+    private RelatedFeatureRoleEntity insertRelatedFeatureRole(RelatedFeatureRoleEntity relatedFeatureRole,
+            Session session) {
         return new ProxyRelatedFeatureRoleDao(session).getOrInsertInstance(relatedFeatureRole);
-    }
-
-    private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure, OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon, Session session) {
-        dataset.setCategory(category);
-        dataset.setProcedure(procedure);
-        dataset.setOffering(offering);
-        dataset.setFeature(feature);
-        dataset.setPhenomenon(phenomenon);
-        if (dataset.getUnit() != null) {
-            dataset.getUnit().setService(dataset.getService());
-        }
-        return new ProxyDatasetDao(session).getOrInsertInstance(dataset);
     }
 
 }

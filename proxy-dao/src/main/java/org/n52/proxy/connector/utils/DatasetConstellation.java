@@ -69,7 +69,9 @@ public class DatasetConstellation {
 
     @Override
     public String toString() {
-        return "DatasetConstellation{" + "procedure=" + procedure + ", offering=" + offering + ", category=" + category + ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
+        return "DatasetConstellation{" + "procedure=" + procedure + 
+                ", offering=" + offering + ", category=" + category + 
+                ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
     }
 
 }

@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServiceEntity> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ProxyServiceDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyServiceDao.class);
 
     private static final String COLUMN_TYPE = "type";
     private static final String COLUMN_URL = "url";

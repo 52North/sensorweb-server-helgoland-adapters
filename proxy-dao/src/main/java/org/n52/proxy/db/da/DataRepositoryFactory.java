@@ -45,13 +45,6 @@ public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepositor
     @Autowired
     private HibernateSessionStore sessionStore;
 
-    @Autowired
-    public void setConnectors(List<AbstractSosConnector> connectors) {
-        connectors.forEach((connector) -> {
-            connectorMap.put(connector.getConnectorName(), connector);
-        });
-    }
-
     private Map<String, AbstractSosConnector> connectorMap = new HashMap<>();
 
     public DataRepositoryFactory() {
@@ -60,6 +53,13 @@ public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepositor
 
     public DataRepositoryFactory(File configFile) {
         super(configFile);
+    }
+
+    @Autowired
+    public void setConnectors(List<AbstractSosConnector> connectors) {
+        connectors.forEach((connector) -> {
+            connectorMap.put(connector.getConnectorName(), connector);
+        });
     }
 
     @Override

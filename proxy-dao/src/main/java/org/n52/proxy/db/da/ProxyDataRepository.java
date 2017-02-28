@@ -34,8 +34,9 @@ import org.n52.proxy.connector.AbstractSosConnector;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.da.DataRepository;
 
-public interface ProxyDataRepository<DSE extends DatasetEntity<?>, V extends AbstractValue<?>> extends DataRepository<DSE, V> {
+public interface ProxyDataRepository<D extends DatasetEntity<?>, V extends AbstractValue<?>>
+        extends DataRepository<D, V> {
 
-    public void setConnectorMap(Map<String, AbstractSosConnector> connectorMap);
+    void setConnectorMap(Map<String, AbstractSosConnector> connectorMap);
 
 }

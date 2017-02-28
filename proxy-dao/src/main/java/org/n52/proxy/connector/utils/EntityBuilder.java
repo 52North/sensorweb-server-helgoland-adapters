@@ -48,7 +48,8 @@ import org.n52.svalbard.util.JTSHelper;
 
 public class EntityBuilder {
 
-    public static ProxyServiceEntity createService(String name, String description, String connector, String url, String version) {
+    public static ProxyServiceEntity createService(String name, String description, String connector, String url,
+            String version) {
         ProxyServiceEntity service = new ProxyServiceEntity();
         service.setName(name);
         service.setDescription(description);
@@ -59,7 +60,8 @@ public class EntityBuilder {
         return service;
     }
 
-    public static ProcedureEntity createProcedure(String domainId, String name, boolean insitu, boolean mobile, ProxyServiceEntity service) {
+    public static ProcedureEntity createProcedure(String domainId, String name, boolean insitu, boolean mobile,
+            ProxyServiceEntity service) {
         ProcedureEntity procedure = new ProcedureEntity();
         procedure.setName(name);
         procedure.setDomainId(domainId);
@@ -85,7 +87,8 @@ public class EntityBuilder {
         return category;
     }
 
-    public static FeatureEntity createFeature(String domainId, String name, GeometryEntity geometry, ProxyServiceEntity service) {
+    public static FeatureEntity createFeature(String domainId, String name, GeometryEntity geometry,
+            ProxyServiceEntity service) {
         FeatureEntity feature = new FeatureEntity();
         feature.setName(name);
         feature.setDomainId(domainId);
@@ -119,7 +122,9 @@ public class EntityBuilder {
         return entity;
     }
 
-    public static MeasurementDatasetEntity createMeasurementDataset(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, UnitEntity unit, ProxyServiceEntity service) {
+    public static MeasurementDatasetEntity createMeasurementDataset(ProcedureEntity procedure, CategoryEntity category,
+            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, UnitEntity unit,
+            ProxyServiceEntity service) {
         MeasurementDatasetEntity measurementDataset = new MeasurementDatasetEntity();
         updateDataset(measurementDataset, procedure, category, feature, offering, phenomenon, service);
         measurementDataset.setUnit(unit);
@@ -128,13 +133,15 @@ public class EntityBuilder {
         return measurementDataset;
     }
 
-    public static TextDatasetEntity createTextDataset(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
+    public static TextDatasetEntity createTextDataset(ProcedureEntity procedure, CategoryEntity category,
+            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
         updateDataset(textDataset, procedure, category, feature, offering, phenomenon, service);
         return textDataset;
     }
 
-    public static CountDatasetEntity createCountDataset(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
+    public static CountDatasetEntity createCountDataset(ProcedureEntity procedure, CategoryEntity category,
+            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         CountDatasetEntity countDataset = new CountDatasetEntity();
         updateDataset(countDataset, procedure, category, feature, offering, phenomenon, service);
         countDataset.setFirstValueAt(new Date());
@@ -142,7 +149,8 @@ public class EntityBuilder {
         return countDataset;
     }
 
-    private static void updateDataset(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
+    private static void updateDataset(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
+            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         dataset.setProcedure(procedure);
         dataset.setCategory(category);
         dataset.setFeature(feature);

@@ -35,6 +35,7 @@ import org.n52.shetland.ogc.ows.extension.Extension;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class NestedOfferingsSOSConnector extends SOS2Connector {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(NestedOfferingsSOSConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NestedOfferingsSOSConnector.class);
 
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
@@ -50,10 +51,10 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     @Override
-    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, String serviceUri) {
+    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
+            String serviceUri) {
 
-//        String offeringId = ConnectorHelper.addOffering(obsOff, serviceConstellation);
-
+//         String offeringId = ConnectorHelper.addOffering(obsOff, serviceConstellation);
         Optional<Extension<?>> extension = obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS);
         LOGGER.info(extension.toString());
     }

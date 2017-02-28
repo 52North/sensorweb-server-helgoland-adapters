@@ -57,24 +57,21 @@ import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.exception.EncodingException;
 import org.n52.svalbard.util.CodingHelper;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OceanotronSosConnector extends AbstractSosConnector {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(OceanotronSosConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OceanotronSosConnector.class);
 
     @Override
     public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
-        try {
-            config.setVersion(Sos1Constants.SERVICEVERSION);
-            config.setConnector(getConnectorName());
-            ConnectorHelper.addService(config, serviceConstellation);
-            SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
-            addDatasets(serviceConstellation, sosCaps, config.getUrl());
-        } catch (UnsupportedOperationException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
+        config.setVersion(Sos1Constants.SERVICEVERSION);
+        config.setConnector(getConnectorName());
+        ConnectorHelper.addService(config, serviceConstellation);
+        SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
+        addDatasets(serviceConstellation, sosCaps, config.getUrl());
         return serviceConstellation;
     }
 
@@ -95,22 +92,26 @@ public class OceanotronSosConnector extends AbstractSosConnector {
 
     @Override
     public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // TODO implement
+        throw new UnsupportedOperationException("getObservations not supported yet.");
     }
 
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // TODO implement
+        throw new UnsupportedOperationException("getUom not supported yet.");
     }
 
     @Override
     public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // TODO implement
+        throw new UnsupportedOperationException("getFirstObservation not supported yet.");
     }
 
     @Override
     public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // TODO implement
+        throw new UnsupportedOperationException("getLastObservation not supported yet.");
     }
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
@@ -133,8 +134,9 @@ public class OceanotronSosConnector extends AbstractSosConnector {
             obsOff.getObservableProperties().forEach((obsProp) -> {
                 serviceConstellation.putPhenomenon(obsProp, obsProp);
                 serviceConstellation.putCategory(obsProp, obsProp);
-                serviceConstellation.putFeature("test", "test", 0, 0, 0);
-                serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, obsProp, obsProp, "test"));
+                final String foiId = "foiId";
+                serviceConstellation.putFeature(foiId, "foiName", 0, 0, 0);
+                serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, obsProp, obsProp, foiId));
             });
 //                HttpResponse response = this.sendRequest(createDescribeSensorRequest(procedureId), url);
 //                DescribeSensorResponse descSensResp = createDescSensResponse(response.getEntity().getContent());

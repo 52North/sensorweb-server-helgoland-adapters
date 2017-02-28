@@ -51,20 +51,21 @@ import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
 import org.n52.svalbard.util.CodingHelper;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractSosConnector {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
-
-    private final int CONNECTION_TIMEOUT = 30000;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
+    
     @Autowired
     protected DecoderRepository decoderRepository;
 
     @Autowired
     protected EncoderRepository encoderRepository;
+
+    private final int CONNECTION_TIMEOUT = 30000;
 
     public String getConnectorName() {
         return getClass().getName();
@@ -91,7 +92,7 @@ public abstract class AbstractSosConnector {
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
             DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
             return (OwsServiceResponse) decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
-        } catch (EncodingException | IOException | UnsupportedOperationException | XmlException | DecodingException ex) {
+        } catch (EncodingException | IOException | XmlException | DecodingException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
             return null;
         }
@@ -99,7 +100,8 @@ public abstract class AbstractSosConnector {
 
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
 
-    public abstract ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
+    public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
+            GetCapabilitiesResponse capabilities);
 
     public abstract List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query);
 

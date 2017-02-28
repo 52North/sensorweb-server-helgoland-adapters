@@ -70,14 +70,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 @DisallowConcurrentExecution
 public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
-
-    private DataSourceConfiguration config;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
 
     private static final String JOB_CONNECTOR = "connector";
     private static final String JOB_VERSION = "version";
     private static final String JOB_NAME = "name";
     private static final String JOB_URL = "url";
+
+    private DataSourceConfiguration config;
 
     @Autowired
     private InsertRepository insertRepository;
@@ -108,12 +108,12 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
-        DataSourceConfiguration config = new DataSourceConfiguration();
-        config.setUrl(jobDataMap.getString(JOB_URL));
-        config.setItemName(jobDataMap.getString(JOB_NAME));
-        config.setVersion(jobDataMap.getString(JOB_VERSION));
-        config.setConnector(jobDataMap.getString(JOB_CONNECTOR));
-        return config;
+        DataSourceConfiguration createdConfig = new DataSourceConfiguration();
+        createdConfig.setUrl(jobDataMap.getString(JOB_URL));
+        createdConfig.setItemName(jobDataMap.getString(JOB_NAME));
+        createdConfig.setVersion(jobDataMap.getString(JOB_VERSION));
+        createdConfig.setConnector(jobDataMap.getString(JOB_CONNECTOR));
+        return createdConfig;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         JobDataMap jobDataMap = jobDetail.getJobDataMap();
 
         DataSourceConfiguration dataSource = recreateConfig(jobDataMap);
-        GetCapabilitiesResponse capabilities = getCapabilities(dataSource);
+        GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
 
         ServiceConstellation constellation = null;
         for (AbstractSosConnector connector : connectors) {
@@ -143,11 +143,12 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         LOGGER.info(context.getJobDetail().getKey() + " execution ends.");
     }
 
-    public void init(DataSourceConfiguration config) {
-        setConfig(config);
-        setJobName(config.getItemName());
-        if (config.getJob() != null) {
-            DataSourceJobConfiguration job = config.getJob();
+    // TODO check if config is needed
+    public void init(DataSourceConfiguration initConfig) {
+        setConfig(initConfig);
+        setJobName(initConfig.getItemName());
+        if (initConfig.getJob() != null) {
+            DataSourceJobConfiguration job = initConfig.getJob();
             setEnabled(job.isEnabled());
             setCronExpression(job.getCronExpression());
             setTriggerAtStartup(job.isTriggerAtStartup());
@@ -174,7 +175,8 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             // add empty unit entity, will be replaced later in the repositories
             final UnitEntity unit = EntityBuilder.createUnit("", service);
 
-            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null && unit != null) {
+            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null
+                    && unit != null) {
                 MeasurementDatasetEntity measurement = EntityBuilder.createMeasurementDataset(
                         procedure, category, feature, offering, phenomenon, unit, service
                 );
@@ -188,10 +190,10 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         insertRepository.cleanUp(service);
     }
 
-    private GetCapabilitiesResponse getCapabilities(DataSourceConfiguration config) {
+    private GetCapabilitiesResponse getCapabilities(String serviceUrl) {
         try {
             SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
-            String url = config.getUrl();
+            String url = serviceUrl;
             if (url.contains("?")) {
                 url = url + "&";
             } else {
@@ -199,8 +201,10 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             }
             HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities");
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
-            return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse)).decode(xmlResponse);
-        } catch (IOException | UnsupportedOperationException | XmlException | DecodingException ex) {
+            return (GetCapabilitiesResponse) decoderRepository
+                    .getDecoder(CodingHelper.getDecoderKey(xmlResponse))
+                    .decode(xmlResponse);
+        } catch (IOException | XmlException | DecodingException ex) {
             java.util.logging.Logger.getLogger(DataSourceHarvesterJob.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;

@@ -37,14 +37,14 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import static org.quartz.TriggerBuilder.newTrigger;
+import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DataSourceHarvesterScheduler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
+    
     private ConfigurationReader configurationProvider;
 
     private List<ScheduledJob> scheduledJobs = new ArrayList<>();
@@ -54,10 +54,12 @@ public class DataSourceHarvesterScheduler {
     private Scheduler scheduler;
 
     private boolean enabled = true;
-
+    
     public void init() {
         if (!enabled) {
-            LOGGER.info("Job schedular disabled. No jobs will be triggered. This is also true for particularly enabled jobs.");
+            LOGGER.info(
+                    "Job schedular disabled. No jobs will be triggered."
+                    + " This is also true for particularly enabled jobs.");
             return;
         }
 
@@ -84,7 +86,7 @@ public class DataSourceHarvesterScheduler {
                 scheduler.scheduleJob(details, trigger);
                 if (taskToSchedule.isTriggerAtStartup()) {
                     LOGGER.debug("Schedule job '{}' to run once at startup.", details.getKey());
-                    Trigger onceAtStartup = newTrigger()
+                    Trigger onceAtStartup = TriggerBuilder.newTrigger()
                             .withIdentity(details.getKey() + "_onceAtStartup")
                             .forJob(details.getKey()).build();
                     scheduler.scheduleJob(onceAtStartup);

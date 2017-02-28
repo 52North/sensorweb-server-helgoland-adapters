@@ -39,7 +39,7 @@ public class ProxyDbQuery extends DbQuery {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDbQuery.class);
 
-    private static final String COLUMN_KEY = "pkid";
+    private static final String SERVICE_PKID = "service.pkid";
 
     private String serviceId;
 
@@ -67,12 +67,13 @@ public class ProxyDbQuery extends DbQuery {
 
     public Criteria addServiceFilter(String parameter, Criteria criteria) {
         if (serviceId != null && !serviceId.isEmpty()) {
-            criteria.add(Restrictions.eq("service.pkid", parseToId(serviceId)));
+            criteria.add(Restrictions.eq(SERVICE_PKID, parseToId(serviceId)));
         } else if (getParameters().getService() != null) {
-            criteria.add(Restrictions.eq("service.pkid", parseToId(getParameters().getService())));
+            criteria.add(Restrictions.eq(SERVICE_PKID, parseToId(getParameters().getService())));
         } else if (getParameters().getServices() != null && !getParameters().getServices().isEmpty()) {
-            criteria.add(Restrictions.in("service.pkid", parseToIds(getParameters().getServices())));
+            criteria.add(Restrictions.in(SERVICE_PKID, parseToIds(getParameters().getServices())));
         }
         return criteria;
     }
+
 }

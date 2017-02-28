@@ -37,57 +37,57 @@ import org.springframework.web.client.HttpClientErrorException;
 
 public interface HttpClient {
 
-  DefaultHttpClient getHttpClientToDecorate();
+    DefaultHttpClient getHttpClientToDecorate();
 
-  public HttpResponse executeGet(String uri) throws HttpClientErrorException;
+    HttpResponse executeGet(String uri) throws HttpClientErrorException;
 
-  /**
-   * @param baseUri the target to send the GET request to.
-   * @param parameters the request/query parameters.
-   * @return the HTTP response returned by the target.
-   * @throws HttpClientException if sending the request fails.
-   */
+    /**
+     * @param baseUri the target to send the GET request to.
+     * @param parameters the request/query parameters.
+     * @return the HTTP response returned by the target.
+     * @throws HttpClientException if sending the request fails.
+     */
     //public HttpResponse executeGet(String baseUri, RequestParameters parameters) throws HttpClientErrorException;
-  /**
-   * Sends the given payload as content-type text/xml with UTF-8 encoding to the determined URI.
-   * <strong>Callees are responsible for ensuring that the contents are actually encoded as UTF-8</strong>. If not
-   * UTF-8, use {@link #executePost(String, String, ContentType)} instead.
-   *
-   * @param uri the target to send the POST request to.
-   * @param payloadToSend the POST payload as XML encoded as UTF-8.
-   * @return the HTTP response returned by the target.
-   * @throws HttpClientErrorException if sending the request fails.
-   */
-  public HttpResponse executePost(String uri, String payloadToSend) throws HttpClientErrorException;
+    /**
+     * Sends the given payload as content-type text/xml with UTF-8 encoding to the determined URI.
+     * <strong>Callees are responsible for ensuring that the contents are actually encoded as UTF-8</strong>. If not
+     * UTF-8, use {@link #executePost(String, String, ContentType)} instead.
+     *
+     * @param uri the target to send the POST request to.
+     * @param payloadToSend the POST payload as XML encoded as UTF-8.
+     * @return the HTTP response returned by the target.
+     * @throws HttpClientErrorException if sending the request fails.
+     */
+    HttpResponse executePost(String uri, String payloadToSend) throws HttpClientErrorException;
 
-  /**
-   * Sends the given payload (marked to be of a specific content-type) to the determined URI.
-   *
-   * @param uri the target to send the POST request to.
-   * @param payloadToSend the POST payload as XML.
-   * @param contentType the content-type of the payload.
-   * @return the HTTP response returned by the target.
-   * @throws HttpClientErrorException if sending the request fails.
-   */
-  public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws HttpClientErrorException;
+    /**
+     * Sends the given payload (marked to be of a specific content-type) to the determined URI.
+     *
+     * @param uri the target to send the POST request to.
+     * @param payloadToSend the POST payload as XML.
+     * @param contentType the content-type of the payload.
+     * @return the HTTP response returned by the target.
+     * @throws HttpClientErrorException if sending the request fails.
+     */
+    HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws HttpClientErrorException;
 
-  /**
-   * Sends the given payload to the determined URI. Refer to the <a
-   * href="http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/index.html">HTTP components docs</a>
-   * to get more information which entity types are possible.
-   *
-   * @param uri the target to send the POST request to.
-   * @param payloadToSend a more generic way to send arbitrary content.
-   * @return the HTTP response returned by the target.
-   * @throws HttpClientErrorException if sending the request fails.
-   */
-  public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws HttpClientErrorException;
+    /**
+     * Sends the given payload to the determined URI. Refer to the <a
+     * href="http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/index.html">HTTP components docs</a>
+     * to get more information which entity types are possible.
+     *
+     * @param uri the target to send the POST request to.
+     * @param payloadToSend a more generic way to send arbitrary content.
+     * @return the HTTP response returned by the target.
+     * @throws HttpClientErrorException if sending the request fails.
+     */
+    HttpResponse executePost(String uri, HttpEntity payloadToSend) throws HttpClientErrorException;
 
-  /**
-   * @param method the HTTP method to execute.
-   * @return the HTTP response returned by the target.
-   * @throws HttpClientErrorException if sending the request fails
-   */
-  public HttpResponse executeMethod(HttpRequestBase method) throws HttpClientErrorException;
+    /**
+     * @param method the HTTP method to execute.
+     * @return the HTTP response returned by the target.
+     * @throws HttpClientErrorException if sending the request fails
+     */
+    HttpResponse executeMethod(HttpRequestBase method) throws HttpClientErrorException;
 
 }
