@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class DataSourceHarvesterScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
-    
+
     private ConfigurationReader configurationProvider;
 
     private List<ScheduledJob> scheduledJobs = new ArrayList<>();
@@ -54,7 +54,7 @@ public class DataSourceHarvesterScheduler {
     private Scheduler scheduler;
 
     private boolean enabled = true;
-    
+
     public void init() {
         if (!enabled) {
             LOGGER.info(

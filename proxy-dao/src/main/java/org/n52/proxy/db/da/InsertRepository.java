@@ -104,7 +104,7 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
-    
+
     private ProxyServiceEntity insertService(ProxyServiceEntity service, Session session) {
         return new ProxyServiceDao(session).getOrInsertInstance(service);
     }
@@ -120,7 +120,7 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
-    
+
     private OfferingEntity insertOffering(OfferingEntity offering, Session session) {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
@@ -150,7 +150,7 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
-    
+
     private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
             OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon, Session session) {
         dataset.setCategory(category);
@@ -179,7 +179,7 @@ public class InsertRepository extends SessionAwareRepository {
             returnSession(session);
         }
     }
-    
+
     private RelatedFeatureEntity insertRelatedFeature(RelatedFeatureEntity relatedFeature, Session session) {
         // insert related feature roles
         Set<RelatedFeatureRoleEntity> roles

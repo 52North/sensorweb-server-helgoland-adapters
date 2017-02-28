@@ -175,10 +175,12 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
         if (sosCaps != null) {
-//            sosCaps.getContents().get().forEach((obsOff) -> {
-//                doForOffering(obsOff, serviceConstellation, serviceUri);
-//            });
-            doForOffering(sosCaps.getContents().get().first(), serviceConstellation, serviceUri);
+            sosCaps.getContents().ifPresent((obsOffs) -> {
+//                obsOffs.forEach((obsOff) -> {
+//                    doForOffering(obsOff, serviceConstellation, serviceUri);
+//                });
+                doForOffering(obsOffs.first(), serviceConstellation, serviceUri);
+            });
         }
     }
 

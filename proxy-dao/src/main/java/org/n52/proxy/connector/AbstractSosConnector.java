@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AbstractSosConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
-    
+
     @Autowired
     protected DecoderRepository decoderRepository;
 

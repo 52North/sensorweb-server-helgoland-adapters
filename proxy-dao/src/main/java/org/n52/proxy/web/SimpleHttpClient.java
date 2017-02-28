@@ -53,7 +53,7 @@ public class SimpleHttpClient implements HttpClient {
     private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 
     private static final int DEFAULT_SOCKET_TIMEOUT = 5000;
-    
+
     private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", Consts.UTF_8);
 
     private DefaultHttpClient httpclient;
@@ -115,7 +115,7 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) 
+    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType)
             throws HttpClientErrorException {
         StringEntity requestEntity = new StringEntity(payloadToSend, contentType);
         LOGGER.trace("payload to send: {}", payloadToSend);

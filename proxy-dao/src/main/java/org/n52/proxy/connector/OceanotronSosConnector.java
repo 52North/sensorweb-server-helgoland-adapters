@@ -116,10 +116,12 @@ public class OceanotronSosConnector extends AbstractSosConnector {
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
         if (sosCaps != null) {
-            sosCaps.getContents().get().forEach((obsOff) -> {
-                addElem(obsOff, serviceConstellation, url);
+            sosCaps.getContents().ifPresent((obsOffs) -> {
+                obsOffs.forEach((obsOff) -> {
+                    addElem(obsOff, serviceConstellation, url);
+                });
+//                addElem(obsOffs.first(), serviceConstellation, url);
             });
-//            addElem(sosCaps.getContents().get().first(), serviceConstellation, url);
         }
     }
 

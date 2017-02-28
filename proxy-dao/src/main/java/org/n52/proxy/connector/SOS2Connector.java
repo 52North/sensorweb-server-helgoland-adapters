@@ -151,8 +151,10 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
-        sosCaps.getContents().get().forEach((sosObsOff) -> {
-            doForOffering(sosObsOff, serviceConstellation, serviceUri);
+        sosCaps.getContents().ifPresent((sosObsOfferings) -> {
+            sosObsOfferings.forEach((sosObsOff) -> {
+                doForOffering(sosObsOff, serviceConstellation, serviceUri);
+            });
         });
     }
 

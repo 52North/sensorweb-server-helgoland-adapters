@@ -128,10 +128,11 @@ public class HydroSOSConnector extends AbstractSosConnector {
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
         if (sosCaps != null) {
-            sosCaps.getContents().get().forEach((obsOff) -> {
-                addByOffering(obsOff, serviceConstellation, url);
+            sosCaps.getContents().ifPresent((obsOffs) -> {
+                obsOffs.forEach((obsOff) -> {
+                    addByOffering(obsOff, serviceConstellation, url);
+                });
             });
-//            addByOffering(sosCaps.getContents().get().first(), serviceConstellation, url);
         }
     }
 

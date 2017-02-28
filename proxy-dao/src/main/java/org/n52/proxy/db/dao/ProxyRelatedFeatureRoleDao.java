@@ -38,7 +38,7 @@ import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.AbstractDao;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEntity> 
+public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEntity>
         implements InsertDao<RelatedFeatureRoleEntity>, ClearDao<RelatedFeatureRoleEntity> {
 
 
