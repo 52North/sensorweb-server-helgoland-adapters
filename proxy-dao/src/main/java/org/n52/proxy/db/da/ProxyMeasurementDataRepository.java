@@ -59,13 +59,13 @@ public class ProxyMeasurementDataRepository
 
     @Override
     public MeasurementValue getFirstValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity);
+        DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
         return createSeriesValueFor((MeasurementDataEntity) firstObservation, entity, query);
     }
 
     @Override
     public MeasurementValue getLastValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity);
+        DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((MeasurementDataEntity) lastObservation, entity, query);
     }
 

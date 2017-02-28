@@ -31,6 +31,7 @@ package org.n52.proxy.connector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -103,12 +104,12 @@ public class OceanotronSosConnector extends AbstractSosConnector {
     }
 
     @Override
-    public DataEntity getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public DataEntity getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

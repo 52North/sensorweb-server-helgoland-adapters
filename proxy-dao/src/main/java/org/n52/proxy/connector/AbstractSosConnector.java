@@ -30,6 +30,7 @@ package org.n52.proxy.connector;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
@@ -104,8 +105,8 @@ public abstract class AbstractSosConnector {
 
     public abstract UnitEntity getUom(DatasetEntity seriesEntity);
 
-    public abstract DataEntity getFirstObservation(DatasetEntity entity);
+    public abstract Optional<DataEntity> getFirstObservation(DatasetEntity entity);
 
-    public abstract DataEntity getLastObservation(DatasetEntity entity);
+    public abstract Optional<DataEntity> getLastObservation(DatasetEntity entity);
 
 }

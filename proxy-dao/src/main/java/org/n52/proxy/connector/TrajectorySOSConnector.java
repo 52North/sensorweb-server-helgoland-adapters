@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ConnectorHelper;
@@ -155,23 +156,23 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public DataEntity getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
         // currently only return default first observation
         MeasurementDataEntity measurementDataEntity = new MeasurementDataEntity();
         measurementDataEntity.setTimestart(new Date());
         measurementDataEntity.setTimeend(new Date());
         measurementDataEntity.setValue(0.0);
-        return measurementDataEntity;
+        return Optional.of(measurementDataEntity);
     }
 
     @Override
-    public DataEntity getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
         // currently only return default last observation
         MeasurementDataEntity measurementDataEntity = new MeasurementDataEntity();
         measurementDataEntity.setTimestart(new Date());
         measurementDataEntity.setTimeend(new Date());
         measurementDataEntity.setValue(0.0);
-        return measurementDataEntity;
+        return Optional.of(measurementDataEntity);
     }
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {

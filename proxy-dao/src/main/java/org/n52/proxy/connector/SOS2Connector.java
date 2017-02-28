@@ -31,6 +31,7 @@ package org.n52.proxy.connector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ConnectorHelper;
 import org.n52.proxy.connector.utils.DatasetConstellation;
@@ -113,21 +114,21 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public DataEntity getFirstObservation(DatasetEntity entity) {
-        GetObservationResponse response = createObservationResponse(entity, ConnectorHelper.createFirstTimefilter());
-        if (response.getObservationCollection().size() >= 1) {
-            return createDataEntity(response.getObservationCollection().get(0));
-        }
-        return null;
+    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+        return createObservationResponse(entity, ConnectorHelper.createFirstTimefilter())
+                .getObservationCollection()
+                .stream()
+                .findFirst()
+                .map(this::createDataEntity);
     }
 
     @Override
-    public DataEntity getLastObservation(DatasetEntity entity) {
-        GetObservationResponse response = createObservationResponse(entity, ConnectorHelper.createLatestTimefilter());
-        if (response.getObservationCollection().size() >= 1) {
-            return createDataEntity(response.getObservationCollection().get(0));
-        }
-        return null;
+    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+        return createObservationResponse(entity, ConnectorHelper.createLatestTimefilter())
+                .getObservationCollection()
+                .stream()
+                .findFirst()
+                .map(this::createDataEntity);
     }
 
     @Override
