@@ -34,6 +34,7 @@ import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.FilterConstants;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.CodeType;
+import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
@@ -61,6 +62,13 @@ public class ConnectorHelper {
         } else {
             serviceConstellation.putOffering(offeringId, offeringId);
         }
+        return offeringId;
+    }
+
+    public static String addOffering(ReferenceType offering, ServiceConstellation serviceConstellation) {
+        String offeringId = offering.getHref();
+        String offeringName = offering.getTitle();
+        serviceConstellation.putOffering(offeringId, offeringName);
         return offeringId;
     }
 

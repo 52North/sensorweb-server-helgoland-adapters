@@ -28,13 +28,21 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.utils.ConnectorHelper;
+import org.n52.proxy.connector.utils.DatasetConstellation;
+import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.shetland.ogc.ows.extension.Extension;
+import org.n52.shetland.ogc.gml.AbstractFeature;
+import org.n52.shetland.ogc.gml.ReferenceType;
+import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
+import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
+import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
+import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
+import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +61,49 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
             String serviceUri) {
+        obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS).ifPresent((extension) -> {
+            if (extension instanceof RelatedOfferings) {
+                addNestedOfferings((RelatedOfferings) extension, serviceConstellation, serviceUri);
+            }
+        });
+    }
 
-//         String offeringId = ConnectorHelper.addOffering(obsOff, serviceConstellation);
-        Optional<Extension<?>> extension = obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS);
-        LOGGER.info(extension.toString());
+    private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
+            String serviceUri) {
+        relatedOfferings.getValue().forEach((context) -> {
+            try {
+                ReferenceType relatedOffering = context.getRelatedOffering();
+                LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
+                GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
+                response.getDataAvailabilities().forEach((dataAvail) -> {
+                    String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
+                    String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
+                    String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
+                    String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
+                    String featureId = dataAvail.getFeatureOfInterest().getHref();
+                    if (!serviceConstellation.hasFeature(featureId)) {
+                        GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
+                                serviceUri);
+                        AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
+                        if (abstractFeature instanceof SamplingFeature) {
+                            ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+                        }
+                    }
+                    serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId,
+                            featureId));
+                });
+            } catch (ProxyException ex) {
+                LOGGER.error(ex.getLocalizedMessage(), ex);
+            }
+        });
+    }
+
+    private GetDataAvailabilityResponse getDataAvailabilityForOffering(String uri) throws ProxyException {
+        OwsServiceResponse response = getSosResponseFor(uri);
+        if (response instanceof GetDataAvailabilityResponse) {
+            return (GetDataAvailabilityResponse) response;
+        }
+        throw new ProxyException("Wrong response - GetDataAvailabilityResponse was expected", response);
     }
 
 }

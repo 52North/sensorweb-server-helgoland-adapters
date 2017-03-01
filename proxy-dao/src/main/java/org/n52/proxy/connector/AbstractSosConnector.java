@@ -80,22 +80,40 @@ public abstract class AbstractSosConnector {
         }
     }
 
-    private HttpResponse sendRequest(XmlObject request, String uri) {
+    private HttpResponse sendPostRequest(XmlObject request, String uri) {
         return new SimpleHttpClient(CONNECTION_TIMEOUT, CONNECTION_TIMEOUT).executePost(uri, request);
+    }
+
+    private HttpResponse sendGetRequest(String uri) {
+        return new SimpleHttpClient(CONNECTION_TIMEOUT, CONNECTION_TIMEOUT).executeGet(uri);
+    }
+
+    protected OwsServiceResponse getSosResponseFor(String uri) {
+        try {
+            HttpResponse response = sendGetRequest(uri);
+            return decodeResponse(response);
+        } catch (XmlException | IOException | DecodingException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+            return null;
+        }
     }
 
     protected OwsServiceResponse getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
         try {
             EncoderKey encoderKey = CodingHelper.getEncoderKey(namespace, request);
             XmlObject xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
-            HttpResponse response = sendRequest(xmlRequest, serviceUrl);
-            XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
-            DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
-            return (OwsServiceResponse) decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
+            HttpResponse response = sendPostRequest(xmlRequest, serviceUrl);
+            return decodeResponse(response);
         } catch (EncodingException | IOException | XmlException | DecodingException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
             return null;
         }
+    }
+
+    private OwsServiceResponse decodeResponse(HttpResponse response) throws XmlException, IOException, DecodingException {
+        XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
+        DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
+        return (OwsServiceResponse) decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
     }
 
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);

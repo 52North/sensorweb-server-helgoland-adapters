@@ -170,7 +170,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             feature.setService(service);
             final OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
             offering.setService(service);
-            final PhenomenonEntity phenomenon = constellation.getPhenomenons().get(dataset.getPhenomenon());
+            final PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
             phenomenon.setService(service);
             // add empty unit entity, will be replaced later in the repositories
             final UnitEntity unit = EntityBuilder.createUnit("", service);

@@ -53,8 +53,8 @@ public class ServiceConstellation {
     // map für categories
     private final Map<String, CategoryEntity> categories = new HashMap<>();
 
-    // map für phenomenons
-    private final Map<String, PhenomenonEntity> phenomenons = new HashMap<>();
+    // map für phenomena
+    private final Map<String, PhenomenonEntity> phenomena = new HashMap<>();
 
     // map für feature
     private final Map<String, FeatureEntity> features = new HashMap<>();
@@ -74,20 +74,40 @@ public class ServiceConstellation {
         return procedures;
     }
 
+    public boolean hasProcedure(String procedureId) {
+        return procedures.containsKey(procedureId);
+    }
+
     public Map<String, OfferingEntity> getOfferings() {
         return offerings;
+    }
+
+    public boolean hasOffering(String offeringId) {
+        return offerings.containsKey(offeringId);
     }
 
     public Map<String, CategoryEntity> getCategories() {
         return categories;
     }
 
-    public Map<String, PhenomenonEntity> getPhenomenons() {
-        return phenomenons;
+    public boolean hasCategories(String categoryId) {
+        return categories.containsKey(categoryId);
+    }
+
+    public Map<String, PhenomenonEntity> getPhenomena() {
+        return phenomena;
+    }
+
+    public boolean hasPhenomenon(String phenomenonId) {
+        return phenomena.containsKey(phenomenonId);
     }
 
     public Map<String, FeatureEntity> getFeatures() {
         return features;
+    }
+
+    public boolean hasFeature(String featureId) {
+        return features.containsKey(featureId);
     }
 
     public Collection<DatasetConstellation> getDatasets() {
@@ -114,7 +134,7 @@ public class ServiceConstellation {
     }
 
     public PhenomenonEntity putPhenomenon(String id, String name) {
-        return phenomenons.put(id, EntityBuilder.createPhenomenon(id, name, service));
+        return phenomena.put(id, EntityBuilder.createPhenomenon(id, name, service));
     }
 
     public ProcedureEntity putProcedure(String id, String name, boolean insitu, boolean mobile) {

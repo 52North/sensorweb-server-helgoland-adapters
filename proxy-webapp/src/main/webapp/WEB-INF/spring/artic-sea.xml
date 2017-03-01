@@ -37,11 +37,14 @@
     <bean class="org.n52.svalbard.decode.SweCommonDecoderV20"/>-->
     <bean class="org.n52.svalbard.decode.OmDecoderv20"/>
     <bean class="org.n52.svalbard.decode.SamplingDecoderv20"/>
-    <!--<bean class="org.n52.svalbard.decode.SwesExtensionDecoderv20"/>
-    <bean class="org.n52.svalbard.decode.XlinkDecoderv1999"/>-->
+    <bean class="org.n52.svalbard.decode.SwesExtensionDecoderv20"/>
+    <bean class="org.n52.svalbard.decode.RelatedOfferingTypeDecoder"/>
+    <!--<bean class="org.n52.svalbard.decode.XlinkDecoderv1999"/>-->
     <bean class="org.n52.svalbard.decode.GetDataAvailabilityResponseDecoder"/>
     <!-- response decoder -->
     <bean class="org.n52.svalbard.decode.CapabilitiesDocumentDecoder"/>
+    <bean class="org.n52.svalbard.decode.CapabilitiesV1DocumentDecoder"/>
+    <bean class="org.n52.svalbard.decode.CapabilitiesDecoder"/>
     <bean class="org.n52.svalbard.decode.CapabilitiesTypeDecoder"/>
     <bean class="org.n52.svalbard.decode.GetObservationResponseDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.GetFeatureOfInterestResponseDocumentDecoder"/>
@@ -59,6 +62,7 @@
     <bean class="org.n52.svalbard.encode.XlinkEncoderv1999"/>
     <bean class="org.n52.svalbard.encode.DeleteSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.DescribeSensorResponseEncoder"/>
+    <bean class="org.n52.svalbard.encode.DescribeSensorV1RequestEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.UpdateSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.GetCapabilitiesResponseEncoder"/>
@@ -76,6 +80,7 @@
 
     <!-- request encoder -->
     <bean class="org.n52.svalbard.encode.GetCapabilitiesRequestEncoder"/>
+    <bean class="org.n52.svalbard.encode.GetCapabilitiesV1RequestEncoder"/>
     <bean class="org.n52.svalbard.encode.GetObservationRequestEncoder"/>
     <bean class="org.n52.svalbard.encode.GetFeatureOfInterestRequestEncoder"/>
 

@@ -165,7 +165,7 @@ public class SOS2Connector extends AbstractSosConnector {
         offering.getProcedures().forEach((procedureId) -> {
             ConnectorHelper.addProcedure(procedureId, true, false, serviceConstellation);
 
-            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponse(procedureId, serviceUri);
+            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId, serviceUri);
             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
             if (abstractFeature instanceof SamplingFeature) {
                 ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
@@ -184,10 +184,17 @@ public class SOS2Connector extends AbstractSosConnector {
         });
     }
 
-    private GetFeatureOfInterestResponse getFeatureOfInterestResponse(String procedureId, String serviceUri) {
+    protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByProcedure(String procedureId, String serviceUri) {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SosConstants.SOS,
                 Sos2Constants.SERVICEVERSION);
         request.setProcedures(new ArrayList<>(Arrays.asList(procedureId)));
+        return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, serviceUri);
+    }
+
+    protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByFeature(String featureId, String serviceUri) {
+        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SosConstants.SOS,
+                Sos2Constants.SERVICEVERSION);
+        request.setFeatureIdentifiers(new ArrayList<>(Arrays.asList(featureId)));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, serviceUri);
     }
 
