@@ -27,11 +27,12 @@
  * for more details.
  */
 package org.n52.proxy.connector.utils;
-
+ 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.FeatureEntity;

@@ -35,8 +35,8 @@ import java.util.Optional;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -138,7 +138,9 @@ public class OceanotronSosConnector extends AbstractSosConnector {
                 serviceConstellation.putCategory(obsProp, obsProp);
                 final String foiId = "foiId";
                 serviceConstellation.putFeature(foiId, "foiName", 0, 0, 0);
-                serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, obsProp, obsProp, foiId));
+                // TODO maybe not only MeasurementDatasetConstellation
+                serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, obsProp, obsProp,
+                        foiId));
             });
 //                HttpResponse response = this.sendRequest(createDescribeSensorRequest(procedureId), url);
 //                DescribeSensorResponse descSensResp = createDescSensResponse(response.getEntity().getContent());

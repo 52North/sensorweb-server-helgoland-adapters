@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Optional;
 import org.joda.time.DateTime;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -205,7 +205,9 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             ConnectorHelper.addProcedure(dataAval, true, true, serviceConstellation);
             String phenomenonId = ConnectorHelper.addPhenomenon(dataAval, serviceConstellation);
             String categoryId = ConnectorHelper.addCategory(dataAval, serviceConstellation);
-            serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId,
+            // TODO maybe not only MeasurementDatasetConstellation
+            serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                    phenomenonId,
                     featureId));
         });
     }

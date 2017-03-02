@@ -28,16 +28,13 @@
  */
 package org.n52.proxy.connector.utils;
 
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
-import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.GeometryEntity;
-import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
@@ -122,17 +119,6 @@ public class EntityBuilder {
         return entity;
     }
 
-    public static MeasurementDatasetEntity createMeasurementDataset(ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, UnitEntity unit,
-            ProxyServiceEntity service) {
-        MeasurementDatasetEntity measurementDataset = new MeasurementDatasetEntity();
-        updateDataset(measurementDataset, procedure, category, feature, offering, phenomenon, service);
-        measurementDataset.setUnit(unit);
-        measurementDataset.setFirstValueAt(new Date());
-        measurementDataset.setLastValueAt(new Date());
-        return measurementDataset;
-    }
-
     public static TextDatasetEntity createTextDataset(ProcedureEntity procedure, CategoryEntity category,
             FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
@@ -140,16 +126,7 @@ public class EntityBuilder {
         return textDataset;
     }
 
-    public static CountDatasetEntity createCountDataset(ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
-        CountDatasetEntity countDataset = new CountDatasetEntity();
-        updateDataset(countDataset, procedure, category, feature, offering, phenomenon, service);
-        countDataset.setFirstValueAt(new Date());
-        countDataset.setLastValueAt(new Date());
-        return countDataset;
-    }
-
-    private static void updateDataset(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
+    public static void updateDataset(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
             FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         dataset.setProcedure(procedure);
         dataset.setCategory(category);

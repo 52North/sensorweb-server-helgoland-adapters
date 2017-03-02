@@ -28,6 +28,41 @@
  */
 package org.n52.proxy.db.da;
 
-public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepository {
-    // TODO implement methods to get Observation Data from SOS
+import java.util.Map;
+import org.hibernate.Session;
+import org.n52.io.response.dataset.count.CountValue;
+import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.beans.CountDataEntity;
+import org.n52.series.db.beans.CountDatasetEntity;
+import org.n52.series.db.beans.DataEntity;
+import org.n52.series.db.dao.DbQuery;
+
+public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepository
+        implements ProxyDataRepository<CountDatasetEntity, CountValue> {
+
+    private Map<String, AbstractSosConnector> connectorMap;
+
+    @Override
+    public void setConnectorMap(Map<String, AbstractSosConnector> connectorMap) {
+        this.connectorMap = connectorMap;
+    }
+
+    @Override
+    public CountValue getFirstValue(CountDatasetEntity entity, Session session, DbQuery query) {
+        DataEntity firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
+        return createSeriesValueFor((CountDataEntity) firstObs, entity, query);
+    }
+
+    @Override
+    public CountValue getLastValue(CountDatasetEntity entity, Session session, DbQuery query) {
+        DataEntity lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
+        return createSeriesValueFor((CountDataEntity) lastObs, entity, query);
+    }
+
+    private AbstractSosConnector getConnector(CountDatasetEntity entity) {
+        String connectorName = ((ProxyServiceEntity) entity.getService()).getConnector();
+        return this.connectorMap.get(connectorName);
+    }
+
 }

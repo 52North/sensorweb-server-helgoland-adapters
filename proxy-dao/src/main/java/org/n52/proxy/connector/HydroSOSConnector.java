@@ -33,8 +33,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -151,8 +151,10 @@ public class HydroSOSConnector extends AbstractSosConnector {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
                     featureCollection.getMembers().forEach((key, feature) -> {
                         String featureId = ConnectorHelper.addFeature((SamplingFeature) feature, serviceConstellation);
-                        serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId,
-                                phenomenonId, featureId));
+                        // TODO maybe not only MeasurementDatasetConstellation
+                        serviceConstellation.add(
+                                new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                                        phenomenonId, featureId));
                     });
                 }
             });

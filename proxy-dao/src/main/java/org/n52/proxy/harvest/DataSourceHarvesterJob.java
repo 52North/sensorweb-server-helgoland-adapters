@@ -38,18 +38,16 @@ import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.config.DataSourceJobConfiguration;
 import org.n52.proxy.connector.AbstractSosConnector;
-import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.proxy.db.da.InsertRepository;
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.series.db.beans.CategoryEntity;
+import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
-import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
-import org.n52.series.db.beans.UnitEntity;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
@@ -172,15 +170,10 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             offering.setService(service);
             final PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
             phenomenon.setService(service);
-            // add empty unit entity, will be replaced later in the repositories
-            final UnitEntity unit = EntityBuilder.createUnit("", service);
-
-            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null
-                    && unit != null) {
-                MeasurementDatasetEntity measurement = EntityBuilder.createMeasurementDataset(
-                        procedure, category, feature, offering, phenomenon, unit, service
-                );
-                insertRepository.insertDataset(measurement);
+            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null) {
+                DatasetEntity entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
+                        service);
+                insertRepository.insertDataset(entity);
                 LOGGER.info("Add dataset constellation: " + dataset);
             } else {
                 LOGGER.warn("Can't add dataset: " + dataset);

@@ -33,23 +33,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
+import org.n52.proxy.connector.utils.DataEntityBuilder;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
+import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
-import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.OmObservation;
-import org.n52.shetland.ogc.om.SingleObservationValue;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
-import org.n52.shetland.ogc.om.values.QuantityValue;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -104,7 +103,7 @@ public class SOS2Connector extends AbstractSosConnector {
                 query));
         List<DataEntity> data = new ArrayList<>();
         obsResp.getObservationCollection().forEach((observation) -> {
-            data.add(createDataEntity(observation));
+            data.add(createDataEntity(observation, seriesEntity));
         });
         LOGGER.info("Found " + data.size() + " Entries");
         return data;
@@ -116,7 +115,9 @@ public class SOS2Connector extends AbstractSosConnector {
                 .getObservationCollection()
                 .stream()
                 .findFirst()
-                .map(this::createDataEntity);
+                .map((obs) -> {
+                    return createDataEntity(obs, entity);
+                });
     }
 
     @Override
@@ -125,7 +126,9 @@ public class SOS2Connector extends AbstractSosConnector {
                 .getObservationCollection()
                 .stream()
                 .findFirst()
-                .map(this::createDataEntity);
+                .map((obs) -> {
+                    return createDataEntity(obs, entity);
+                });
     }
 
     @Override
@@ -139,15 +142,16 @@ public class SOS2Connector extends AbstractSosConnector {
         return null;
     }
 
-    private MeasurementDataEntity createDataEntity(OmObservation observation) {
-        MeasurementDataEntity entity = new MeasurementDataEntity();
-        SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
-        TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
-        entity.setTimestart(instant.getValue().toDate());
-        entity.setTimeend(instant.getValue().toDate());
-        QuantityValue value = (QuantityValue) obsValue.getValue();
-        entity.setValue(value.getValue());
-        return entity;
+    private DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
+        DataEntity dataEntity = null;
+        if (seriesEntity instanceof MeasurementDatasetEntity) {
+            dataEntity = DataEntityBuilder.createMeasurementDataEntity(observation);
+        } else if (seriesEntity instanceof CountDatasetEntity) {
+            dataEntity = DataEntityBuilder.createCountDataEntity(observation);
+        } else {
+            LOGGER.error("No supported datasetEntity for ", seriesEntity);
+        }
+        return dataEntity;
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
@@ -176,7 +180,9 @@ public class SOS2Connector extends AbstractSosConnector {
                 String phenomenonId = ConnectorHelper.addPhenomenon(dataAval, serviceConstellation);
                 String categoryId = ConnectorHelper.addCategory(dataAval, serviceConstellation);
                 String featureId = dataAval.getFeatureOfInterest().getHref();
-                serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId,
+                // TODO maybe not only MeasurementDatasetConstellation
+                serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                        phenomenonId,
                         featureId));
             });
 

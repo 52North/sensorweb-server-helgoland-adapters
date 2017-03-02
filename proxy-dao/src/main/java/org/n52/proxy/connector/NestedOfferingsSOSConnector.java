@@ -29,8 +29,8 @@
 package org.n52.proxy.connector;
 
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
 import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.shetland.ogc.gml.AbstractFeature;
@@ -99,7 +99,6 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //        // TODO implement
 //        return EntityBuilder.createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
 //    }
-
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
             String serviceUri) {
         relatedOfferings.getValue().forEach((context) -> {
@@ -108,24 +107,26 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                 LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
 //                if (relatedOffering.getTitle().equalsIgnoreCase(
 //                        "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
-                    GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
-                    response.getDataAvailabilities().forEach((dataAvail) -> {
-                        String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
-                        String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
-                        String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
-                        String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
-                        String featureId = dataAvail.getFeatureOfInterest().getHref();
-                        if (!serviceConstellation.hasFeature(featureId)) {
-                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
-                                    serviceUri);
-                            AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                            if (abstractFeature instanceof SamplingFeature) {
-                                ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
-                            }
+                GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
+                response.getDataAvailabilities().forEach((dataAvail) -> {
+                    String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
+                    String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
+                    String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
+                    String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
+                    String featureId = dataAvail.getFeatureOfInterest().getHref();
+                    if (!serviceConstellation.hasFeature(featureId)) {
+                        GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
+                                serviceUri);
+                        AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
+                        if (abstractFeature instanceof SamplingFeature) {
+                            ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
                         }
-                    serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId,
-                                        featureId));
-                    });
+                    }
+                    // TODO maybe not only MeasurementDatasetConstellation
+                    serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                            phenomenonId,
+                            featureId));
+                });
 //                }
             } catch (ProxyException ex) {
                 LOGGER.error(ex.getLocalizedMessage(), ex);
