@@ -68,30 +68,65 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         });
     }
 
+//    @Override
+//    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+//        // TODO implement
+//        return Optional.empty();
+//    }
+//
+//    @Override
+//    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+//        // TODO implement
+//        return Optional.empty();
+//    }
+//
+//    @Override
+//    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+//        List<DataEntity> data = new ArrayList<>();
+//        RecordDataEntity recordEntity = new RecordDataEntity();
+//        Map<String, Object> recordMap = Maps.newHashMap();
+//        recordMap.put("boolean", true);
+//        recordMap.put("double", 1.234d);
+//        recordMap.put("text", "asdf aksdjf öaskdjf öasdkfj");
+//        recordMap.put("number", 123);
+//        recordEntity.setValue(recordMap);
+//        data.add(recordEntity);
+//        return data;
+//    }
+//
+//    @Override
+//    public UnitEntity getUom(DatasetEntity seriesEntity) {
+//        // TODO implement
+//        return EntityBuilder.createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
+//    }
+
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
             String serviceUri) {
         relatedOfferings.getValue().forEach((context) -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
                 LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
-                GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
-                response.getDataAvailabilities().forEach((dataAvail) -> {
-                    String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
-                    String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
-                    String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
-                    String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
-                    String featureId = dataAvail.getFeatureOfInterest().getHref();
-                    if (!serviceConstellation.hasFeature(featureId)) {
-                        GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
-                                serviceUri);
-                        AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                        if (abstractFeature instanceof SamplingFeature) {
-                            ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+//                if (relatedOffering.getTitle().equalsIgnoreCase(
+//                        "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
+                    GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
+                    response.getDataAvailabilities().forEach((dataAvail) -> {
+                        String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
+                        String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
+                        String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
+                        String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
+                        String featureId = dataAvail.getFeatureOfInterest().getHref();
+                        if (!serviceConstellation.hasFeature(featureId)) {
+                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
+                                    serviceUri);
+                            AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
+                            if (abstractFeature instanceof SamplingFeature) {
+                                ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+                            }
                         }
-                    }
                     serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId,
-                            featureId));
-                });
+                                        featureId));
+                    });
+//                }
             } catch (ProxyException ex) {
                 LOGGER.error(ex.getLocalizedMessage(), ex);
             }
