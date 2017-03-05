@@ -16,6 +16,7 @@
     <modules>
         <module>proxy-dao</module>
         <module>proxy-mappings</module>
+        <module>proxy-cache</module>
         <module>proxy-webapp</module>
     </modules>
 
@@ -86,6 +87,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>proxy-mappings</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>proxy-cache</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
