@@ -92,6 +92,38 @@ public class InsertRepository extends SessionAwareRepository {
         }
     }
 
+    public void removeNonMatchingServices(Set<String> configuredUrls) {
+        Session session = getSession();
+        try {
+            new ProxyServiceDao(session).getAllServices().stream()
+                    .filter((t) -> !configuredUrls.contains(t.getUrl()))
+                    .forEach(this::removeService);
+        } finally {
+            returnSession(session);
+        }
+    }
+
+    private void removeService(ProxyServiceEntity service) {
+        Session session = getSession();
+        try {
+            Transaction transaction = session.beginTransaction();
+
+            new ProxyDatasetDao(session).removeAllOfService(service);
+            new ProxyCategoryDao(session).clearUnusedForService(service);
+            new ProxyOfferingDao(session).clearUnusedForService(service);
+            new ProxyProcedureDao(session).clearUnusedForService(service);
+            new ProxyFeatureDao(session).clearUnusedForService(service);
+            new ProxyPhenomenonDao(session).clearUnusedForService(service);
+            new ProxyRelatedFeatureDao(session).clearUnusedForService(service);
+            new ProxyServiceDao(session).deleteInstance(service);
+
+            session.flush();
+            transaction.commit();
+        } finally {
+            returnSession(session);
+        }
+    }
+
     public ProxyServiceEntity insertService(ProxyServiceEntity service) {
         Session session = getSession();
         try {

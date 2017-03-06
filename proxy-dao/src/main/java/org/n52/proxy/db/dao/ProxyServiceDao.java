@@ -28,6 +28,7 @@
  */
 package org.n52.proxy.db.dao;
 
+import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -65,6 +66,15 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
                 .add(Restrictions.eq(COLUMN_TYPE, service.getType()))
                 .add(Restrictions.eq(COLUMN_URL, service.getUrl()));
         return (ProxyServiceEntity) criteria.uniqueResult();
+    }
+
+    public List<ProxyServiceEntity> getAllServices() {
+        Criteria criteria = getDefaultCriteria();
+        return criteria.list();
+    }
+
+    public void deleteInstance(ProxyServiceEntity service) {
+        this.session.delete(service);
     }
 
 }

@@ -24,7 +24,7 @@ public class TextDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
-        EntityBuilder.updateDataset(textDataset, procedure, category, feature, offering, phenomenon, service);
+        EntityBuilder.updateDatasetEntity(textDataset, procedure, category, feature, offering, phenomenon, service);
         return textDataset;
     }
 

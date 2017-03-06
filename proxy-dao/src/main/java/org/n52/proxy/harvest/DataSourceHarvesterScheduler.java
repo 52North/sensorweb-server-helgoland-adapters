@@ -30,9 +30,12 @@ package org.n52.proxy.harvest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.ConfigurationReader;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.db.da.InsertRepository;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -40,6 +43,7 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DataSourceHarvesterScheduler {
 
@@ -55,6 +59,9 @@ public class DataSourceHarvesterScheduler {
 
     private boolean enabled = true;
 
+    @Autowired
+    private InsertRepository insertRepository;
+
     public void init() {
         if (!enabled) {
             LOGGER.info(
@@ -62,6 +69,13 @@ public class DataSourceHarvesterScheduler {
                     + " This is also true for particularly enabled jobs.");
             return;
         }
+
+        Set<String> configuredUrls = configurationProvider.getDataSource()
+                .stream()
+                .filter((t) ->  t.getJob().isEnabled())
+                .map((t) -> t.getUrl())
+                .collect(Collectors.toSet());
+        insertRepository.removeNonMatchingServices(configuredUrls);
 
         for (DataSourceConfiguration dataSourceConfig : configurationProvider.getDataSource()) {
             LOGGER.info(dataSourceConfig.getItemName() + " " + dataSourceConfig.getUrl());

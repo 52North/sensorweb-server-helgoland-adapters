@@ -30,7 +30,7 @@ public class CountDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         CountDatasetEntity countDataset = new CountDatasetEntity();
-        EntityBuilder.updateDataset(countDataset, procedure, category, feature, offering, phenomenon, service);
+        EntityBuilder.updateDatasetEntity(countDataset, procedure, category, feature, offering, phenomenon, service);
         countDataset.setFirstValueAt(new Date());
         countDataset.setLastValueAt(new Date());
         return countDataset;

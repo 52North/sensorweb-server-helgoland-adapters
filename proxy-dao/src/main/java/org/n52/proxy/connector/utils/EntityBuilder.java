@@ -38,7 +38,6 @@ import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
-import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.util.JTSHelper;
@@ -119,14 +118,7 @@ public class EntityBuilder {
         return entity;
     }
 
-    public static TextDatasetEntity createTextDataset(ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
-        TextDatasetEntity textDataset = new TextDatasetEntity();
-        updateDataset(textDataset, procedure, category, feature, offering, phenomenon, service);
-        return textDataset;
-    }
-
-    public static void updateDataset(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
+    public static void updateDatasetEntity(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
             FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         dataset.setProcedure(procedure);
         dataset.setCategory(category);

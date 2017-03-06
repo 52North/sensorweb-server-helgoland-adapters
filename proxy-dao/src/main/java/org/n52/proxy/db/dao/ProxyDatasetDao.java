@@ -32,6 +32,7 @@ import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
+import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -111,6 +112,18 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         session.flush();
     }
 
+    public void removeAllOfService(ProxyServiceEntity service) {
+        getDefaultCriteria()
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .list()
+                .forEach((dataset) -> session.delete(dataset));
+        session.createCriteria(UnitEntity.class)
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .list()
+                .forEach((unit) -> session.delete(unit));
+        session.flush();
+    }
+
     private UnitEntity getUnit(UnitEntity unit) {
         Criteria criteria = session.createCriteria(UnitEntity.class)
                 .add(Restrictions.eq("name", unit.getName()))
@@ -142,7 +155,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         // TODO find good solution to recreate the dataset entities
         Criteria criteria = getDefaultCriteria()
                 .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-//                .add(Restrictions.eq("deleted", Boolean.TRUE));
+                //                .add(Restrictions.eq("deleted", Boolean.TRUE));
                 .add(Restrictions.isNotNull("domainId"));
         return criteria.list();
     }
