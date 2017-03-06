@@ -28,7 +28,6 @@
  */
 package org.n52.proxy.db.da;
 
-import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
 import org.n52.io.response.dataset.measurement.MeasurementData;
@@ -78,14 +77,11 @@ public class ProxyMeasurementDataRepository
     @Override
     protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session)
             throws DataAccessException {
-        AbstractSosConnector connector = this.getConnector(seriesEntity);
         MeasurementData result = new MeasurementData();
-        List<DataEntity> observations = connector.getObservations(seriesEntity, query);
-        for (DataEntity observation : observations) {
-            if (observation != null) {
-                result.addValues(createSeriesValueFor((MeasurementDataEntity) observation, seriesEntity, query));
-            }
-        }
+        this.getConnector(seriesEntity)
+                .getObservations(seriesEntity, query).stream()
+                .map((entry) -> createSeriesValueFor((MeasurementDataEntity) entry, seriesEntity, query))
+                .forEach(entry -> result.addNewValue(entry));
         return result;
     }
 

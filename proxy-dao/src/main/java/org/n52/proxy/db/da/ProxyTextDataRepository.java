@@ -28,6 +28,53 @@
  */
 package org.n52.proxy.db.da;
 
-public class ProxyTextDataRepository extends org.n52.series.db.da.TextDataRepository {
-    // TODO implement methods to get Observation Data from SOS
+import java.util.Map;
+import org.hibernate.Session;
+import org.n52.io.response.dataset.text.TextData;
+import org.n52.io.response.dataset.text.TextValue;
+import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.DataAccessException;
+import org.n52.series.db.beans.DataEntity;
+import org.n52.series.db.beans.TextDataEntity;
+import org.n52.series.db.beans.TextDatasetEntity;
+import org.n52.series.db.dao.DbQuery;
+
+public class ProxyTextDataRepository extends org.n52.series.db.da.TextDataRepository
+        implements ProxyDataRepository<TextDatasetEntity, TextValue> {
+
+    private Map<String, AbstractSosConnector> connectorMap;
+
+    @Override
+    public void setConnectorMap(Map<String, AbstractSosConnector> connectorMap) {
+        this.connectorMap = connectorMap;
+    }
+
+    @Override
+    public TextValue getFirstValue(TextDatasetEntity entity, Session session, DbQuery query) {
+        DataEntity firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
+        return createSeriesValueFor((TextDataEntity) firstObs, entity, query);
+    }
+
+    @Override
+    public TextValue getLastValue(TextDatasetEntity entity, Session session, DbQuery query) {
+        DataEntity lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
+        return createSeriesValueFor((TextDataEntity) lastObs, entity, query);
+    }
+
+    @Override
+    protected TextData assembleData(TextDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+        TextData result = new TextData();
+        this.getConnector(seriesEntity)
+                .getObservations(seriesEntity, query).stream()
+                .map((entry) -> createSeriesValueFor((TextDataEntity) entry, seriesEntity, query))
+                .forEach(entry -> result.addNewValue(entry));
+        return result;
+    }
+
+    private AbstractSosConnector getConnector(TextDatasetEntity entity) {
+        String connectorName = ((ProxyServiceEntity) entity.getService()).getConnector();
+        return this.connectorMap.get(connectorName);
+    }
+
 }

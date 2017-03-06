@@ -43,6 +43,7 @@ import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.MeasurementDatasetEntity;
+import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
@@ -148,6 +149,8 @@ public class SOS2Connector extends AbstractSosConnector {
             dataEntity = DataEntityBuilder.createMeasurementDataEntity(observation);
         } else if (seriesEntity instanceof CountDatasetEntity) {
             dataEntity = DataEntityBuilder.createCountDataEntity(observation);
+        } else if (seriesEntity instanceof TextDatasetEntity) {
+            dataEntity = DataEntityBuilder.createTextDataEntity(observation);
         } else {
             LOGGER.error("No supported datasetEntity for ", seriesEntity);
         }

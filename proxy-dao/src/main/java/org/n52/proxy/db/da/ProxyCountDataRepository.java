@@ -30,9 +30,11 @@ package org.n52.proxy.db.da;
 
 import java.util.Map;
 import org.hibernate.Session;
+import org.n52.io.response.dataset.count.CountData;
 import org.n52.io.response.dataset.count.CountValue;
 import org.n52.proxy.connector.AbstractSosConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -58,6 +60,16 @@ public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepo
     public CountValue getLastValue(CountDatasetEntity entity, Session session, DbQuery query) {
         DataEntity lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((CountDataEntity) lastObs, entity, query);
+    }
+
+    @Override
+    protected CountData assembleData(CountDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+        CountData result = new CountData();
+        this.getConnector(seriesEntity)
+                .getObservations(seriesEntity, query).stream()
+                .map((entry) -> createSeriesValueFor((CountDataEntity) entry, seriesEntity, query))
+                .forEach(entry -> result.addNewValue(entry));
+        return result;
     }
 
     private AbstractSosConnector getConnector(CountDatasetEntity entity) {
