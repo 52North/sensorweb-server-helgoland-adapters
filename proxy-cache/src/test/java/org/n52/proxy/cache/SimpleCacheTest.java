@@ -8,8 +8,8 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class DatasetsCacheTest {
-    private DatasetsCache cache = new DatasetsCache();
+public class SimpleCacheTest {
+    private SimpleCache cache = new SimpleCache();
 
     @Test
     public void shouldReturnTrueIfCachedResponsePresent() {
@@ -23,5 +23,4 @@ public class DatasetsCacheTest {
 
         assertTrue(cache.isResponseCached(path, queryParams));
     }
-
 }

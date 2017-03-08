@@ -1,11 +1,10 @@
 package org.n52.proxy.cache;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class DatasetsCache {
-    private Map<String, byte[]> requestToResponse = new HashMap<>();
+public class SimpleCache {
+    private Map<String, byte[]> requestToResponse = new ConcurrentHashMap<>();
 
     public void put(String path, Map<String, String[]> queryParams, byte[] responseBody) {
         requestToResponse.put(requestParamsToString(path, queryParams), responseBody);
@@ -15,12 +14,11 @@ public class DatasetsCache {
         return requestToResponse.containsKey(requestParamsToString(path, queryParams));
     }
 
-    //todo sort
-    //todo sort different params in one param
     private String requestParamsToString(String path, Map<String, String[]> queryParams) {
         StringBuilder builder = new StringBuilder();
         builder.append(path);
-        for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
+        SortedMap<String, String[]> sortedParams = new TreeMap<>(queryParams);
+        for (Map.Entry<String, String[]> entry : sortedParams.entrySet()) {
             builder.append(",")
                     .append(entry.getKey())
                     .append("=")

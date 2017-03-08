@@ -17,7 +17,7 @@ import java.util.Set;
 public class CachingFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(CachingFilter.class);
 
-    private DatasetsCache cache = new DatasetsCache();
+    private SimpleCache cache = new SimpleCache();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -45,6 +45,7 @@ public class CachingFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
+
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         if (!request.getPathInfo().endsWith("/data")) {
             filterChain.doFilter(servletRequest, servletResponse);
@@ -56,6 +57,7 @@ public class CachingFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
+
         filterChain.doFilter(servletRequest, servletResponse);
         LOG.info("End of caching filtering");
     }
