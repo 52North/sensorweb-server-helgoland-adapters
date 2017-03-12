@@ -16,8 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
+import java.util.Map;
+
+import static org.n52.proxy.cache.SimpleCache.requestParamsToString;
 
 public class CachingFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(CachingFilter.class);
@@ -40,22 +41,23 @@ public class CachingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         LOG.info("Doing caching filtering");
-
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        if (request.getPathInfo() == null || !request.getPathInfo().endsWith("/data")) {
+        String targetPath = request.getPathInfo();
+        Map<String, String[]> queryParams = request.getParameterMap();
+        if (targetPath == null || !targetPath.endsWith("/data")) {
             filterChain.doFilter(servletRequest, servletResponse);
-            return;
-        }
-
-        Set<String> requestParametersNames = request.getParameterMap().keySet();
-        if (!requestParametersNames.contains("timespan")) {
+        } else if (!queryParams.keySet().contains("timespan")) {
             filterChain.doFilter(servletRequest, servletResponse);
-            return;
+        } else if (cache.isResponseCached(targetPath, queryParams)) {
+            LOG.info("Found cached response for query {}", requestParamsToString(targetPath, queryParams));
+            servletResponse.getOutputStream().write(cache.getCachedResponse(targetPath, queryParams));
+        } else {
+            LOG.info("No cached response for query {}. Saving response to cache",
+                    requestParamsToString(targetPath, queryParams));
+            ResponseRecordingWrapper wrapper = new ResponseRecordingWrapper((HttpServletResponse) servletResponse);
+            filterChain.doFilter(request, wrapper);
+            cache.put(targetPath, queryParams, wrapper.getBody());
         }
-
-        ResponseRecordingWrapper wrapper = new ResponseRecordingWrapper((HttpServletResponse) servletResponse);
-        filterChain.doFilter(request, wrapper);
-        LOG.info("Response payload:\n{}", wrapper.getBody());
         LOG.info("End of caching filtering");
     }
 
@@ -83,8 +85,8 @@ public class CachingFilter implements Filter {
             };
         }
 
-        public String getBody() {
-            return new String(output.toByteArray(), StandardCharsets.UTF_8);
+        public byte[] getBody() {
+            return output.toByteArray();
         }
     }
 }

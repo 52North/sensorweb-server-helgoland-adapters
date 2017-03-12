@@ -17,7 +17,11 @@ public class SimpleCache {
         return requestToResponse.containsKey(requestParamsToString(path, queryParams));
     }
 
-    private String requestParamsToString(String path, Map<String, String[]> queryParams) {
+    public byte[] getCachedResponse(String path, Map<String, String[]> queryParams) {
+        return requestToResponse.get(requestParamsToString(path, queryParams));
+    }
+
+    public static String requestParamsToString(String path, Map<String, String[]> queryParams) {
         StringBuilder builder = new StringBuilder();
         builder.append(path);
         SortedMap<String, String[]> sortedParams = new TreeMap<>(queryParams);
