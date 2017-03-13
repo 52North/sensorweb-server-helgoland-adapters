@@ -29,6 +29,7 @@ package org.n52.proxy;
  * for more details.
  */
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.http.HttpResponse;
@@ -37,14 +38,20 @@ import org.apache.xmlbeans.XmlObject;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.n52.io.request.IoParameters;
+import org.n52.io.request.Parameters;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.AbstractSosConnector;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.harvest.DataSourceHarvesterJob;
 import org.n52.proxy.web.SimpleHttpClient;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.dao.DbQueryFactory;
+import org.n52.series.db.dao.DefaultDbQueryFactory;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
@@ -55,7 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@Ignore
+//@Ignore
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:artic-sea-test.xml"})
 public class SosConnectorTest {
@@ -141,7 +148,7 @@ public class SosConnectorTest {
 //        LOGGER.info(uom.getName());
     }
 
-//    @Test
+    @Test
     public void collectArpaV5() {
         DataSourceConfiguration config = new DataSourceConfiguration();
         config.setItemName("arpav5");
@@ -184,6 +191,17 @@ public class SosConnectorTest {
         GetCapabilitiesResponse capabilities = createCapabilities(config);
         AbstractSosConnector connector = getConnector(config, capabilities);
         printConstellation(connector.getConstellation(config, capabilities));
+        MeasurementDatasetEntity entity = new MeasurementDatasetEntity();
+        entity.setProcedure(EntityBuilder.createProcedure("http://ressource.brgm-rec.fr/methode/GeologicLog", "http://ressource.brgm-rec.fr/methode/GeologicLog", true, false, null));
+        entity.setOffering(EntityBuilder.createOffering("http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU", "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU", null));
+        entity.setCategory(EntityBuilder.createCategory("http://www.opengis.net/def/gwml/2.0/observedProperty/geologicAge", "http://www.opengis.net/def/gwml/2.0/observedProperty/geologicAge", null));
+        entity.setPhenomenon(EntityBuilder.createPhenomenon("http://www.opengis.net/def/gwml/2.0/observedProperty/geologicAge", "http://www.opengis.net/def/gwml/2.0/observedProperty/geologicAge", null));
+        entity.setFeature(EntityBuilder.createFeature("http://ressource.brgm-rec.fr/data/Borehole/BSS000AAEU", "http://ressource.brgm-rec.fr/data/Borehole/BSS000AAEU", null, null));
+        entity.setService(EntityBuilder.createService(serviceName, "bla", "", url, ""));
+        IoParameters parameters = IoParameters.createDefaults().extendWith(Parameters.TIMESPAN, "1900-11-19T01:48:21+01:00/2017-01-1T15:07:20+02:00");
+        List<DataEntity> observations = connector.getObservations(entity, new DefaultDbQueryFactory().createFrom(
+                parameters));
+        LOGGER.info(observations.toString());
     }
 
     private void printConstellation(ServiceConstellation constellation) {
@@ -196,7 +214,7 @@ public class SosConnectorTest {
         constellation.getOfferings().forEach((id, entity) -> {
             LOGGER.info("Offering: " + id + " - " + entity.getName());
         });
-        constellation.getPhenomenons().forEach((id, entity) -> {
+        constellation.getPhenomena().forEach((id, entity) -> {
             LOGGER.info("Phenomenon: " + id + " - " + entity.getName());
         });
         constellation.getProcedures().forEach((id, entity) -> {
@@ -210,7 +228,7 @@ public class SosConnectorTest {
         sb.append(constellation.getCategories().size()).append(" Categories - ");
         sb.append(constellation.getFeatures().size()).append(" Features - ");
         sb.append(constellation.getOfferings().size()).append(" Offerings - ");
-        sb.append(constellation.getPhenomenons().size()).append(" Phenomena - ");
+        sb.append(constellation.getPhenomena().size()).append(" Phenomena - ");
         sb.append(constellation.getProcedures().size()).append(" Procedures - ");
         sb.append(constellation.getDatasets().size()).append(" Datasets");
         LOGGER.info(sb.toString());

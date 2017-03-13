@@ -22,6 +22,7 @@
     <bean class="org.n52.proxy.connector.SOS2Connector"/>
     <bean class="org.n52.proxy.connector.TrajectorySOSConnector"/>
     <bean class="org.n52.proxy.connector.HydroSOSConnector"/>
+    <bean class="org.n52.proxy.connector.NestedOfferingsSOSConnector"/>
 
     <!--<import resource="spi-impl-dao_tasks.xml" />-->
 

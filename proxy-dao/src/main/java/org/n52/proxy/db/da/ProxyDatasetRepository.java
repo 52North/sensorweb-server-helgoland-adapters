@@ -47,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da.DatasetRepository<T> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetRepository.class);
 
     private Map<String, AbstractSosConnector> connectorMap = new HashMap<>();
 
@@ -59,7 +59,8 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
     }
 
     @Override
-    protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session) throws DataAccessException {
+    protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
+            throws DataAccessException {
         if (series.getUnit() == null || Strings.isNullOrEmpty(series.getUnit().getName())) {
             String connectorName = ((ProxyServiceEntity) series.getService()).getConnector();
             AbstractSosConnector connector = connectorMap.get(connectorName);

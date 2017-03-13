@@ -78,7 +78,8 @@ public class DataSourceConfiguration {
 
     @Override
     public String toString() {
-        return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url + ", version=" + version + ", connector=" + connector + "}";
+        return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url
+                + ", version=" + version + ", connector=" + connector + "}";
     }
 
 }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.n52</groupId>
         <artifactId>parent</artifactId>
-        <version>4</version>
+        <version>7</version>
     </parent>
     <groupId>org.n52.series-api</groupId>
     <artifactId>series-sos-proxy</artifactId>
@@ -64,6 +64,7 @@
         <hibernate.spatial.version>4.3.1-52N</hibernate.spatial.version>
         <svalbard.version>1-SNAPSHOT</svalbard.version>
         <shetland.version>1-SNAPSHOT</shetland.version>
+        <janmayen.version>1-SNAPSHOT</janmayen.version>
         <iceland.version>2-SNAPSHOT</iceland.version>
         <series.api.version>2.0.0-SNAPSHOT</series.api.version>
 
@@ -119,6 +120,11 @@
                 <groupId>org.n52.shetland</groupId>
                 <artifactId>shetland</artifactId>
                 <version>${shetland.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.janmayen</groupId>
+                <artifactId>janmayen</artifactId>
+                <version>${janmayen.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.iceland</groupId>

@@ -28,7 +28,6 @@
  */
 package org.n52.proxy.db.dao;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;

@@ -30,20 +30,24 @@ package org.n52.proxy.harvest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.ConfigurationReader;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.db.da.InsertRepository;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import static org.quartz.TriggerBuilder.newTrigger;
+import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DataSourceHarvesterScheduler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
 
     private ConfigurationReader configurationProvider;
 
@@ -55,11 +59,23 @@ public class DataSourceHarvesterScheduler {
 
     private boolean enabled = true;
 
+    @Autowired
+    private InsertRepository insertRepository;
+
     public void init() {
         if (!enabled) {
-            LOGGER.info("Job schedular disabled. No jobs will be triggered. This is also true for particularly enabled jobs.");
+            LOGGER.info(
+                    "Job schedular disabled. No jobs will be triggered."
+                    + " This is also true for particularly enabled jobs.");
             return;
         }
+
+        Set<String> configuredUrls = configurationProvider.getDataSource()
+                .stream()
+                .filter((t) ->  t.getJob().isEnabled())
+                .map((t) -> t.getUrl())
+                .collect(Collectors.toSet());
+        insertRepository.removeNonMatchingServices(configuredUrls);
 
         for (DataSourceConfiguration dataSourceConfig : configurationProvider.getDataSource()) {
             LOGGER.info(dataSourceConfig.getItemName() + " " + dataSourceConfig.getUrl());
@@ -84,7 +100,7 @@ public class DataSourceHarvesterScheduler {
                 scheduler.scheduleJob(details, trigger);
                 if (taskToSchedule.isTriggerAtStartup()) {
                     LOGGER.debug("Schedule job '{}' to run once at startup.", details.getKey());
-                    Trigger onceAtStartup = newTrigger()
+                    Trigger onceAtStartup = TriggerBuilder.newTrigger()
                             .withIdentity(details.getKey() + "_onceAtStartup")
                             .forJob(details.getKey()).build();
                     scheduler.scheduleJob(onceAtStartup);

@@ -31,9 +31,10 @@ package org.n52.proxy.connector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.DatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -59,6 +60,7 @@ import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
 import org.n52.shetland.ogc.sos.request.GetObservationRequest;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -66,7 +68,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HydroSOSConnector extends AbstractSosConnector {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
 
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
@@ -76,15 +78,11 @@ public class HydroSOSConnector extends AbstractSosConnector {
     @Override
     public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
-        try {
-            config.setVersion(Sos2Constants.SERVICEVERSION);
-            config.setConnector(getConnectorName());
-            ConnectorHelper.addService(config, serviceConstellation);
-            SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
-            addDatasets(serviceConstellation, sosCaps, config.getUrl());
-        } catch (UnsupportedOperationException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        }
+        config.setVersion(Sos2Constants.SERVICEVERSION);
+        config.setConnector(getConnectorName());
+        ConnectorHelper.addService(config, serviceConstellation);
+        SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
+        addDatasets(serviceConstellation, sosCaps, config.getUrl());
         return serviceConstellation;
     }
 
@@ -112,25 +110,29 @@ public class HydroSOSConnector extends AbstractSosConnector {
 
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        // TODO implement
+        throw new UnsupportedOperationException("getUom not supported yet.");
     }
 
     @Override
-    public DataEntity getFirstObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+        // TODO implement
+        throw new UnsupportedOperationException("getFirstObservation not supported yet.");
     }
 
     @Override
-    public DataEntity getLastObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+        // TODO implement
+        throw new UnsupportedOperationException("getLastObservation not supported yet.");
     }
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
         if (sosCaps != null) {
-            sosCaps.getContents().get().forEach((obsOff) -> {
-                addByOffering(obsOff, serviceConstellation, url);
+            sosCaps.getContents().ifPresent((obsOffs) -> {
+                obsOffs.forEach((obsOff) -> {
+                    addByOffering(obsOff, serviceConstellation, url);
+                });
             });
-//            addByOffering(sosCaps.getContents().get().first(), serviceConstellation, url);
         }
     }
 
@@ -149,7 +151,10 @@ public class HydroSOSConnector extends AbstractSosConnector {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
                     featureCollection.getMembers().forEach((key, feature) -> {
                         String featureId = ConnectorHelper.addFeature((SamplingFeature) feature, serviceConstellation);
-                        serviceConstellation.add(new DatasetConstellation(procedureId, offeringId, categoryId, phenomenonId, featureId));
+                        // TODO maybe not only MeasurementDatasetConstellation
+                        serviceConstellation.add(
+                                new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                                        phenomenonId, featureId));
                     });
                 }
             });
@@ -157,7 +162,8 @@ public class HydroSOSConnector extends AbstractSosConnector {
     }
 
     private GetFeatureOfInterestResponse getFeatureOfInterestResponse(String procedureId, String url) {
-        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
+        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SosConstants.SOS,
+                Sos2Constants.SERVICEVERSION);
         request.setProcedures(new ArrayList<>(Arrays.asList(procedureId)));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
     }
@@ -169,8 +175,10 @@ public class HydroSOSConnector extends AbstractSosConnector {
         request.setObservedProperties(new ArrayList<>(Arrays.asList(seriesEntity.getPhenomenon().getDomainId())));
         request.setFeatureIdentifiers(new ArrayList<>(Arrays.asList(seriesEntity.getFeature().getDomainId())));
         Time time = new TimePeriod(query.getTimespan().getStart(), query.getTimespan().getEnd());
-        TemporalFilter temporalFilter = new TemporalFilter(FilterConstants.TimeOperator.TM_During, time, "phenomenonTime");
+        TemporalFilter temporalFilter = new TemporalFilter(FilterConstants.TimeOperator.TM_During, time,
+                "phenomenonTime");
         request.setTemporalFilters(new ArrayList<>(Arrays.asList(temporalFilter)));
-        return (GetObservationResponse) this.getSosResponseFor(request, Sos2Constants.NS_SOS_20, seriesEntity.getService().getUrl());
+        return (GetObservationResponse) this.getSosResponseFor(request, Sos2Constants.NS_SOS_20,
+                seriesEntity.getService().getUrl());
     }
 }

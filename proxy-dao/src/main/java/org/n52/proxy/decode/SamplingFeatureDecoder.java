@@ -194,7 +194,7 @@ public class SamplingFeatureDecoder extends AbstractGmlDecoderv321<XmlObject, Ab
             }
         }
         throw new DecodingException(Sos2Constants.InsertObservationParams.observation,
-                "The requested geometry type of featureOfInterest is not supported by this service!");
+                "The requested geometry type of featureOfInterest is of wrong length!");
     }
 
 }

@@ -63,7 +63,7 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq("service.pkid", service.getPkid()))
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .add(Subqueries.propertyNotIn("pkid", createDetachedDatasetFilter()));
         criteria.list().forEach(entry -> {
             session.delete(entry);

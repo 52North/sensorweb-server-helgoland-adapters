@@ -34,9 +34,11 @@ import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.FilterConstants;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.CodeType;
+import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
+import org.n52.shetland.ogc.om.OmConstants;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
@@ -48,7 +50,8 @@ import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability
 public class ConnectorHelper {
 
     public static void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation) {
-        serviceConstellation.setService(EntityBuilder.createService(config.getItemName(), "here goes description", config.getConnector(), config.getUrl(), config.getVersion()));
+        serviceConstellation.setService(EntityBuilder.createService(config.getItemName(), "here goes description",
+                config.getConnector(), config.getUrl(), config.getVersion()));
     }
 
     public static String addOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation) {
@@ -62,12 +65,21 @@ public class ConnectorHelper {
         return offeringId;
     }
 
-    public static String addProcedure(String procedureId, boolean insitu, boolean mobile, ServiceConstellation serviceConstellation) {
+    public static String addOffering(ReferenceType offering, ServiceConstellation serviceConstellation) {
+        String offeringId = offering.getHref();
+        String offeringName = offering.getTitle();
+        serviceConstellation.putOffering(offeringId, offeringName);
+        return offeringId;
+    }
+
+    public static String addProcedure(String procedureId, boolean insitu, boolean mobile,
+            ServiceConstellation serviceConstellation) {
         serviceConstellation.putProcedure(procedureId, procedureId, insitu, mobile);
         return procedureId;
     }
 
-    public static String addProcedure(DataAvailability dataAval, boolean insitu, boolean mobile, ServiceConstellation serviceConstellation) {
+    public static String addProcedure(DataAvailability dataAval, boolean insitu, boolean mobile,
+            ServiceConstellation serviceConstellation) {
         String procedureId = dataAval.getProcedure().getHref();
         String procedureName = dataAval.getProcedure().getTitle();
         serviceConstellation.putProcedure(procedureId, procedureName, insitu, mobile);
@@ -115,21 +127,24 @@ public class ConnectorHelper {
 
     public static TemporalFilter createFirstTimefilter() {
         Time time = new TimeInstant(ExtendedIndeterminateTime.FIRST);
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, "phenomenonTime");
+        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, OmConstants.PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createLatestTimefilter() {
         Time time = new TimeInstant(ExtendedIndeterminateTime.LATEST);
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, "phenomenonTime");
+        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, OmConstants.PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createTimePeriodFilter(DbQuery query) {
         Time time = new TimePeriod(query.getTimespan().getStart(), query.getTimespan().getEnd());
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_During, time, "phenomenonTime");
+        return new TemporalFilter(FilterConstants.TimeOperator.TM_During, time, OmConstants.PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createTimeInstantFilter(DateTime dateTime) {
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, new TimeInstant(dateTime), "phenomenonTime");
+        return new TemporalFilter(
+                FilterConstants.TimeOperator.TM_Equals,
+                new TimeInstant(dateTime),
+                OmConstants.PHENOMENON_TIME_NAME);
     }
 
 }

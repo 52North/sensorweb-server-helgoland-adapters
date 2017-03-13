@@ -30,7 +30,6 @@ package org.n52.proxy.db.dao;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.n52.proxy.db.beans.RelatedFeatureRoleEntity;
@@ -39,7 +38,8 @@ import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.AbstractDao;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEntity> implements InsertDao<RelatedFeatureRoleEntity>, ClearDao<RelatedFeatureRoleEntity> {
+public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEntity>
+        implements InsertDao<RelatedFeatureRoleEntity>, ClearDao<RelatedFeatureRoleEntity> {
 
 
     private static final String SERIES_PROPERTY = "relatedFeature";
@@ -85,7 +85,7 @@ public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEn
     }
 
     private RelatedFeatureRoleEntity getInstance(RelatedFeatureRoleEntity relatedFeature) {
-        Criteria criteria = session.createCriteria(getEntityClass());;
+        Criteria criteria = session.createCriteria(getEntityClass());
         return (RelatedFeatureRoleEntity) criteria.uniqueResult();
     }
 
