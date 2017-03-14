@@ -18,8 +18,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.n52.proxy.cache.SimpleCache.requestParamsToString;
-
 public class CachingFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(CachingFilter.class);
 
@@ -39,7 +37,8 @@ public class CachingFilter implements Filter {
      * 6. Write returned values to the cache
      */
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
+            throws IOException, ServletException {
         LOG.info("Doing caching filtering");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String targetPath = request.getPathInfo();
@@ -49,11 +48,11 @@ public class CachingFilter implements Filter {
         } else if (!queryParams.keySet().contains("timespan")) {
             filterChain.doFilter(servletRequest, servletResponse);
         } else if (cache.isResponseCached(targetPath, queryParams)) {
-            LOG.info("Found cached response for query {}", requestParamsToString(targetPath, queryParams));
+            LOG.info("Found cached response for query {}", SimpleCache.requestParamsToString(targetPath, queryParams));
             servletResponse.getOutputStream().write(cache.getCachedResponse(targetPath, queryParams));
         } else {
             LOG.info("No cached response for query {}. Saving response to cache",
-                    requestParamsToString(targetPath, queryParams));
+                    SimpleCache.requestParamsToString(targetPath, queryParams));
             ResponseRecordingWrapper wrapper = new ResponseRecordingWrapper((HttpServletResponse) servletResponse);
             filterChain.doFilter(request, wrapper);
             cache.put(targetPath, queryParams, wrapper.getBody());
@@ -66,10 +65,10 @@ public class CachingFilter implements Filter {
         LOG.info("Destroying caching filter");
     }
 
-    class ResponseRecordingWrapper extends HttpServletResponseWrapper {
+    private static class ResponseRecordingWrapper extends HttpServletResponseWrapper {
         private ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        public ResponseRecordingWrapper(HttpServletResponse response) {
+        ResponseRecordingWrapper(HttpServletResponse response) {
             super(response);
         }
 
