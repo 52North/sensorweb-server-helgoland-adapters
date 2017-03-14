@@ -6,7 +6,7 @@
             "version": "2.0.0",
             "job": {
                 "cronExpression": "0 0 0/1 * * ?",
-                "enabled": true,
+                "enabled": false,
                 "triggerAtStartup": true
             }
         },

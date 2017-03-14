@@ -30,24 +30,17 @@ package org.n52.proxy.db.dao;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.n52.proxy.db.beans.RelatedFeatureEntity;
-import org.n52.proxy.db.beans.RelatedFeatureRoleEntity;
 import org.n52.series.db.DataAccessException;
-import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.AbstractDao;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyRelatedFeatureDao extends AbstractDao<RelatedFeatureEntity> implements InsertDao<RelatedFeatureEntity>, ClearDao<RelatedFeatureEntity> {
-
+public class ProxyRelatedFeatureDao extends AbstractDao<RelatedFeatureEntity>
+        implements InsertDao<RelatedFeatureEntity>, ClearDao<RelatedFeatureEntity> {
 
     private static final String SERIES_PROPERTY = "relatedFeature";
 

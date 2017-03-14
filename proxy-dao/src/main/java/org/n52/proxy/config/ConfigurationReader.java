@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class ConfigurationReader {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
 
     private static final String CONFIG_FILE = "/config-data-sources.json";
 

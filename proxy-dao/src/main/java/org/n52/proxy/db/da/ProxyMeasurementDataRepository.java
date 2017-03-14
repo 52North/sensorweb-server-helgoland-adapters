@@ -28,7 +28,6 @@
  */
 package org.n52.proxy.db.da;
 
-import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
 import org.n52.io.response.dataset.measurement.MeasurementData;
@@ -41,7 +40,7 @@ import org.n52.series.db.beans.MeasurementDataEntity;
 import org.n52.series.db.beans.MeasurementDatasetEntity;
 import org.n52.series.db.dao.DbQuery;
 
-public class MeasurementDataRepository
+public class ProxyMeasurementDataRepository
         extends org.n52.series.db.da.MeasurementDataRepository
         implements ProxyDataRepository<MeasurementDatasetEntity, MeasurementValue> {
 
@@ -59,31 +58,30 @@ public class MeasurementDataRepository
 
     @Override
     public MeasurementValue getFirstValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity);
+        DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
         return createSeriesValueFor((MeasurementDataEntity) firstObservation, entity, query);
     }
 
     @Override
     public MeasurementValue getLastValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity);
+        DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((MeasurementDataEntity) lastObservation, entity, query);
     }
 
     @Override
-    protected MeasurementData assembleDataWithReferenceValues(MeasurementDatasetEntity datasetEntity, DbQuery dbQuery, Session session) throws DataAccessException {
+    protected MeasurementData assembleDataWithReferenceValues(MeasurementDatasetEntity datasetEntity, DbQuery dbQuery,
+            Session session) throws DataAccessException {
         return assembleData(datasetEntity, dbQuery, session);
     }
 
     @Override
-    protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
-        AbstractSosConnector connector = this.getConnector(seriesEntity);
+    protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session)
+            throws DataAccessException {
         MeasurementData result = new MeasurementData();
-        List<DataEntity> observations = connector.getObservations(seriesEntity, query);
-        for (DataEntity observation : observations) {
-            if (observation != null) {
-                result.addValues(createSeriesValueFor((MeasurementDataEntity) observation, seriesEntity, query));
-            }
-        }
+        this.getConnector(seriesEntity)
+                .getObservations(seriesEntity, query).stream()
+                .map((entry) -> createSeriesValueFor((MeasurementDataEntity) entry, seriesEntity, query))
+                .forEach(entry -> result.addNewValue(entry));
         return result;
     }
 

@@ -23,7 +23,7 @@ import static org.n52.proxy.cache.SimpleCache.requestParamsToString;
 public class CachingFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(CachingFilter.class);
 
-    private SimpleCache cache = new SimpleCache();
+    private final SimpleCache cache = new SimpleCache();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

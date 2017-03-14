@@ -30,16 +30,14 @@ package org.n52.proxy.db.beans;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;
 
-
 public class RelatedFeatureEntity {
 
     public static final String FEATURE = "feature";
-    public final static String SERVICE = "service";
+    public static final String SERVICE = "service";
 
     private long relatedFeatureId;
     private FeatureEntity feature;
@@ -91,7 +89,7 @@ public class RelatedFeatureEntity {
         if (offerings instanceof Set<?>) {
             this.offerings = (Set<OfferingEntity>) offerings;
         } else {
-            getOfferings().add((OfferingEntity)offerings);
+            getOfferings().add((OfferingEntity) offerings);
         }
     }
 }
