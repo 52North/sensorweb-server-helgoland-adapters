@@ -46,13 +46,13 @@ import org.n52.proxy.db.dao.ProxyProcedureDao;
 import org.n52.proxy.db.dao.ProxyRelatedFeatureDao;
 import org.n52.proxy.db.dao.ProxyRelatedFeatureRoleDao;
 import org.n52.proxy.db.dao.ProxyServiceDao;
-import org.n52.series.db.SessionAwareRepository;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.da.SessionAwareRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

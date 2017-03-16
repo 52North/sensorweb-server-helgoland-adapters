@@ -27,7 +27,7 @@
  * for more details.
  */
 package org.n52.proxy.connector.utils;
- 
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
