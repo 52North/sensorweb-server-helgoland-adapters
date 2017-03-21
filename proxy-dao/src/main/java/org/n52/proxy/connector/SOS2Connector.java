@@ -143,7 +143,7 @@ public class SOS2Connector extends AbstractSosConnector {
         return null;
     }
 
-    private DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
+    protected DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         DataEntity dataEntity = null;
         if (seriesEntity instanceof MeasurementDatasetEntity) {
             dataEntity = DataEntityBuilder.createMeasurementDataEntity(observation);
@@ -214,7 +214,7 @@ public class SOS2Connector extends AbstractSosConnector {
         return (GetDataAvailabilityResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, serviceUri);
     }
 
-    private GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
+    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
             TemporalFilter temporalFilter) {
         GetObservationRequest request = new GetObservationRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
         request.setProcedures(new ArrayList<>(Arrays.asList(seriesEntity.getProcedure().getDomainId())));

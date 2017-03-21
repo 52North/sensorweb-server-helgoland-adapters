@@ -28,11 +28,23 @@
  */
 package org.n52.proxy.connector;
 
+import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
+import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.beans.DataEntity;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.RecordDataEntity;
+import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
@@ -41,6 +53,7 @@ import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
+import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
 import org.slf4j.Logger;
@@ -68,18 +81,18 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         });
     }
 
-//    @Override
-//    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-//        // TODO implement
-//        return Optional.empty();
-//    }
-//
-//    @Override
-//    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-//        // TODO implement
-//        return Optional.empty();
-//    }
-//
+    @Override
+    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+        // TODO implement
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+        // TODO implement
+        return Optional.empty();
+    }
+
 //    @Override
 //    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
 //        List<DataEntity> data = new ArrayList<>();
@@ -93,41 +106,54 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //        data.add(recordEntity);
 //        return data;
 //    }
-//
-//    @Override
-//    public UnitEntity getUom(DatasetEntity seriesEntity) {
-//        // TODO implement
-//        return EntityBuilder.createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
-//    }
+    @Override
+    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+        GetObservationResponse obsResp = createObservationResponse(seriesEntity, ConnectorHelper.createTimePeriodFilter(
+                query));
+        List<DataEntity> data = new ArrayList<>();
+        obsResp.getObservationCollection().forEach((observation) -> {
+            data.add(createDataEntity(observation, seriesEntity));
+        });
+        LOGGER.info("Found " + data.size() + " Entries");
+        return data;
+    }
+
+    @Override
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
+        // TODO implement
+        return EntityBuilder.createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
+    }
+
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
             String serviceUri) {
         relatedOfferings.getValue().forEach((context) -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
                 LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
-//                if (relatedOffering.getTitle().equalsIgnoreCase(
-//                        "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
-                GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
-                response.getDataAvailabilities().forEach((dataAvail) -> {
-                    String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
-                    String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
-                    String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
-                    String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
-                    String featureId = dataAvail.getFeatureOfInterest().getHref();
-                    if (!serviceConstellation.hasFeature(featureId)) {
-                        GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
-                                serviceUri);
-                        AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                        if (abstractFeature instanceof SamplingFeature) {
-                            ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+                if (relatedOffering.getTitle().equalsIgnoreCase(
+                        "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
+                    GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
+                    response.getDataAvailabilities().forEach((dataAvail) -> {
+                        String procedureId = ConnectorHelper.addProcedure(dataAvail, true, false, serviceConstellation);
+                        String phenomenonId = ConnectorHelper.addPhenomenon(dataAvail, serviceConstellation);
+                        String categoryId = ConnectorHelper.addCategory(dataAvail, serviceConstellation);
+                        String offeringId = ConnectorHelper.addOffering(dataAvail.getOffering(), serviceConstellation);
+                        String featureId = dataAvail.getFeatureOfInterest().getHref();
+                        if (!serviceConstellation.hasFeature(featureId)) {
+                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
+                                    serviceUri);
+                            AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
+                            if (abstractFeature instanceof SamplingFeature) {
+                                ConnectorHelper.addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+                            }
                         }
-                    }
-                    // TODO maybe not only MeasurementDatasetConstellation
-                    serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
-                            phenomenonId,
-                            featureId));
-                });
-//                }
+                        // TODO maybe not only MeasurementDatasetConstellation
+                        serviceConstellation.add(
+                                new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                                        phenomenonId,
+                                        featureId));
+                    });
+                }
             } catch (ProxyException ex) {
                 LOGGER.error(ex.getLocalizedMessage(), ex);
             }

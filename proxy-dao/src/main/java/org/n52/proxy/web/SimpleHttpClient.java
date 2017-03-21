@@ -50,9 +50,9 @@ public class SimpleHttpClient implements HttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
 
-    private static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
 
-    private static final int DEFAULT_SOCKET_TIMEOUT = 5000;
+    private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
 
     private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", Consts.UTF_8);
 
