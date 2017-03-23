@@ -37,7 +37,9 @@ import org.apache.xmlbeans.XmlObject;
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.config.DataSourceJobConfiguration;
+import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.SensorThingsConnector;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.proxy.db.da.InsertRepository;
@@ -71,6 +73,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
 
     private static final String JOB_CONNECTOR = "connector";
+    private static final String JOB_TYPE = "type";
     private static final String JOB_VERSION = "version";
     private static final String JOB_NAME = "name";
     private static final String JOB_URL = "url";
@@ -84,7 +87,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     private DecoderRepository decoderRepository;
 
     @Autowired
-    private Set<AbstractSosConnector> connectors;
+    private Set<AbstractConnector> connectors;
 
     public DataSourceConfiguration getConfig() {
         return config;
@@ -102,6 +105,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 .usingJobData(JOB_NAME, config.getItemName())
                 .usingJobData(JOB_VERSION, config.getVersion())
                 .usingJobData(JOB_CONNECTOR, config.getConnector())
+                .usingJobData(JOB_TYPE, config.getType())
                 .build();
     }
 
@@ -111,6 +115,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         createdConfig.setItemName(jobDataMap.getString(JOB_NAME));
         createdConfig.setVersion(jobDataMap.getString(JOB_VERSION));
         createdConfig.setConnector(jobDataMap.getString(JOB_CONNECTOR));
+        createdConfig.setType(jobDataMap.getString(JOB_TYPE));
         return createdConfig;
     }
 
@@ -122,16 +127,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         JobDataMap jobDataMap = jobDetail.getJobDataMap();
 
         DataSourceConfiguration dataSource = recreateConfig(jobDataMap);
-        GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
 
-        ServiceConstellation constellation = null;
-        for (AbstractSosConnector connector : connectors) {
-            if (connector.matches(dataSource, capabilities)) {
-                LOGGER.info(connector.toString() + " create a constellation for " + dataSource);
-                constellation = connector.getConstellation(dataSource, capabilities);
-                break;
-            }
-        }
+        ServiceConstellation constellation = determineConstellation(dataSource);
+
         if (constellation == null) {
             LOGGER.warn("No connector found for " + dataSource);
         } else {
@@ -139,6 +137,42 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         }
 
         LOGGER.info(context.getJobDetail().getKey() + " execution ends.");
+    }
+
+    private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
+        ServiceConstellation constellation = null;
+        if (dataSource.getType().equals("SOS")) {
+            GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
+            constellation = determineSOSConstellation(dataSource, capabilities);
+        }
+        if (dataSource.getType().equals("SensorThings")) {
+            constellation = determineSensorThingsConstellation(dataSource);
+        }
+        return constellation;
+    }
+
+    private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
+            GetCapabilitiesResponse capabilities) {
+        for (AbstractConnector connector : connectors) {
+            if (connector instanceof AbstractSosConnector) {
+                AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
+                if (sosConnector.matches(dataSource, capabilities)) {
+                    LOGGER.info(connector.toString() + " create a constellation for " + dataSource);
+                    return sosConnector.getConstellation(dataSource, capabilities);
+                }
+            }
+        }
+        return null;
+    }
+
+    private ServiceConstellation determineSensorThingsConstellation(DataSourceConfiguration dataSource) {
+        for (AbstractConnector connector : connectors) {
+            if (connector instanceof SensorThingsConnector) {
+                SensorThingsConnector sosConnector = (SensorThingsConnector) connector;
+                return sosConnector.getConstellation(dataSource);
+            }
+        }
+        return null;
     }
 
     // TODO check if config is needed
@@ -161,16 +195,16 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         // save all constellations
         constellation.getDatasets().forEach((dataset) -> {
             final ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
-            procedure.setService(service);
             final CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
-            category.setService(service);
             final FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
-            feature.setService(service);
             final OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
-            offering.setService(service);
             final PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
-            phenomenon.setService(service);
             if (procedure != null && category != null && feature != null && offering != null && phenomenon != null) {
+                procedure.setService(service);
+                category.setService(service);
+                feature.setService(service);
+                offering.setService(service);
+                phenomenon.setService(service);
                 DatasetEntity entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
                         service);
                 insertRepository.insertDataset(entity);

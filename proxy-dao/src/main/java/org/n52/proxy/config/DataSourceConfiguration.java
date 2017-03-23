@@ -34,6 +34,7 @@ public class DataSourceConfiguration {
     private String url;
     private String version;
     private String connector;
+    private String type;
     private DataSourceJobConfiguration job;
 
     public DataSourceJobConfiguration getJob() {
@@ -76,10 +77,18 @@ public class DataSourceConfiguration {
         this.connector = connector;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url
-                + ", version=" + version + ", connector=" + connector + "}";
+                + ", version=" + version + ", connector=" + connector + ", type=" + type + "}";
     }
 
 }

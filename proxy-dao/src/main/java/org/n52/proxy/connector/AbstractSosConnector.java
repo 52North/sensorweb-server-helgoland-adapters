@@ -55,7 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class AbstractSosConnector {
+public abstract class AbstractSosConnector extends AbstractConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
 

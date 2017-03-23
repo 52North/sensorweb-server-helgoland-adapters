@@ -50,6 +50,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     private static final String COLUMN_FEATURE_PKID = "feature.pkid";
     private static final String COLUMN_PROCEDURE_PKID = "procedure.pkid";
     private static final String COLUMN_PHENOMENON_PKID = "phenomenon.pkid";
+    private static final String COLUMN_OFFERING_PKID = "offering.pkid";
     private static final String COLUMN_UNIT_PKID = "unit.pkid";
 
     public ProxyDatasetDao(Session session) {
@@ -138,6 +139,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
                 .add(Restrictions.eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
                 .add(Restrictions.eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
                 .add(Restrictions.eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
+                .add(Restrictions.eq(COLUMN_OFFERING_PKID, dataset.getOffering().getPkid()))
                 .add(Restrictions.eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
         if (dataset.getUnit() != null) {
             criteria.add(Restrictions.eq(COLUMN_UNIT_PKID, dataset.getUnit().getPkid()));

@@ -32,7 +32,7 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.n52.io.response.dataset.count.CountData;
 import org.n52.io.response.dataset.count.CountValue;
-import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.CountDataEntity;
@@ -43,10 +43,10 @@ import org.n52.series.db.dao.DbQuery;
 public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepository
         implements ProxyDataRepository<CountDatasetEntity, CountValue> {
 
-    private Map<String, AbstractSosConnector> connectorMap;
+    private Map<String, AbstractConnector> connectorMap;
 
     @Override
-    public void setConnectorMap(Map<String, AbstractSosConnector> connectorMap) {
+    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
         this.connectorMap = connectorMap;
     }
 
@@ -72,7 +72,7 @@ public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepo
         return result;
     }
 
-    private AbstractSosConnector getConnector(CountDatasetEntity entity) {
+    private AbstractConnector getConnector(CountDatasetEntity entity) {
         String connectorName = ((ProxyServiceEntity) entity.getService()).getConnector();
         return this.connectorMap.get(connectorName);
     }

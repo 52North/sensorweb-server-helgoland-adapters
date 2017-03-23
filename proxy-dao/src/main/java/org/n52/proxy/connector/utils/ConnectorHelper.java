@@ -72,6 +72,11 @@ public class ConnectorHelper {
         return offeringId;
     }
 
+    public static String addOffering(String offeringId, String offeringName, ServiceConstellation serviceConstellation) {
+        serviceConstellation.putOffering(offeringId, offeringName);
+        return offeringId;
+    }
+
     public static String addProcedure(String procedureId, boolean insitu, boolean mobile,
             ServiceConstellation serviceConstellation) {
         serviceConstellation.putProcedure(procedureId, procedureId, insitu, mobile);
@@ -86,8 +91,20 @@ public class ConnectorHelper {
         return procedureId;
     }
 
+    public static String addProcedure(String procedureId, String procedureName, boolean insitu, boolean mobile,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putProcedure(procedureId, procedureName, insitu, mobile);
+        return procedureId;
+    }
+
     public static String addPhenomenon(String phenomenonId, ServiceConstellation serviceConstellation) {
         serviceConstellation.putPhenomenon(phenomenonId, phenomenonId);
+        return phenomenonId;
+    }
+
+    public static String addPhenomenon(String phenomenonId, String phenomenonName,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putPhenomenon(phenomenonId, phenomenonName);
         return phenomenonId;
     }
 
@@ -106,6 +123,11 @@ public class ConnectorHelper {
     public static String addCategory(DataAvailability dataAval, ServiceConstellation serviceConstellation) {
         String categoryId = dataAval.getObservedProperty().getHref();
         String categoryName = dataAval.getObservedProperty().getTitle();
+        serviceConstellation.putCategory(categoryId, categoryName);
+        return categoryId;
+    }
+
+    public static String addCategory(String categoryId, String categoryName, ServiceConstellation serviceConstellation) {
         serviceConstellation.putCategory(categoryId, categoryName);
         return categoryId;
     }
