@@ -23,6 +23,7 @@
     <bean class="org.n52.proxy.connector.TrajectorySOSConnector"/>
     <bean class="org.n52.proxy.connector.HydroSOSConnector"/>
     <bean class="org.n52.proxy.connector.NestedOfferingsSOSConnector"/>
+    <bean class="org.n52.proxy.connector.SensorThingsConnector"/>
 
     <!--<import resource="spi-impl-dao_tasks.xml" />-->
 
