@@ -31,10 +31,13 @@ package org.n52.proxy.db.dao;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import static org.hibernate.criterion.DetachedCriteria.forClass;
+import static org.hibernate.criterion.Projections.distinct;
+import static org.hibernate.criterion.Projections.property;
+import static org.hibernate.criterion.Restrictions.eq;
+import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.DatasetEntity;
+import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.FeatureDao;
@@ -60,8 +63,8 @@ public class ProxyFeatureDao extends FeatureDao implements InsertDao<FeatureEnti
     @Override
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                .add(Subqueries.propertyNotIn("pkid", createDetachedDatasetFilter()));
+                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(propertyNotIn("pkid", createDetachedDatasetFilter()));
         criteria.list().forEach(entry -> {
             session.delete(entry);
         });
@@ -69,14 +72,14 @@ public class ProxyFeatureDao extends FeatureDao implements InsertDao<FeatureEnti
 
     private FeatureEntity getInstance(FeatureEntity feature) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(FeatureEntity.DOMAIN_ID, feature.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, feature.getService().getPkid()));
+                .add(eq(DOMAIN_ID, feature.getDomainId()))
+                .add(eq(COLUMN_SERVICE_PKID, feature.getService().getPkid()));
         return (FeatureEntity) criteria.uniqueResult();
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
-        DetachedCriteria filter = DetachedCriteria.forClass(DatasetEntity.class)
-                .setProjection(Projections.distinct(Projections.property(getSeriesProperty())));
+        DetachedCriteria filter = forClass(DatasetEntity.class)
+                .setProjection(distinct(property(getSeriesProperty())));
         return filter;
     }
 

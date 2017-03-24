@@ -28,7 +28,7 @@
  */
 package org.n52.proxy.db.da;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
     @Override
     protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
             throws DataAccessException {
-        if (series.getUnit() == null || Strings.isNullOrEmpty(series.getUnit().getName())) {
+        if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {
             String connectorName = ((ProxyServiceEntity) series.getService()).getConnector();
             AbstractConnector connector = connectorMap.get(connectorName);
             UnitEntity unit = connector.getUom(series);

@@ -10,14 +10,16 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import static java.util.Optional.of;
 import org.apache.http.HttpResponse;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+import static org.joda.time.format.DateTimeFormat.forPattern;
 import org.joda.time.format.DateTimeFormatter;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import org.n52.proxy.connector.utils.EntityBuilder;
+import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
+import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.sensorthings.Datastream;
 import org.n52.sensorthings.Datastreams;
@@ -33,15 +35,15 @@ import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.MeasurementDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class SensorThingsConnector extends AbstractConnector {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(SensorThingsConnector.class);
+    private static final org.slf4j.Logger LOGGER = getLogger(SensorThingsConnector.class);
 
     private Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
 
-    private DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
+    private DateTimeFormatter formatter = forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
     public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
@@ -55,18 +57,18 @@ public class SensorThingsConnector extends AbstractConnector {
 
     @Override
     public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-        return Optional.of(createObservationBounds(entity, "asc"));
+        return of(createObservationBounds(entity, "asc"));
     }
 
     @Override
     public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-        return Optional.of(createObservationBounds(entity, "desc"));
+        return of(createObservationBounds(entity, "desc"));
     }
 
     public ServiceConstellation getConstellation(DataSourceConfiguration config) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setConnector(getConnectorName());
-        ConnectorHelper.addService(config, serviceConstellation);
+        addService(config, serviceConstellation);
         createDatasets(serviceConstellation, config.getUrl());
         return serviceConstellation;
     }
@@ -100,7 +102,7 @@ public class SensorThingsConnector extends AbstractConnector {
                     phenomenonId,
                     featureId);
             constellation.setDomainId(Integer.toString(datastream.iotID));
-            constellation.setUnit(EntityBuilder.createUnit(datastream.unitOfMeasurement.symbol,
+            constellation.setUnit(createUnit(datastream.unitOfMeasurement.symbol,
                     serviceConstellation.getService()));
             serviceConstellation.add(constellation);
         }

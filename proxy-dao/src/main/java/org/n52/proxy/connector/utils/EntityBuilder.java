@@ -28,8 +28,10 @@
  */
 package org.n52.proxy.connector.utils;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -40,9 +42,12 @@ import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.svalbard.decode.exception.DecodingException;
-import org.n52.svalbard.util.JTSHelper;
+import static org.n52.svalbard.util.JTSHelper.createGeometryFromWKT;
 
 public class EntityBuilder {
+
+    private EntityBuilder() {
+    }
 
     public static ProxyServiceEntity createService(String name, String description, String connector, String url,
             String version) {
@@ -96,9 +101,9 @@ public class EntityBuilder {
     public static GeometryEntity createGeometry(double latitude, double longitude, int srid) {
         GeometryEntity geometry = new GeometryEntity();
         try {
-            geometry.setGeometry(JTSHelper.createGeometryFromWKT("POINT (" + longitude + " " + latitude + ")", srid));
+            geometry.setGeometry(createGeometryFromWKT("POINT (" + longitude + " " + latitude + ")", srid));
         } catch (DecodingException ex) {
-            Logger.getLogger(EntityBuilder.class.getName()).log(Level.SEVERE, null, ex);
+            getLogger(EntityBuilder.class.getName()).log(SEVERE, null, ex);
         }
         return geometry;
     }
@@ -125,8 +130,8 @@ public class EntityBuilder {
         dataset.setFeature(feature);
         dataset.setPhenomenon(phenomenon);
         dataset.setOffering(offering);
-        dataset.setPublished(Boolean.TRUE);
-        dataset.setDeleted(Boolean.FALSE);
+        dataset.setPublished(TRUE);
+        dataset.setDeleted(FALSE);
         dataset.setService(service);
     }
 

@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -41,13 +42,14 @@ import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.exception.EncodingException;
-import org.n52.svalbard.util.CodingHelper;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
+    private static final Logger LOGGER = getLogger(AbstractSosConnector.class);
 
     public boolean matches(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         if (config.getConnector() != null) {
@@ -70,7 +72,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
 
     protected OwsServiceResponse getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
         try {
-            EncoderKey encoderKey = CodingHelper.getEncoderKey(namespace, request);
+            EncoderKey encoderKey = getEncoderKey(namespace, request);
             XmlObject xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
             HttpResponse response = sendPostRequest(xmlRequest, serviceUrl);
             return decodeResponse(response);
@@ -81,8 +83,8 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     private OwsServiceResponse decodeResponse(HttpResponse response) throws XmlException, IOException, DecodingException {
-        XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
-        DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
+        XmlObject xmlResponse = parse(response.getEntity().getContent());
+        DecoderKey decoderKey = getDecoderKey(xmlResponse);
         return (OwsServiceResponse) decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
     }
 

@@ -28,7 +28,7 @@
  */
 package org.n52.proxy.db.da;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.hibernate.Session;
 import org.n52.io.response.TimeseriesMetadataOutput;
 import org.n52.io.response.dataset.DatasetOutput;
@@ -50,7 +50,7 @@ public class ProxyTimeseriesRepository extends TimeseriesRepository {
     protected TimeseriesMetadataOutput createExpanded(MeasurementDatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
         TimeseriesMetadataOutput output = super.createExpanded(series, query, session);
-        if (Strings.isNullOrEmpty(output.getUom())) {
+        if (isNullOrEmpty(output.getUom())) {
             DatasetOutput datasetOutput = datasetRepository.createExpanded(series, query, session);
             output.setUom(datasetOutput.getUom());
         }

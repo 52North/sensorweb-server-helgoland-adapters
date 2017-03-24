@@ -33,10 +33,14 @@ import java.util.List;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
+import static org.hibernate.criterion.DetachedCriteria.forClass;
+import static org.hibernate.criterion.Projections.distinct;
+import static org.hibernate.criterion.Projections.property;
+import static org.hibernate.criterion.Restrictions.eq;
+import static org.hibernate.criterion.Restrictions.in;
+import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.DatasetEntity;
+import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.OfferingDao;
@@ -63,8 +67,8 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                .add(Subqueries.propertyNotIn("pkid", createDetachedDatasetFilter()));
+                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(propertyNotIn("pkid", createDetachedDatasetFilter()));
         criteria.list().forEach(entry -> {
             session.delete(entry);
         });
@@ -72,21 +76,21 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
 
     private OfferingEntity getInstance(OfferingEntity offering) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(OfferingEntity.DOMAIN_ID, offering.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, offering.getService().getPkid()));
+                .add(eq(DOMAIN_ID, offering.getDomainId()))
+                .add(eq(COLUMN_SERVICE_PKID, offering.getService().getPkid()));
         return (OfferingEntity) criteria.uniqueResult();
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
-        DetachedCriteria filter = DetachedCriteria.forClass(DatasetEntity.class)
-                .setProjection(Projections.distinct(Projections.property(getSeriesProperty())));
+        DetachedCriteria filter = forClass(DatasetEntity.class)
+                .setProjection(distinct(property(getSeriesProperty())));
         return filter;
     }
 
     @SuppressWarnings("unchecked")
     public List<OfferingEntity> getInstancesFor(Collection<String> domainIds) {
         Criteria c = getDefaultCriteria()
-                .add(Restrictions.in(OfferingEntity.DOMAIN_ID, domainIds));
+                .add(in(DOMAIN_ID, domainIds));
         return c.list();
     }
 }

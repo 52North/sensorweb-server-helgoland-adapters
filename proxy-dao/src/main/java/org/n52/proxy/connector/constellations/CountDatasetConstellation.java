@@ -6,7 +6,7 @@
 package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
-import org.n52.proxy.connector.utils.EntityBuilder;
+import static org.n52.proxy.connector.utils.EntityBuilder.updateDatasetEntity;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.CountDatasetEntity;
@@ -31,7 +31,7 @@ public class CountDatasetConstellation extends DatasetConstellation {
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         CountDatasetEntity countDataset = new CountDatasetEntity();
         countDataset.setDomainId(this.getDomainId());
-        EntityBuilder.updateDatasetEntity(countDataset, procedure, category, feature, offering, phenomenon, service);
+        updateDatasetEntity(countDataset, procedure, category, feature, offering, phenomenon, service);
         countDataset.setFirstValueAt(new Date());
         countDataset.setLastValueAt(new Date());
         return countDataset;
