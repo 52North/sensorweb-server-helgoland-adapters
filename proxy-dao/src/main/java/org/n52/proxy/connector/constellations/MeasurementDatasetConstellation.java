@@ -36,6 +36,7 @@ public class MeasurementDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         MeasurementDatasetEntity measurementDataset = new MeasurementDatasetEntity();
+        measurementDataset.setDomainId(this.getDomainId());
         EntityBuilder.updateDatasetEntity(measurementDataset, procedure, category, feature, offering, phenomenon, service);
         // add empty unit entity, will be replaced later in the repositories
         if (unit == null) {

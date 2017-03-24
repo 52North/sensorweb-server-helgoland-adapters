@@ -25,6 +25,7 @@ public class TextDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
+        textDataset.setDomainId(this.getDomainId());
         EntityBuilder.updateDatasetEntity(textDataset, procedure, category, feature, offering, phenomenon, service);
         textDataset.setFirstValueAt(new Date());
         textDataset.setLastValueAt(new Date());

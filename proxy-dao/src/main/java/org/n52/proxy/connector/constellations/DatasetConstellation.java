@@ -47,6 +47,8 @@ public abstract class DatasetConstellation {
     private final String phenomenon;
     private final String feature;
 
+    private String domainId;
+
     public DatasetConstellation(String procedure, String offering, String category, String phenomenon, String feature) {
         this.procedure = procedure;
         this.offering = offering;
@@ -73,6 +75,14 @@ public abstract class DatasetConstellation {
 
     public String getFeature() {
         return feature;
+    }
+
+    public String getDomainId() {
+        return domainId;
+    }
+
+    public void setDomainId(String domainId) {
+        this.domainId = domainId;
     }
 
     @Override

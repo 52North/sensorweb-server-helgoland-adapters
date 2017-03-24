@@ -36,7 +36,6 @@ import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -45,31 +44,16 @@ import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
 import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.svalbard.decode.DecoderKey;
-import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.encode.EncoderKey;
-import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
 import org.n52.svalbard.util.CodingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
-
-    @Autowired
-    protected DecoderRepository decoderRepository;
-
-    @Autowired
-    protected EncoderRepository encoderRepository;
-
-    private final int CONNECTION_TIMEOUT = 30000;
-
-    public String getConnectorName() {
-        return getClass().getName();
-    }
 
     public boolean matches(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         if (config.getConnector() != null) {
@@ -78,14 +62,6 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         } else {
             return canHandle(config, capabilities);
         }
-    }
-
-    private HttpResponse sendPostRequest(XmlObject request, String uri) {
-        return new SimpleHttpClient(CONNECTION_TIMEOUT, CONNECTION_TIMEOUT).executePost(uri, request);
-    }
-
-    private HttpResponse sendGetRequest(String uri) {
-        return new SimpleHttpClient(CONNECTION_TIMEOUT, CONNECTION_TIMEOUT).executeGet(uri);
     }
 
     protected OwsServiceResponse getSosResponseFor(String uri) {
@@ -120,13 +96,5 @@ public abstract class AbstractSosConnector extends AbstractConnector {
 
     public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
             GetCapabilitiesResponse capabilities);
-
-    public abstract List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query);
-
-    public abstract UnitEntity getUom(DatasetEntity seriesEntity);
-
-    public abstract Optional<DataEntity> getFirstObservation(DatasetEntity entity);
-
-    public abstract Optional<DataEntity> getLastObservation(DatasetEntity entity);
 
 }

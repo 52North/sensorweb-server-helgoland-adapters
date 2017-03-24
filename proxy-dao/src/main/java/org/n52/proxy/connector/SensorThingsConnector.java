@@ -6,11 +6,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.apache.http.HttpResponse;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
@@ -20,11 +23,14 @@ import org.n52.sensorthings.Datastream;
 import org.n52.sensorthings.Datastreams;
 import org.n52.sensorthings.Location;
 import org.n52.sensorthings.Locations;
+import org.n52.sensorthings.Observation;
+import org.n52.sensorthings.Observations;
 import org.n52.sensorthings.ObservedProperty;
 import org.n52.sensorthings.Sensor;
 import org.n52.sensorthings.Thing;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.MeasurementDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.slf4j.LoggerFactory;
@@ -35,24 +41,26 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
 
+    private DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
+
     @Override
     public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return createObservations(seriesEntity, query.getTimespan().getStart(), query.getTimespan().getEnd());
     }
 
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return seriesEntity.getUnit();
     }
 
     @Override
     public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return Optional.of(createObservationBounds(entity, "asc"));
     }
 
     @Override
     public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return Optional.of(createObservationBounds(entity, "desc"));
     }
 
     public ServiceConstellation getConstellation(DataSourceConfiguration config) {
@@ -73,10 +81,9 @@ public class SensorThingsConnector extends AbstractConnector {
     }
 
     private void doForDatastreams(Datastreams datastreams, ServiceConstellation serviceConstellation) {
-//        datastreams.value.forEach((Datastream datastream) -> {
-//            doForDatastream(datastream, serviceConstellation);
-//        });
-        doForDatastream(datastreams.value.get(0), serviceConstellation);
+        datastreams.value.forEach((Datastream datastream) -> {
+            doForDatastream(datastream, serviceConstellation);
+        });
     }
 
     private void doForDatastream(Datastream datastream, ServiceConstellation serviceConstellation) {
@@ -92,6 +99,7 @@ public class SensorThingsConnector extends AbstractConnector {
                     categoryId,
                     phenomenonId,
                     featureId);
+            constellation.setDomainId(Integer.toString(datastream.iotID));
             constellation.setUnit(EntityBuilder.createUnit(datastream.unitOfMeasurement.symbol,
                     serviceConstellation.getService()));
             serviceConstellation.add(constellation);
@@ -100,13 +108,8 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private Object doGetRequest(String urlString, Class clazz) {
         try {
-            LOGGER.info(urlString);
-            URL url = new URL(urlString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-            return gson.fromJson(new InputStreamReader(connection.getInputStream()), clazz);
+            HttpResponse response = sendGetRequest(urlString);
+            return gson.fromJson(new InputStreamReader(response.getEntity().getContent()), clazz);
         } catch (MalformedURLException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         } catch (JsonSyntaxException | IOException ex) {
@@ -121,6 +124,38 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private Datastreams getDatastreams(String url) {
         return (Datastreams) doGetRequest(url, "Datastreams?$expand=Sensor,Thing,ObservedProperty", Datastreams.class);
+    }
+
+    private List<DataEntity> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
+        Observations observations = (Observations) doGetRequest(
+                seriesEntity.getService().getUrl(),
+                "Datastreams(" + seriesEntity.getDomainId() + ")/Observations?$filter=phenomenonTime%20gt%20'" + start.toString(
+                formatter) + "'%20and%20phenomenonTime%20lt%20'" + end.toString(formatter) + "'",
+                Observations.class
+        );
+        ArrayList<DataEntity> list = new ArrayList<>();
+        addObservationsToList(observations, list);
+        while (observations.nextLink != null) {
+            observations = (Observations) doGetRequest(observations.nextLink, Observations.class);
+            addObservationsToList(observations, list);
+        }
+        return list;
+    }
+
+    private void addObservationsToList(Observations observations, ArrayList<DataEntity> list) {
+        observations.value.forEach((observation) -> {
+            list.add(createObservation(observation));
+        });
+    }
+
+    private DataEntity createObservationBounds(DatasetEntity entity, String order) {
+        Observations observations = (Observations) doGetRequest(entity.getService().getUrl(),
+                "Datastreams(" + entity.getDomainId() + ")/Observations?$orderby=phenomenonTime%20" + order + "&$top=1",
+                Observations.class);
+        if (observations.value.size() == 1) {
+            return createObservation(observations.value.get(0));
+        }
+        return null;
     }
 
     private String addOffering(Thing thing, ServiceConstellation serviceConstellation) {
@@ -145,6 +180,14 @@ public class SensorThingsConnector extends AbstractConnector {
         serviceConstellation.putFeature(featureId, location.name, location.location.coordinates.get(1),
                 location.location.coordinates.get(0), 4326);
         return featureId;
+    }
+
+    private DataEntity createObservation(Observation observation) {
+        MeasurementDataEntity dataEntity = new MeasurementDataEntity();
+        dataEntity.setTimestart(observation.phenomenonTime);
+        dataEntity.setTimeend(observation.phenomenonTime);
+        dataEntity.setValue(observation.result);
+        return dataEntity;
     }
 
 }
