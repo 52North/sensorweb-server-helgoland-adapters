@@ -60,24 +60,23 @@ public class InsertRepository extends SessionAwareRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InsertRepository.class);
 
-    public synchronized void prepareInserting(ProxyServiceEntity service) {
+    public synchronized Set<Long> getIdsForService(ProxyServiceEntity service) {
         Session session = getSession();
         try {
-            Transaction transaction = session.beginTransaction();
-            new ProxyDatasetDao(session).markAsDeletedForService(service);
+            Set idsForService = new ProxyDatasetDao(session).getIdsForService(service);
             session.flush();
-            transaction.commit();
+            return idsForService;
         } finally {
             returnSession(session);
         }
     }
 
-    public void cleanUp(ProxyServiceEntity service) {
+    public void cleanUp(ProxyServiceEntity service, Set<Long> datasetIds) {
         Session session = getSession();
         try {
             Transaction transaction = session.beginTransaction();
 
-            new ProxyDatasetDao(session).removeDeletedForService(service);
+            new ProxyDatasetDao(session).removeDatasets(datasetIds);
             new ProxyCategoryDao(session).clearUnusedForService(service);
             new ProxyOfferingDao(session).clearUnusedForService(service);
             new ProxyProcedureDao(session).clearUnusedForService(service);
@@ -157,7 +156,7 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
 
-    public synchronized void insertDataset(DatasetEntity dataset) {
+    public synchronized DatasetEntity insertDataset(DatasetEntity dataset) {
         Session session = getSession();
         Transaction transaction = null;
         try {
@@ -169,10 +168,11 @@ public class InsertRepository extends SessionAwareRepository {
             FeatureEntity feature = insertFeature(dataset.getFeature(), session);
             PhenomenonEntity phenomenon = insertPhenomenon(dataset.getPhenomenon(), session);
 
-            insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
+            DatasetEntity inserted = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
 
             session.flush();
             transaction.commit();
+            return inserted;
         } catch (HibernateException e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -181,6 +181,7 @@ public class InsertRepository extends SessionAwareRepository {
         } finally {
             returnSession(session);
         }
+        return null;
     }
 
     private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,

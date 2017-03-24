@@ -29,6 +29,8 @@
 package org.n52.proxy.db.dao;
 
 import java.util.List;
+import java.util.Set;
+import static java.util.stream.Collectors.toSet;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -72,14 +74,8 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
             LOGGER.info("Save dataset: " + dataset);
             session.flush();
             session.refresh(dataset);
-        } else {
-            // TODO find good solution to recreate the dataset entities
-            instance.setDomainId(null);
-//            instance.setDeleted(Boolean.FALSE);
-            session.update(instance);
-            LOGGER.info("Mark dataset as undeleted: " + instance);
         }
-        return dataset;
+        return (T) instance;
     }
 
     public UnitEntity getOrInsertUnit(UnitEntity unit) {
@@ -91,24 +87,19 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         return instance;
     }
 
-    public void markAsDeletedForService(ServiceEntity service) {
+    public Set<Long> getIdsForService(ProxyServiceEntity service) {
         List<T> datasets = getDatasetsForService(service);
-        datasets.stream().map((dataset) -> {
-            // TODO find good solution to recreate the dataset entities
-//            dataset.setDeleted(Boolean.TRUE);
-            dataset.setDomainId("deleted");
-            return dataset;
-        }).forEach((dataset) -> {
-            session.saveOrUpdate(dataset);
-            LOGGER.info("Mark dataset as deleted: " + dataset);
-        });
+        return datasets
+                .stream()
+                .map((dataset) -> {
+                    return dataset.getPkid();
+                })
+                .collect(toSet());
     }
 
-    public void removeDeletedForService(ServiceEntity service) {
-        List<T> datasets = getDeletedMarkDatasets(service);
-        datasets.forEach((dataset) -> {
-            session.delete(dataset);
-            LOGGER.info("Delete dataset: " + dataset);
+    public void removeDatasets(Set<Long> datasetIds) {
+        datasetIds.forEach((id) -> {
+            session.delete(session.get(DatasetEntity.class, id));
         });
         session.flush();
     }
@@ -153,12 +144,4 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         return criteria.list();
     }
 
-    private List<T> getDeletedMarkDatasets(ServiceEntity service) {
-        // TODO find good solution to recreate the dataset entities
-        Criteria criteria = getDefaultCriteria()
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                //                .add(Restrictions.eq("deleted", Boolean.TRUE));
-                .add(Restrictions.isNotNull("domainId"));
-        return criteria.list();
-    }
 }

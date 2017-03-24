@@ -175,7 +175,6 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         return null;
     }
 
-    // TODO check if config is needed
     public void init(DataSourceConfiguration initConfig) {
         setConfig(initConfig);
         setJobName(initConfig.getItemName());
@@ -190,7 +189,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     private void saveConstellation(ServiceConstellation constellation) {
         // serviceEntity
         ProxyServiceEntity service = insertRepository.insertService(constellation.getService());
-        insertRepository.prepareInserting(service);
+        Set<Long> datasetIds = insertRepository.getIdsForService(service);
 
         // save all constellations
         constellation.getDatasets().forEach((dataset) -> {
@@ -207,14 +206,15 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 phenomenon.setService(service);
                 DatasetEntity entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
                         service);
-                insertRepository.insertDataset(entity);
+                DatasetEntity inserted = insertRepository.insertDataset(entity);
+                datasetIds.remove(inserted.getPkid());
                 LOGGER.info("Add dataset constellation: " + dataset);
             } else {
                 LOGGER.warn("Can't add dataset: " + dataset);
             }
         });
 
-        insertRepository.cleanUp(service);
+        insertRepository.cleanUp(service, datasetIds);
     }
 
     private GetCapabilitiesResponse getCapabilities(String serviceUrl) {

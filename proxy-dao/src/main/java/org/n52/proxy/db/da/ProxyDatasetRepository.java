@@ -41,13 +41,9 @@ import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da.DatasetRepository<T> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetRepository.class);
 
     private Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
@@ -65,7 +61,6 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
             String connectorName = ((ProxyServiceEntity) series.getService()).getConnector();
             AbstractConnector connector = connectorMap.get(connectorName);
             UnitEntity unit = connector.getUom(series);
-            // TODO check first in database if a unit with the identifier exists
             series.setUnit(unit);
             session.save(unit);
             session.save(series);
