@@ -131,10 +131,10 @@ public class OceanotronSosConnector extends SOS2Connector {
                             serviceConstellation.putProcedure(procedureComponentId, procedureComponentId, true, false);
                             serviceConstellation.putPhenomenon(obsProp, obsProp);
                             serviceConstellation.putCategory(obsProp, obsProp);
-                            
+
                             GetFeatureOfInterestResponse featureOfInterestResponse = getFeatureOfInterestResponse(procedureComponentId, obsProp, url);
-                            
-                            
+
+
 
                             final String foiId = "foiId";
                             serviceConstellation.putFeature(foiId, "foiName", 0, 0, 0);

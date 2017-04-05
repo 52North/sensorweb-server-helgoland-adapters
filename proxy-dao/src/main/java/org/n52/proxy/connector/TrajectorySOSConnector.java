@@ -135,7 +135,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                     geometryEntity.setLat(geom.getGeometry().getCoordinate().x);
                     geometryEntity.setLon(geom.getGeometry().getCoordinate().y);
                     geometryEntity.setAlt(geom.getGeometry().getCoordinate().z);
-                    entity.setGeometry(geometryEntity);
+                    entity.setGeometryEntity(geometryEntity);
                 }
             });
             data.add(entity);

@@ -37,7 +37,7 @@ import static org.hibernate.criterion.Projections.property;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.DatasetEntity;
-import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
+import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.PhenomenonDao;
@@ -73,14 +73,14 @@ public class ProxyPhenomenonDao extends PhenomenonDao
 
     private PhenomenonEntity getInstance(PhenomenonEntity phenomenon) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(eq(DOMAIN_ID, phenomenon.getDomainId()))
+                .add(eq(PROPERTY_DOMAIN_ID, phenomenon.getDomainId()))
                 .add(eq(COLUMN_SERVICE_PKID, phenomenon.getService().getPkid()));
         return (PhenomenonEntity) criteria.uniqueResult();
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
         DetachedCriteria filter = forClass(DatasetEntity.class)
-                .setProjection(distinct(property(getSeriesProperty())));
+                .setProjection(distinct(property(getDatasetProperty())));
         return filter;
     }
 }

@@ -38,7 +38,7 @@ import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
+import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.CategoryDao;
 
@@ -62,7 +62,7 @@ public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryE
 
     private CategoryEntity getInstance(CategoryEntity category) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(eq(DOMAIN_ID, category.getDomainId()))
+                .add(eq(PROPERTY_DOMAIN_ID, category.getDomainId()))
                 .add(eq(COLUMN_SERVICE_PKID, category.getService().getPkid()));
         return (CategoryEntity) criteria.uniqueResult();
     }
@@ -79,7 +79,7 @@ public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryE
 
     private DetachedCriteria createDetachedDatasetFilter() {
         DetachedCriteria filter = forClass(DatasetEntity.class)
-                .setProjection(distinct(property(getSeriesProperty())));
+                .setProjection(distinct(property(getDatasetProperty())));
         return filter;
     }
 
