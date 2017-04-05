@@ -46,38 +46,37 @@ import org.n52.proxy.db.dao.ProxyProcedureDao;
 import org.n52.proxy.db.dao.ProxyRelatedFeatureDao;
 import org.n52.proxy.db.dao.ProxyRelatedFeatureRoleDao;
 import org.n52.proxy.db.dao.ProxyServiceDao;
-import org.n52.series.db.SessionAwareRepository;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.da.SessionAwareRepository;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class InsertRepository extends SessionAwareRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InsertRepository.class);
+    private static final Logger LOGGER = getLogger(InsertRepository.class);
 
-    public synchronized void prepareInserting(ProxyServiceEntity service) {
+    public synchronized Set<Long> getIdsForService(ProxyServiceEntity service) {
         Session session = getSession();
         try {
-            Transaction transaction = session.beginTransaction();
-            new ProxyDatasetDao(session).markAsDeletedForService(service);
+            Set idsForService = new ProxyDatasetDao(session).getIdsForService(service);
             session.flush();
-            transaction.commit();
+            return idsForService;
         } finally {
             returnSession(session);
         }
     }
 
-    public void cleanUp(ProxyServiceEntity service) {
+    public void cleanUp(ProxyServiceEntity service, Set<Long> datasetIds) {
         Session session = getSession();
         try {
             Transaction transaction = session.beginTransaction();
 
-            new ProxyDatasetDao(session).removeDeletedForService(service);
+            new ProxyDatasetDao(session).removeDatasets(datasetIds);
             new ProxyCategoryDao(session).clearUnusedForService(service);
             new ProxyOfferingDao(session).clearUnusedForService(service);
             new ProxyProcedureDao(session).clearUnusedForService(service);
@@ -157,7 +156,7 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
 
-    public synchronized void insertDataset(DatasetEntity dataset) {
+    public synchronized DatasetEntity insertDataset(DatasetEntity dataset) {
         Session session = getSession();
         Transaction transaction = null;
         try {
@@ -169,10 +168,11 @@ public class InsertRepository extends SessionAwareRepository {
             FeatureEntity feature = insertFeature(dataset.getFeature(), session);
             PhenomenonEntity phenomenon = insertPhenomenon(dataset.getPhenomenon(), session);
 
-            insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
+            DatasetEntity inserted = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
 
             session.flush();
             transaction.commit();
+            return inserted;
         } catch (HibernateException e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -181,6 +181,7 @@ public class InsertRepository extends SessionAwareRepository {
         } finally {
             returnSession(session);
         }
+        return null;
     }
 
     private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
@@ -215,13 +216,13 @@ public class InsertRepository extends SessionAwareRepository {
     private RelatedFeatureEntity insertRelatedFeature(RelatedFeatureEntity relatedFeature, Session session) {
         // insert related feature roles
         Set<RelatedFeatureRoleEntity> roles
-                = new HashSet<RelatedFeatureRoleEntity>(relatedFeature.getRelatedFeatureRoles().size());
+                = new HashSet<>(relatedFeature.getRelatedFeatureRoles().size());
         for (RelatedFeatureRoleEntity relatedFeatureRole : relatedFeature.getRelatedFeatureRoles()) {
             roles.add(insertRelatedFeatureRole(relatedFeatureRole, session));
         }
         relatedFeature.setRelatedFeatureRoles(roles);
         // insert offerings
-        Set<OfferingEntity> offerings = new HashSet<OfferingEntity>(relatedFeature.getOfferings().size());
+        Set<OfferingEntity> offerings = new HashSet<>(relatedFeature.getOfferings().size());
         for (OfferingEntity offering : relatedFeature.getOfferings()) {
             offerings.add(insertOffering(offering, session));
         }

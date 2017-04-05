@@ -15,6 +15,9 @@ import org.n52.shetland.ogc.om.values.QuantityValue;
  */
 public class DataEntityBuilder {
 
+    private DataEntityBuilder() {
+    }
+
     public static DataEntity createMeasurementDataEntity(OmObservation observation) {
         MeasurementDataEntity dataEntity = new MeasurementDataEntity();
         SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();

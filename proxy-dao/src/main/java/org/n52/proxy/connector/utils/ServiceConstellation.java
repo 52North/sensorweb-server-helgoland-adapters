@@ -27,12 +27,18 @@
  * for more details.
  */
 package org.n52.proxy.connector.utils;
- 
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.n52.proxy.connector.constellations.DatasetConstellation;
+import static org.n52.proxy.connector.utils.EntityBuilder.createCategory;
+import static org.n52.proxy.connector.utils.EntityBuilder.createFeature;
+import static org.n52.proxy.connector.utils.EntityBuilder.createGeometry;
+import static org.n52.proxy.connector.utils.EntityBuilder.createOffering;
+import static org.n52.proxy.connector.utils.EntityBuilder.createPhenomenon;
+import static org.n52.proxy.connector.utils.EntityBuilder.createProcedure;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.FeatureEntity;
@@ -116,30 +122,29 @@ public class ServiceConstellation {
     }
 
     public CategoryEntity putCategory(String id, String name) {
-        return categories.put(id, EntityBuilder.createCategory(id, name, service));
+        return categories.put(id, createCategory(id, name, service));
     }
 
     public FeatureEntity putFeature(String id, String name, double latitude, double longitude, int srid) {
         return features.put(id,
-                EntityBuilder.createFeature(
-                        id,
+                createFeature(id,
                         name,
-                        EntityBuilder.createGeometry(latitude, longitude, srid),
+                        createGeometry(latitude, longitude, srid),
                         service
                 )
         );
     }
 
     public OfferingEntity putOffering(String id, String name) {
-        return offerings.put(id, EntityBuilder.createOffering(id, name, service));
+        return offerings.put(id, createOffering(id, name, service));
     }
 
     public PhenomenonEntity putPhenomenon(String id, String name) {
-        return phenomena.put(id, EntityBuilder.createPhenomenon(id, name, service));
+        return phenomena.put(id, createPhenomenon(id, name, service));
     }
 
     public ProcedureEntity putProcedure(String id, String name, boolean insitu, boolean mobile) {
-        return procedures.put(id, EntityBuilder.createProcedure(id, name, insitu, mobile, service));
+        return procedures.put(id, createProcedure(id, name, insitu, mobile, service));
     }
 
     public boolean add(DatasetConstellation e) {

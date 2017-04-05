@@ -1,7 +1,8 @@
 package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
-import org.n52.proxy.connector.utils.EntityBuilder;
+import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import static org.n52.proxy.connector.utils.EntityBuilder.updateDatasetEntity;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -36,10 +37,11 @@ public class MeasurementDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         MeasurementDatasetEntity measurementDataset = new MeasurementDatasetEntity();
-        EntityBuilder.updateDatasetEntity(measurementDataset, procedure, category, feature, offering, phenomenon, service);
+        measurementDataset.setDomainId(this.getDomainId());
+        updateDatasetEntity(measurementDataset, procedure, category, feature, offering, phenomenon, service);
         // add empty unit entity, will be replaced later in the repositories
         if (unit == null) {
-            unit = EntityBuilder.createUnit("", service);
+            unit = createUnit("", service);
         }
         measurementDataset.setUnit(unit);
         measurementDataset.setFirstValueAt(new Date());

@@ -32,7 +32,7 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.n52.io.response.dataset.measurement.MeasurementData;
 import org.n52.io.response.dataset.measurement.MeasurementValue;
-import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DataEntity;
@@ -44,14 +44,14 @@ public class ProxyMeasurementDataRepository
         extends org.n52.series.db.da.MeasurementDataRepository
         implements ProxyDataRepository<MeasurementDatasetEntity, MeasurementValue> {
 
-    private Map<String, AbstractSosConnector> connectorMap;
+    private Map<String, AbstractConnector> connectorMap;
 
     @Override
     public void setConnectorMap(Map connectorMap) {
         this.connectorMap = connectorMap;
     }
 
-    private AbstractSosConnector getConnector(MeasurementDatasetEntity seriesEntity) {
+    private AbstractConnector getConnector(MeasurementDatasetEntity seriesEntity) {
         String connectorName = ((ProxyServiceEntity) seriesEntity.getService()).getConnector();
         return this.connectorMap.get(connectorName);
     }

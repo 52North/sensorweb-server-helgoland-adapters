@@ -1,7 +1,7 @@
 package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
-import org.n52.proxy.connector.utils.EntityBuilder;
+import static org.n52.proxy.connector.utils.EntityBuilder.updateDatasetEntity;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -25,7 +25,8 @@ public class TextDatasetConstellation extends DatasetConstellation {
     public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
             OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
-        EntityBuilder.updateDatasetEntity(textDataset, procedure, category, feature, offering, phenomenon, service);
+        textDataset.setDomainId(this.getDomainId());
+        updateDatasetEntity(textDataset, procedure, category, feature, offering, phenomenon, service);
         textDataset.setFirstValueAt(new Date());
         textDataset.setLastValueAt(new Date());
         return textDataset;

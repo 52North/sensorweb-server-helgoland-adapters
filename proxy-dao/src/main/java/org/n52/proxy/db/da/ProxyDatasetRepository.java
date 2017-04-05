@@ -28,31 +28,27 @@
  */
 package org.n52.proxy.db.da;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.DatasetOutput;
-import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da.DatasetRepository<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetRepository.class);
-
-    private Map<String, AbstractSosConnector> connectorMap = new HashMap<>();
+    private Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
     @Autowired
-    public void setConnectors(List<AbstractSosConnector> connectors) {
+    public void setConnectors(List<AbstractConnector> connectors) {
         connectors.forEach((connector) -> {
             connectorMap.put(connector.getConnectorName(), connector);
         });
@@ -61,11 +57,10 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
     @Override
     protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
             throws DataAccessException {
-        if (series.getUnit() == null || Strings.isNullOrEmpty(series.getUnit().getName())) {
+        if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {
             String connectorName = ((ProxyServiceEntity) series.getService()).getConnector();
-            AbstractSosConnector connector = connectorMap.get(connectorName);
+            AbstractConnector connector = connectorMap.get(connectorName);
             UnitEntity unit = connector.getUom(series);
-            // TODO check first in database if a unit with the identifier exists
             series.setUnit(unit);
             session.save(unit);
             session.save(series);

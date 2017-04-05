@@ -29,20 +29,22 @@
 package org.n52.proxy.db.dao;
 
 import java.util.List;
+import java.util.Set;
+import static java.util.stream.Collectors.toSet;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+import static org.hibernate.criterion.Restrictions.eq;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetDao.class);
+    private static final Logger LOGGER = getLogger(ProxyDatasetDao.class);
 
     private static final String COLUMN_DATASETTYPE = "datasetType";
     private static final String COLUMN_SERVICE_PKID = "service.pkid";
@@ -50,6 +52,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     private static final String COLUMN_FEATURE_PKID = "feature.pkid";
     private static final String COLUMN_PROCEDURE_PKID = "procedure.pkid";
     private static final String COLUMN_PHENOMENON_PKID = "phenomenon.pkid";
+    private static final String COLUMN_OFFERING_PKID = "offering.pkid";
     private static final String COLUMN_UNIT_PKID = "unit.pkid";
 
     public ProxyDatasetDao(Session session) {
@@ -71,14 +74,9 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
             LOGGER.info("Save dataset: " + dataset);
             session.flush();
             session.refresh(dataset);
-        } else {
-            // TODO find good solution to recreate the dataset entities
-            instance.setDomainId(null);
-//            instance.setDeleted(Boolean.FALSE);
-            session.update(instance);
-            LOGGER.info("Mark dataset as undeleted: " + instance);
+            return dataset;
         }
-        return dataset;
+        return (T) instance;
     }
 
     public UnitEntity getOrInsertUnit(UnitEntity unit) {
@@ -90,35 +88,30 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         return instance;
     }
 
-    public void markAsDeletedForService(ServiceEntity service) {
+    public Set<Long> getIdsForService(ProxyServiceEntity service) {
         List<T> datasets = getDatasetsForService(service);
-        datasets.stream().map((dataset) -> {
-            // TODO find good solution to recreate the dataset entities
-//            dataset.setDeleted(Boolean.TRUE);
-            dataset.setDomainId("deleted");
-            return dataset;
-        }).forEach((dataset) -> {
-            session.saveOrUpdate(dataset);
-            LOGGER.info("Mark dataset as deleted: " + dataset);
-        });
+        return datasets
+                .stream()
+                .map((dataset) -> {
+                    return dataset.getPkid();
+                })
+                .collect(toSet());
     }
 
-    public void removeDeletedForService(ServiceEntity service) {
-        List<T> datasets = getDeletedMarkDatasets(service);
-        datasets.forEach((dataset) -> {
-            session.delete(dataset);
-            LOGGER.info("Delete dataset: " + dataset);
+    public void removeDatasets(Set<Long> datasetIds) {
+        datasetIds.forEach((id) -> {
+            session.delete(session.get(DatasetEntity.class, id));
         });
         session.flush();
     }
 
     public void removeAllOfService(ProxyServiceEntity service) {
         getDefaultCriteria()
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach((dataset) -> session.delete(dataset));
         session.createCriteria(UnitEntity.class)
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach((unit) -> session.delete(unit));
         session.flush();
@@ -126,37 +119,30 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
 
     private UnitEntity getUnit(UnitEntity unit) {
         Criteria criteria = session.createCriteria(UnitEntity.class)
-                .add(Restrictions.eq("name", unit.getName()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, unit.getService().getPkid()));
+                .add(eq("name", unit.getName()))
+                .add(eq(COLUMN_SERVICE_PKID, unit.getService().getPkid()));
         return (UnitEntity) criteria.uniqueResult();
     }
 
     private DatasetEntity getInstance(DatasetEntity dataset) {
         Criteria criteria = getDefaultCriteria()
-                .add(Restrictions.eq(COLUMN_DATASETTYPE, dataset.getDatasetType()))
-                .add(Restrictions.eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
-                .add(Restrictions.eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
-                .add(Restrictions.eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
-                .add(Restrictions.eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
+                .add(eq(COLUMN_DATASETTYPE, dataset.getDatasetType()))
+                .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
+                .add(eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
+                .add(eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
+                .add(eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
+                .add(eq(COLUMN_OFFERING_PKID, dataset.getOffering().getPkid()))
+                .add(eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
         if (dataset.getUnit() != null) {
-            criteria.add(Restrictions.eq(COLUMN_UNIT_PKID, dataset.getUnit().getPkid()));
+            criteria.add(eq(COLUMN_UNIT_PKID, dataset.getUnit().getPkid()));
         }
         return (T) criteria.uniqueResult();
     }
 
     private List<T> getDatasetsForService(ServiceEntity service) {
         Criteria criteria = getDefaultCriteria()
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()));
+                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
 
-    private List<T> getDeletedMarkDatasets(ServiceEntity service) {
-        // TODO find good solution to recreate the dataset entities
-        Criteria criteria = getDefaultCriteria()
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                //                .add(Restrictions.eq("deleted", Boolean.TRUE));
-                .add(Restrictions.isNotNull("domainId"));
-        return criteria.list();
-    }
 }
