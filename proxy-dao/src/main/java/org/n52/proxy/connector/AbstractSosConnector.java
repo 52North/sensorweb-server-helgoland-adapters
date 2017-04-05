@@ -60,7 +60,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         }
     }
 
-    protected OwsServiceResponse getSosResponseFor(String uri) {
+    protected Object getSosResponseFor(String uri) {
         try {
             HttpResponse response = sendGetRequest(uri);
             return decodeResponse(response);
@@ -70,7 +70,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         }
     }
 
-    protected OwsServiceResponse getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
+    protected Object getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
         try {
             EncoderKey encoderKey = getEncoderKey(namespace, request);
             XmlObject xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
@@ -82,10 +82,10 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         }
     }
 
-    private OwsServiceResponse decodeResponse(HttpResponse response) throws XmlException, IOException, DecodingException {
+    private Object decodeResponse(HttpResponse response) throws XmlException, IOException, DecodingException {
         XmlObject xmlResponse = parse(response.getEntity().getContent());
         DecoderKey decoderKey = getDecoderKey(xmlResponse);
-        return (OwsServiceResponse) decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
+        return decoderRepository.getDecoder(decoderKey).decode(xmlResponse);
     }
 
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);

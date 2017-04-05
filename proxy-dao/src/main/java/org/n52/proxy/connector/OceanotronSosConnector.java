@@ -28,13 +28,11 @@
  */
 package org.n52.proxy.connector;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.apache.xmlbeans.XmlException;
-import org.apache.xmlbeans.XmlObject;
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
@@ -42,41 +40,29 @@ import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.shetland.ogc.sensorML.System;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import static org.n52.shetland.ogc.sos.Sos1Constants.NS_SOS;
-import static org.n52.shetland.ogc.sos.Sos1Constants.SERVICEVERSION;
+import org.n52.shetland.ogc.sensorML.AbstractProcess;
+import org.n52.shetland.ogc.sensorML.HasComponents;
+import org.n52.shetland.ogc.sensorML.SensorML;
+import org.n52.shetland.ogc.sensorML.elements.SmlComponent;
+import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
-import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
-import org.n52.svalbard.decode.Decoder;
-import org.n52.svalbard.decode.DecoderKey;
-import org.n52.svalbard.decode.exception.DecodingException;
-import org.n52.svalbard.encode.EncoderKey;
-import org.n52.svalbard.encode.exception.EncodingException;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
+import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
+import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
+import org.n52.shetland.ogc.swes.SwesConstants;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class OceanotronSosConnector extends AbstractSosConnector {
+public class OceanotronSosConnector extends SOS2Connector {
 
     private static final Logger LOGGER = getLogger(OceanotronSosConnector.class);
-
-    @Override
-    public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
-        ServiceConstellation serviceConstellation = new ServiceConstellation();
-        config.setVersion(SERVICEVERSION);
-        config.setConnector(getConnectorName());
-        addService(config, serviceConstellation);
-        SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
-        addDatasets(serviceConstellation, sosCaps, config.getUrl());
-        return serviceConstellation;
-    }
 
     /**
      * Matches when the provider name is equal "Geomatys"
@@ -117,13 +103,15 @@ public class OceanotronSosConnector extends AbstractSosConnector {
         throw new UnsupportedOperationException("getLastObservation not supported yet.");
     }
 
-    private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
+    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent((obsOffs) -> {
-                obsOffs.forEach((obsOff) -> {
-                    addElem(obsOff, serviceConstellation, url);
+                obsOffs.forEach((SosObservationOffering obsOff) -> {
+                    // TODO remove if
+                    if (obsOff.getIdentifier().equals("CORIOLIS-RECOPESCA")) {
+                        addElem(obsOff, serviceConstellation, url);
+                    }
                 });
-//                addElem(obsOffs.first(), serviceConstellation, url);
             });
         }
     }
@@ -133,41 +121,47 @@ public class OceanotronSosConnector extends AbstractSosConnector {
         String offeringId = obsOff.getOffering().getIdentifier();
         serviceConstellation.putOffering(offeringId, offeringId);
 
-        obsOff.getProcedures().forEach((procedureId) -> {
-            serviceConstellation.putProcedure(procedureId, procedureId, true, false);
-
+        obsOff.getProcedures().forEach((String procedureId) -> {
             obsOff.getObservableProperties().forEach((obsProp) -> {
-                serviceConstellation.putPhenomenon(obsProp, obsProp);
-                serviceConstellation.putCategory(obsProp, obsProp);
-                final String foiId = "foiId";
-                serviceConstellation.putFeature(foiId, "foiName", 0, 0, 0);
-                // TODO maybe not only MeasurementDatasetConstellation
-                serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, obsProp, obsProp,
-                        foiId));
+                SensorML sensorML = getDescribeSensorResponse(procedureId, url);
+                sensorML.getMembers().forEach((AbstractProcess member) -> {
+                    if (member instanceof System) {
+                        ((HasComponents<System>) member).getComponents().forEach((SmlComponent component) -> {
+                            final String procedureComponentId = component.getName();
+                            serviceConstellation.putProcedure(procedureComponentId, procedureComponentId, true, false);
+                            serviceConstellation.putPhenomenon(obsProp, obsProp);
+                            serviceConstellation.putCategory(obsProp, obsProp);
+                            
+                            GetFeatureOfInterestResponse featureOfInterestResponse = getFeatureOfInterestResponse(procedureComponentId, obsProp, url);
+                            
+                            
+
+                            final String foiId = "foiId";
+                            serviceConstellation.putFeature(foiId, "foiName", 0, 0, 0);
+                            // TODO maybe not only MeasurementDatasetConstellation
+                            serviceConstellation.add(
+                                    new MeasurementDatasetConstellation(procedureComponentId, offeringId,
+                                            obsProp,
+                                            obsProp,
+                                            foiId));
+                        });
+                    };
+                });
             });
-//                HttpResponse response = this.sendRequest(createDescribeSensorRequest(procedureId), url);
-//                DescribeSensorResponse descSensResp = createDescSensResponse(response.getEntity().getContent());
         });
     }
 
-    private XmlObject createDescribeSensorRequest(String procedureId) throws EncodingException {
-        DescribeSensorRequest request = new DescribeSensorRequest(SOS, SERVICEVERSION);
+    private SensorML getDescribeSensorResponse(String procedureId, String url) {
+        DescribeSensorRequest request = new DescribeSensorRequest(SOS, Sos2Constants.SERVICEVERSION);
         request.setProcedure(procedureId);
-        request.setProcedureDescriptionFormat("text/xml;subtype=\"sensorML/1.0.0\"");
-        EncoderKey encoderKey = getEncoderKey(NS_SOS, request);
-        return (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
+        request.setProcedureDescriptionFormat("http://www.opengis.net/sensorML/1.0.0");
+        return (SensorML) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
     }
 
-    private DescribeSensorResponse createDescSensResponse(InputStream responseStream) {
-        try {
-            XmlObject response = parse(responseStream);
-            DecoderKey decoderKey = getDecoderKey(response);
-            Decoder<Object, Object> decoder = decoderRepository.getDecoder(decoderKey);
-            return (DescribeSensorResponse) decoder.decode(response);
-        } catch (IOException | DecodingException | XmlException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        }
-        return null;
+    private GetFeatureOfInterestResponse getFeatureOfInterestResponse(String procedureId, String obsProp, String url) {
+        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, Sos2Constants.SERVICEVERSION);
+        request.setProcedures(new ArrayList(Arrays.asList(procedureId)));
+        request.setObservedProperties(new ArrayList(Arrays.asList(obsProp)));
+        return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
     }
-
 }

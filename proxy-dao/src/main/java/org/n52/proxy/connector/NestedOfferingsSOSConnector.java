@@ -164,7 +164,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     private GetDataAvailabilityResponse getDataAvailabilityForOffering(String uri) throws ProxyException {
-        OwsServiceResponse response = getSosResponseFor(uri);
+        OwsServiceResponse response = (OwsServiceResponse) getSosResponseFor(uri);
         if (response instanceof GetDataAvailabilityResponse) {
             return (GetDataAvailabilityResponse) response;
         }
