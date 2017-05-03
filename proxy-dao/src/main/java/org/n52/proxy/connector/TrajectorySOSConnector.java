@@ -37,7 +37,7 @@ import java.util.Optional;
 import static java.util.Optional.of;
 import org.joda.time.DateTime;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
@@ -50,7 +50,7 @@ import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.GeometryEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
+import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
@@ -118,7 +118,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         List<DataEntity> data = new ArrayList<>();
 
         obsResp.getObservationCollection().forEach((observation) -> {
-            MeasurementDataEntity entity = new MeasurementDataEntity();
+            QuantityDataEntity entity = new QuantityDataEntity();
             SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
             TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
             entity.setTimestart(instant.getValue().toDate());
@@ -163,21 +163,21 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     @Override
     public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
         // currently only return default first observation
-        MeasurementDataEntity measurementDataEntity = new MeasurementDataEntity();
-        measurementDataEntity.setTimestart(new Date());
-        measurementDataEntity.setTimeend(new Date());
-        measurementDataEntity.setValue(0.0);
-        return of(measurementDataEntity);
+        QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
+        quantityDataEntity.setTimestart(new Date());
+        quantityDataEntity.setTimeend(new Date());
+        quantityDataEntity.setValue(0.0);
+        return of(quantityDataEntity);
     }
 
     @Override
     public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
         // currently only return default last observation
-        MeasurementDataEntity measurementDataEntity = new MeasurementDataEntity();
-        measurementDataEntity.setTimestart(new Date());
-        measurementDataEntity.setTimeend(new Date());
-        measurementDataEntity.setValue(0.0);
-        return of(measurementDataEntity);
+        QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
+        quantityDataEntity.setTimestart(new Date());
+        quantityDataEntity.setTimeend(new Date());
+        quantityDataEntity.setValue(0.0);
+        return of(quantityDataEntity);
     }
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
@@ -212,8 +212,8 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             addProcedure(dataAval, true, true, serviceConstellation);
             String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
             String categoryId = addCategory(dataAval, serviceConstellation);
-            // TODO maybe not only MeasurementDatasetConstellation
-            serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+            // TODO maybe not only QuantityDatasetConstellation
+            serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                     phenomenonId,
                     featureId));
         });

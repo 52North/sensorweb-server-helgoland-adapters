@@ -30,19 +30,19 @@ package org.n52.proxy.db.da;
 
 import java.util.Map;
 import org.hibernate.Session;
-import org.n52.io.response.dataset.measurement.MeasurementData;
-import org.n52.io.response.dataset.measurement.MeasurementValue;
+import org.n52.io.response.dataset.quantity.QuantityData;
+import org.n52.io.response.dataset.quantity.QuantityValue;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DataEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
-import org.n52.series.db.beans.MeasurementDatasetEntity;
+import org.n52.series.db.beans.QuantityDataEntity;
+import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyMeasurementDataRepository
-        extends org.n52.series.db.da.MeasurementDataRepository
-        implements ProxyDataRepository<MeasurementDatasetEntity, MeasurementValue> {
+public class ProxyQuantityDataRepository
+        extends org.n52.series.db.da.QuantityDataRepository
+        implements ProxyDataRepository<QuantityDatasetEntity, QuantityValue> {
 
     private Map<String, AbstractConnector> connectorMap;
 
@@ -51,36 +51,36 @@ public class ProxyMeasurementDataRepository
         this.connectorMap = connectorMap;
     }
 
-    private AbstractConnector getConnector(MeasurementDatasetEntity seriesEntity) {
+    private AbstractConnector getConnector(QuantityDatasetEntity seriesEntity) {
         String connectorName = ((ProxyServiceEntity) seriesEntity.getService()).getConnector();
         return this.connectorMap.get(connectorName);
     }
 
     @Override
-    public MeasurementValue getFirstValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
+    public QuantityValue getFirstValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
         DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
-        return createSeriesValueFor((MeasurementDataEntity) firstObservation, entity, query);
+        return createSeriesValueFor((QuantityDataEntity) firstObservation, entity, query);
     }
 
     @Override
-    public MeasurementValue getLastValue(MeasurementDatasetEntity entity, Session session, DbQuery query) {
+    public QuantityValue getLastValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
         DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
-        return createSeriesValueFor((MeasurementDataEntity) lastObservation, entity, query);
+        return createSeriesValueFor((QuantityDataEntity) lastObservation, entity, query);
     }
 
     @Override
-    protected MeasurementData assembleDataWithReferenceValues(MeasurementDatasetEntity datasetEntity, DbQuery dbQuery,
+    protected QuantityData assembleDataWithReferenceValues(QuantityDatasetEntity datasetEntity, DbQuery dbQuery,
             Session session) throws DataAccessException {
         return assembleData(datasetEntity, dbQuery, session);
     }
 
     @Override
-    protected MeasurementData assembleData(MeasurementDatasetEntity seriesEntity, DbQuery query, Session session)
+    protected QuantityData assembleData(QuantityDatasetEntity seriesEntity, DbQuery query, Session session)
             throws DataAccessException {
-        MeasurementData result = new MeasurementData();
+        QuantityData result = new QuantityData();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> createSeriesValueFor((MeasurementDataEntity) entry, seriesEntity, query))
+                .map((entry) -> createSeriesValueFor((QuantityDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

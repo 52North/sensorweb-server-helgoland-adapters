@@ -16,7 +16,7 @@ import org.joda.time.DateTime;
 import static org.joda.time.format.DateTimeFormat.forPattern;
 import org.joda.time.format.DateTimeFormatter;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
 import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
@@ -32,7 +32,7 @@ import org.n52.sensorthings.Sensor;
 import org.n52.sensorthings.Thing;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
+import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -96,7 +96,7 @@ public class SensorThingsConnector extends AbstractConnector {
         Locations locations = (Locations) doGetRequest(datastream.thing.locationsLink, Locations.class);
         if (locations != null) {
             String featureId = addFeature(locations.value.get(0), serviceConstellation);
-            MeasurementDatasetConstellation constellation = new MeasurementDatasetConstellation(procedureId,
+            QuantityDatasetConstellation constellation = new QuantityDatasetConstellation(procedureId,
                     offeringId,
                     categoryId,
                     phenomenonId,
@@ -185,7 +185,7 @@ public class SensorThingsConnector extends AbstractConnector {
     }
 
     private DataEntity createObservation(Observation observation) {
-        MeasurementDataEntity dataEntity = new MeasurementDataEntity();
+        QuantityDataEntity dataEntity = new QuantityDataEntity();
         dataEntity.setTimestart(observation.phenomenonTime);
         dataEntity.setTimeend(observation.phenomenonTime);
         dataEntity.setValue(observation.result);

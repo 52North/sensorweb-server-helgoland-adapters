@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
@@ -43,7 +43,7 @@ import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilt
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
+import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
@@ -94,7 +94,7 @@ public class HydroSOSConnector extends SOS2Connector {
         List<DataEntity> data = new ArrayList<>();
 
         obsResp.getObservationCollection().forEach((observation) -> {
-            MeasurementDataEntity entity = new MeasurementDataEntity();
+            QuantityDataEntity entity = new QuantityDataEntity();
             SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
 
             TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
@@ -143,9 +143,8 @@ public class HydroSOSConnector extends SOS2Connector {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
                     featureCollection.getMembers().forEach((key, feature) -> {
                         String featureId = addFeature((SamplingFeature) feature, serviceConstellation);
-                        // TODO maybe not only MeasurementDatasetConstellation
-                        serviceConstellation.add(
-                                new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                        // TODO maybe not only QuantityDatasetConstellation
+                        serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                         phenomenonId, featureId));
                     });
                 }

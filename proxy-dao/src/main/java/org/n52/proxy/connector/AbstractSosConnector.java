@@ -37,7 +37,6 @@ import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
-import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.encode.EncoderKey;

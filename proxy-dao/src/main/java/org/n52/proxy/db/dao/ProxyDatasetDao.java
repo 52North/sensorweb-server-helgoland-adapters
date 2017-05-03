@@ -46,7 +46,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
 
     private static final Logger LOGGER = getLogger(ProxyDatasetDao.class);
 
-    private static final String COLUMN_DATASETTYPE = "datasetType";
+    private static final String COLUMN_VALUETYPE = "valueType";
     private static final String COLUMN_SERVICE_PKID = "service.pkid";
     private static final String COLUMN_CATEGORY_PKID = "category.pkid";
     private static final String COLUMN_FEATURE_PKID = "feature.pkid";
@@ -126,7 +126,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
 
     private DatasetEntity getInstance(DatasetEntity dataset) {
         Criteria criteria = getDefaultCriteria()
-                .add(eq(COLUMN_DATASETTYPE, dataset.getDatasetType()))
+                .add(eq(COLUMN_VALUETYPE, dataset.getValueType()))
                 .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
                 .add(eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
                 .add(eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
