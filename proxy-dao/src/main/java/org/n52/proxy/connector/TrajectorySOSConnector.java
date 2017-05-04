@@ -154,7 +154,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                     createTimeInstantFilter(start));
             if (response.getObservationCollection().size() >= 1) {
                 String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-                return createUnit(unit, (ProxyServiceEntity) seriesEntity.getService());
+                return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
             }
         }
         return null;
@@ -223,7 +223,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             ServiceConstellation serviceConstellation) {
         String featureId = dataAval.getFeatureOfInterest().getHref();
         String featureName = dataAval.getFeatureOfInterest().getTitle();
-        serviceConstellation.putFeature(featureId, featureName, 0, 0, 0);
+        serviceConstellation.putFeature(featureId, featureName, null, 0, 0, 0);
         return featureId;
     }
 

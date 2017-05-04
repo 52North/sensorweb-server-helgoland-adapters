@@ -125,10 +125,11 @@ public class ServiceConstellation {
         return categories.put(id, createCategory(id, name, service));
     }
 
-    public FeatureEntity putFeature(String id, String name, double latitude, double longitude, int srid) {
+    public FeatureEntity putFeature(String id, String name, String description, double latitude, double longitude, int srid) {
         return features.put(id,
                 createFeature(id,
                         name,
+                        description,
                         createGeometry(latitude, longitude, srid),
                         service
                 )

@@ -36,6 +36,7 @@
     <!--<bean class="org.n52.svalbard.decode.SwesStringDecoderv20" />
     <bean class="org.n52.svalbard.decode.SweCommonDecoderV20"/>-->
     <bean class="org.n52.svalbard.decode.OmDecoderv20"/>
+    <bean class="org.n52.svalbard.decode.SensorMLDecoderV101"/>
     <bean class="org.n52.svalbard.decode.SamplingDecoderv20"/>
     <bean class="org.n52.svalbard.decode.SwesExtensionDecoderv20"/>
     <bean class="org.n52.svalbard.decode.RelatedOfferingTypeDecoder"/>
@@ -63,6 +64,7 @@
     <bean class="org.n52.svalbard.encode.DeleteSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.DescribeSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.DescribeSensorV1RequestEncoder"/>
+    <bean class="org.n52.svalbard.encode.DescribeSensorV2RequestEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.UpdateSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.GetCapabilitiesResponseEncoder"/>

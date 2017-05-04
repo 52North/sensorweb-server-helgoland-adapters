@@ -124,7 +124,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
         // TODO implement
-        return createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
+        return createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,

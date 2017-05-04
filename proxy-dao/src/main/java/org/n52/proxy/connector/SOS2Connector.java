@@ -149,7 +149,7 @@ public class SOS2Connector extends AbstractSosConnector {
                 createFirstTimefilter());
         if (response.getObservationCollection().size() >= 1) {
             String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-            return createUnit(unit, (ProxyServiceEntity) seriesEntity.getService());
+            return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
         }
         return null;
     }
@@ -224,11 +224,21 @@ public class SOS2Connector extends AbstractSosConnector {
 
     protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
             TemporalFilter temporalFilter) {
+        return createObservationResponse(seriesEntity, temporalFilter, null);
+    }
+
+    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
+            String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
         request.setProcedures(new ArrayList<>(asList(seriesEntity.getProcedure().getDomainId())));
         request.setObservedProperties(new ArrayList<>(asList(seriesEntity.getPhenomenon().getDomainId())));
         request.setFeatureIdentifiers(new ArrayList<>(asList(seriesEntity.getFeature().getDomainId())));
-        request.setTemporalFilters(new ArrayList<>(asList(temporalFilter)));
+        if (temporalFilter != null) {
+            request.setTemporalFilters(new ArrayList<>(asList(temporalFilter)));
+        }
+        if (responseFormat != null) {
+            request.setResponseFormat(responseFormat);
+        }
         return (GetObservationResponse) this.getSosResponseFor(request, NS_SOS_20,
                 seriesEntity.getService().getUrl());
     }

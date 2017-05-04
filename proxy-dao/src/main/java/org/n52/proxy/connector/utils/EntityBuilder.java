@@ -89,10 +89,11 @@ public class EntityBuilder {
         return category;
     }
 
-    public static FeatureEntity createFeature(String domainId, String name, GeometryEntity geometry,
+    public static FeatureEntity createFeature(String domainId, String name, String description, GeometryEntity geometry,
             ProxyServiceEntity service) {
         FeatureEntity feature = new FeatureEntity();
         feature.setName(name);
+        feature.setDescription(description);
         feature.setDomainId(domainId);
         feature.setGeometryEntity(geometry);
         feature.setService(service);
@@ -117,9 +118,10 @@ public class EntityBuilder {
         return phenomenon;
     }
 
-    public static UnitEntity createUnit(String unit, ProxyServiceEntity service) {
+    public static UnitEntity createUnit(String unit, String unitDescription, ProxyServiceEntity service) {
         UnitEntity entity = new UnitEntity();
         entity.setName(unit);
+        entity.setDescription(unitDescription);
         entity.setService(service);
         return entity;
     }

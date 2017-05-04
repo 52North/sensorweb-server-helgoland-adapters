@@ -4,17 +4,23 @@
     <class name="ProcedureEntity" table="`procedure`">
         <id name="pkid" type="long">
             <column name="procedureid"/>
-            <!--<generator class="assigned"/>-->
             <generator class="native">
                 <param name="sequence">procedureId_seq</param>
             </generator>
         </id>
         <property column="identifier" name="domainId" type="string"/>
         <property column="name" name="name" type="string"/>
-        <!--<property column="name" name="description" type="string"/>-->
         <property column="reference" name="reference" type="org.hibernate.type.TrueFalseType"/>
         <property column="mobile" name="mobile" type="org.hibernate.type.TrueFalseType"/>
         <property column="insitu" name="insitu" type="org.hibernate.type.TrueFalseType"/>
+        <set name="parents" table="sensorsystem" inverse="false" fetch="select">
+            <key column="childsensorid" not-null="true" />
+            <many-to-many class="ProcedureEntity" column="parentsensorid" />
+        </set>
+        <set name="children" table="sensorsystem" inverse="false" fetch="select">
+            <key column="parentsensorid" not-null="true" />
+            <many-to-many class="ProcedureEntity" column="childsensorid" />
+        </set>
         <many-to-one class="ServiceEntity" column="serviceid" name="service"/>
     </class>
 </hibernate-mapping>

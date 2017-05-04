@@ -41,7 +41,8 @@ public class QuantityDatasetConstellation extends DatasetConstellation {
         updateDatasetEntity(quantityDataset, procedure, category, feature, offering, phenomenon, service);
         // add empty unit entity, will be replaced later in the repositories
         if (unit == null) {
-            unit = createUnit("", service);
+            // create empty unit
+            unit = createUnit("", null, service);
         }
         quantityDataset.setUnit(unit);
         quantityDataset.setFirstValueAt(new Date());
