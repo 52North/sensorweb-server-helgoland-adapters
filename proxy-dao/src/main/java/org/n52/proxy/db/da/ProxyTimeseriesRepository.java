@@ -30,10 +30,10 @@ package org.n52.proxy.db.da;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import org.hibernate.Session;
-import org.n52.io.response.TimeseriesMetadataOutput;
 import org.n52.io.response.dataset.DatasetOutput;
+import org.n52.io.response.dataset.TimeseriesMetadataOutput;
 import org.n52.series.db.DataAccessException;
-import org.n52.series.db.beans.MeasurementDatasetEntity;
+import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.da.TimeseriesRepository;
 import org.n52.series.db.dao.DbQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ public class ProxyTimeseriesRepository extends TimeseriesRepository {
     private ProxyDatasetRepository datasetRepository;
 
     @Override
-    protected TimeseriesMetadataOutput createExpanded(MeasurementDatasetEntity series, DbQuery query, Session session)
+    protected TimeseriesMetadataOutput createExpanded(QuantityDatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
         TimeseriesMetadataOutput output = super.createExpanded(series, query, session);
         if (isNullOrEmpty(output.getUom())) {

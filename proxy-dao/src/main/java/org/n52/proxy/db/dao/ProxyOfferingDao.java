@@ -40,7 +40,7 @@ import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Restrictions.in;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.DatasetEntity;
-import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
+import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.OfferingDao;
@@ -76,21 +76,21 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
 
     private OfferingEntity getInstance(OfferingEntity offering) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(eq(DOMAIN_ID, offering.getDomainId()))
+                .add(eq(PROPERTY_DOMAIN_ID, offering.getDomainId()))
                 .add(eq(COLUMN_SERVICE_PKID, offering.getService().getPkid()));
         return (OfferingEntity) criteria.uniqueResult();
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
         DetachedCriteria filter = forClass(DatasetEntity.class)
-                .setProjection(distinct(property(getSeriesProperty())));
+                .setProjection(distinct(property(getDatasetProperty())));
         return filter;
     }
 
     @SuppressWarnings("unchecked")
     public List<OfferingEntity> getInstancesFor(Collection<String> domainIds) {
         Criteria c = getDefaultCriteria()
-                .add(in(DOMAIN_ID, domainIds));
+                .add(in(PROPERTY_DOMAIN_ID, domainIds));
         return c.list();
     }
 }

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import static java.util.Optional.empty;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
@@ -150,9 +150,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                                 addFeature((SamplingFeature) abstractFeature, serviceConstellation);
                             }
                         }
-                        // TODO maybe not only MeasurementDatasetConstellation
-                        serviceConstellation.add(
-                                new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                        // TODO maybe not only QuantityDatasetConstellation
+                        serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                         phenomenonId,
                                         featureId));
                     });
@@ -164,7 +163,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     private GetDataAvailabilityResponse getDataAvailabilityForOffering(String uri) throws ProxyException {
-        OwsServiceResponse response = getSosResponseFor(uri);
+        OwsServiceResponse response = (OwsServiceResponse) getSosResponseFor(uri);
         if (response instanceof GetDataAvailabilityResponse) {
             return (GetDataAvailabilityResponse) response;
         }

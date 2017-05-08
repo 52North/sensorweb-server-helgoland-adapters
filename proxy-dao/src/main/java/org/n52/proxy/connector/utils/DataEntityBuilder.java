@@ -3,7 +3,7 @@ package org.n52.proxy.connector.utils;
 import java.util.Date;
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.DataEntity;
-import org.n52.series.db.beans.MeasurementDataEntity;
+import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.TextDataEntity;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.OmObservation;
@@ -18,8 +18,8 @@ public class DataEntityBuilder {
     private DataEntityBuilder() {
     }
 
-    public static DataEntity createMeasurementDataEntity(OmObservation observation) {
-        MeasurementDataEntity dataEntity = new MeasurementDataEntity();
+    public static DataEntity createQuantityDataEntity(OmObservation observation) {
+        QuantityDataEntity dataEntity = new QuantityDataEntity();
         SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
         TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
         dataEntity.setTimestart(instant.getValue().toDate());

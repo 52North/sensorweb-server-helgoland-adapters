@@ -33,7 +33,7 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.MeasurementDatasetConstellation;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
@@ -44,7 +44,7 @@ import static org.n52.proxy.connector.utils.ConnectorHelper.createFirstTimefilte
 import static org.n52.proxy.connector.utils.ConnectorHelper.createLatestTimefilter;
 import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilter;
 import static org.n52.proxy.connector.utils.DataEntityBuilder.createCountDataEntity;
-import static org.n52.proxy.connector.utils.DataEntityBuilder.createMeasurementDataEntity;
+import static org.n52.proxy.connector.utils.DataEntityBuilder.createQuantityDataEntity;
 import static org.n52.proxy.connector.utils.DataEntityBuilder.createTextDataEntity;
 import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 import org.n52.proxy.connector.utils.ServiceConstellation;
@@ -52,7 +52,7 @@ import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.MeasurementDatasetEntity;
+import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
@@ -156,8 +156,8 @@ public class SOS2Connector extends AbstractSosConnector {
 
     protected DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         DataEntity dataEntity = null;
-        if (seriesEntity instanceof MeasurementDatasetEntity) {
-            dataEntity = createMeasurementDataEntity(observation);
+        if (seriesEntity instanceof QuantityDatasetEntity) {
+            dataEntity = createQuantityDataEntity(observation);
         } else if (seriesEntity instanceof CountDatasetEntity) {
             dataEntity = createCountDataEntity(observation);
         } else if (seriesEntity instanceof TextDatasetEntity) {
@@ -194,8 +194,8 @@ public class SOS2Connector extends AbstractSosConnector {
                 String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
                 String categoryId = addCategory(dataAval, serviceConstellation);
                 String featureId = dataAval.getFeatureOfInterest().getHref();
-                // TODO maybe not only MeasurementDatasetConstellation
-                serviceConstellation.add(new MeasurementDatasetConstellation(procedureId, offeringId, categoryId,
+                // TODO maybe not only QuantityDatasetConstellation
+                serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                         phenomenonId,
                         featureId));
             });

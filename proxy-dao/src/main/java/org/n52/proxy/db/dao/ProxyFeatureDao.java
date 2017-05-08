@@ -37,7 +37,7 @@ import static org.hibernate.criterion.Projections.property;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
 import org.n52.series.db.beans.DatasetEntity;
-import static org.n52.series.db.beans.DescribableEntity.DOMAIN_ID;
+import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.FeatureDao;
@@ -72,14 +72,14 @@ public class ProxyFeatureDao extends FeatureDao implements InsertDao<FeatureEnti
 
     private FeatureEntity getInstance(FeatureEntity feature) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(eq(DOMAIN_ID, feature.getDomainId()))
+                .add(eq(PROPERTY_DOMAIN_ID, feature.getDomainId()))
                 .add(eq(COLUMN_SERVICE_PKID, feature.getService().getPkid()));
         return (FeatureEntity) criteria.uniqueResult();
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
         DetachedCriteria filter = forClass(DatasetEntity.class)
-                .setProjection(distinct(property(getSeriesProperty())));
+                .setProjection(distinct(property(getDatasetProperty())));
         return filter;
     }
 

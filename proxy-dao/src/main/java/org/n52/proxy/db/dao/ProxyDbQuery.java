@@ -33,6 +33,7 @@ import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Restrictions.in;
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.dao.QueryUtils;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -68,11 +69,11 @@ public class ProxyDbQuery extends DbQuery {
 
     public Criteria addServiceFilter(String parameter, Criteria criteria) {
         if (serviceId != null && !serviceId.isEmpty()) {
-            criteria.add(eq(SERVICE_PKID, parseToId(serviceId)));
+            criteria.add(eq(SERVICE_PKID, QueryUtils.parseToId(serviceId)));
         } else if (getParameters().getService() != null) {
-            criteria.add(eq(SERVICE_PKID, parseToId(getParameters().getService())));
+            criteria.add(eq(SERVICE_PKID, QueryUtils.parseToId(getParameters().getService())));
         } else if (getParameters().getServices() != null && !getParameters().getServices().isEmpty()) {
-            criteria.add(in(SERVICE_PKID, parseToIds(getParameters().getServices())));
+            criteria.add(in(SERVICE_PKID, QueryUtils.parseToIds(getParameters().getServices())));
         }
         return criteria;
     }

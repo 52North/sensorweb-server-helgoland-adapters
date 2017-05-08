@@ -34,13 +34,14 @@ import javax.inject.Inject;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesRequest;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import org.n52.shetland.ogc.sos.Sos2Constants;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.svalbard.decode.Decoder;
 import org.n52.svalbard.decode.DecoderKey;
@@ -50,9 +51,10 @@ import org.n52.svalbard.encode.Encoder;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
-import org.n52.svalbard.util.CodingHelper;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -61,7 +63,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = {"classpath:artic-sea-test.xml"})
 public class GetCapabilitiesTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GetCapabilitiesTest.class);
+    private static final Logger LOGGER = getLogger(GetCapabilitiesTest.class);
 
     private String uri = "http://sensorweb.demo.52north.org/sensorwebtestbed/service";
 //    private String uri = "http://sensorweb.demo.52north.org/52n-sos-webapp/service";
@@ -92,16 +94,12 @@ public class GetCapabilitiesTest {
 
     private GetCapabilitiesResponse createGetCapabilitiesResponse(InputStream responseStream) {
         try {
-            XmlObject response = XmlObject.Factory.parse(responseStream);
-            DecoderKey decoderKey = CodingHelper.getDecoderKey(response);
+            XmlObject response = parse(responseStream);
+            DecoderKey decoderKey = getDecoderKey(response);
             Decoder<Object, Object> decoder = decoderRepository.getDecoder(decoderKey);
             GetCapabilitiesResponse temp = (GetCapabilitiesResponse) decoder.decode(response);
             return temp;
-        } catch (DecodingException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        } catch (XmlException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        } catch (IOException ex) {
+        } catch (DecodingException | XmlException | IOException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }
         return null;
@@ -109,7 +107,7 @@ public class GetCapabilitiesTest {
 
     private XmlObject createGetCapabilitiesDocument() throws EncodingException {
         GetCapabilitiesRequest request = new GetCapabilitiesRequest("SOS");
-        EncoderKey encoderKey = CodingHelper.getEncoderKey(Sos2Constants.NS_SOS_20, request);
+        EncoderKey encoderKey = getEncoderKey(NS_SOS_20, request);
         Encoder<Object, Object> encoder = encoderRepository.getEncoder(encoderKey);
         XmlObject xml = (XmlObject) encoder.encode(request);
         return xml;
