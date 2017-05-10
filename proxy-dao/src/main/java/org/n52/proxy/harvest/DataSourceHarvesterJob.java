@@ -29,6 +29,7 @@
 package org.n52.proxy.harvest;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Set;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
@@ -72,11 +73,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     private static final Logger LOGGER = getLogger(DataSourceHarvesterJob.class);
 
-    private static final String JOB_CONNECTOR = "connector";
-    private static final String JOB_TYPE = "type";
-    private static final String JOB_VERSION = "version";
-    private static final String JOB_NAME = "name";
-    private static final String JOB_URL = "url";
+    private static final String JOB_CONFIG = "config";
 
     private DataSourceConfiguration config;
 
@@ -97,25 +94,21 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         this.config = config;
     }
 
+    public DataSourceHarvesterJob() {
+    }
+
     @Override
     public JobDetail createJobDetails() {
+        JobDataMap dataMap = new JobDataMap();
+        dataMap.put(JOB_CONFIG, config);
         return newJob(DataSourceHarvesterJob.class)
                 .withIdentity(getJobName())
-                .usingJobData(JOB_URL, config.getUrl())
-                .usingJobData(JOB_NAME, config.getItemName())
-                .usingJobData(JOB_VERSION, config.getVersion())
-                .usingJobData(JOB_CONNECTOR, config.getConnector())
-                .usingJobData(JOB_TYPE, config.getType())
+                .usingJobData(dataMap)
                 .build();
     }
 
     private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
-        DataSourceConfiguration createdConfig = new DataSourceConfiguration();
-        createdConfig.setUrl(jobDataMap.getString(JOB_URL));
-        createdConfig.setItemName(jobDataMap.getString(JOB_NAME));
-        createdConfig.setVersion(jobDataMap.getString(JOB_VERSION));
-        createdConfig.setConnector(jobDataMap.getString(JOB_CONNECTOR));
-        createdConfig.setType(jobDataMap.getString(JOB_TYPE));
+        DataSourceConfiguration createdConfig = (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
         return createdConfig;
     }
 
@@ -123,10 +116,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info(context.getJobDetail().getKey() + " execution starts.");
 
-        JobDetail jobDetail = context.getJobDetail();
-        JobDataMap jobDataMap = jobDetail.getJobDataMap();
-
-        DataSourceConfiguration dataSource = recreateConfig(jobDataMap);
+        DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
 
         ServiceConstellation constellation = determineConstellation(dataSource);
 

@@ -82,7 +82,7 @@ public class HydroSOSConnector extends SOS2Connector {
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation);
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
-        addDatasets(serviceConstellation, sosCaps, config.getUrl());
+        addDatasets(serviceConstellation, sosCaps, config);
         return serviceConstellation;
     }
 
@@ -128,7 +128,7 @@ public class HydroSOSConnector extends SOS2Connector {
 //    }
 
     @Override
-    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, String url) {
+    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
         String offeringId = addOffering(obsOff, serviceConstellation);
 
         obsOff.getProcedures().forEach((procedureId) -> {
@@ -137,7 +137,7 @@ public class HydroSOSConnector extends SOS2Connector {
                 addPhenomenon(phenomenonId, serviceConstellation);
                 String categoryId = addCategory(phenomenonId, serviceConstellation);
 
-                GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponse(procedureId, url);
+                GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponse(procedureId, config.getUrl());
                 AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
                 if (abstractFeature instanceof FeatureCollection) {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
@@ -154,7 +154,7 @@ public class HydroSOSConnector extends SOS2Connector {
 
     private GetFeatureOfInterestResponse getFeatureOfInterestResponse(String procedureId, String url) {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(procedureId)));
+        request.setProcedures(asList(procedureId));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, url);
     }
 

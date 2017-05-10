@@ -250,12 +250,12 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     private GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
             TemporalFilter temporalFilter) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(seriesEntity.getProcedure().getDomainId())));
-        request.setOfferings(new ArrayList<>(asList(seriesEntity.getOffering().getDomainId())));
-        request.setObservedProperties(new ArrayList<>(asList(seriesEntity.getPhenomenon().getDomainId())));
-        request.setFeatureIdentifiers(new ArrayList<>(asList(seriesEntity.getFeature().getDomainId())));
+        request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
+        request.setOfferings(asList(seriesEntity.getOffering().getDomainId()));
+        request.setObservedProperties(asList(seriesEntity.getPhenomenon().getDomainId()));
+        request.setFeatureIdentifiers(asList(seriesEntity.getFeature().getDomainId()));
         if (temporalFilter != null) {
-            request.setTemporalFilters(new ArrayList<>(asList(temporalFilter)));
+            request.setTemporalFilters(asList(temporalFilter));
         }
         // TODO use inspire omso 3.0 format later, when trajectory encoder/decoder are available
 //        request.setResponseFormat("http://inspire.ec.europa.eu/schemas/omso/3.0");

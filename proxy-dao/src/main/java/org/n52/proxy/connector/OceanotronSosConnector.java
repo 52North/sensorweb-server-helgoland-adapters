@@ -150,13 +150,13 @@ public class OceanotronSosConnector extends SOS2Connector {
         return Optional.empty();
     }
 
-    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String url) {
+    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, DataSourceConfiguration config) {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent((obsOffs) -> {
                 obsOffs.forEach((SosObservationOffering obsOff) -> {
                     // TODO remove if
-                    if (obsOff.getIdentifier().equals("CORIOLIS-RECOPESCA")) {
-                        addElem(obsOff, serviceConstellation, url);
+                    if (config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
+                        addElem(obsOff, serviceConstellation, config.getUrl());
                     }
                 });
             });
@@ -170,7 +170,7 @@ public class OceanotronSosConnector extends SOS2Connector {
 
         LOGGER.info("Harvest for Offering {} with {} procedure(s), {} observableProperperties", offeringId,
                 obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
-        obsOff.getProcedures().forEach((String procedureId) -> {
+         obsOff.getProcedures().forEach((String procedureId) -> {
             LOGGER.info("Harvest Procedure {}", procedureId);
             SensorML sensorML = getDescribeSensorResponse(procedureId, url);
             sensorML.getMembers().forEach((AbstractProcess member) -> {
@@ -179,7 +179,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                         if (member instanceof System) {
                             List<SmlComponent> components = ((HasComponents<System>) member).getComponents();
                             // TODO use components.size() instead of 1
-                            for (int i = 0; i < 2; i++) {
+                            for (int i = 0; i < 1; i++) {
                                 LOGGER.info("Still get " + (components.size() - i) + " components");
                                 addElem(components.get(i), obsProp, offeringId, servConst, url);
                             }
@@ -237,8 +237,8 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     private FeatureCollection getFeatureOfInterestResponse(String procedureId, String obsProp, String url) {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(new ArrayList(Arrays.asList(procedureId)));
-        request.setObservedProperties(new ArrayList(Arrays.asList(obsProp)));
+        request.setProcedures(Arrays.asList(procedureId));
+        request.setObservedProperties(Arrays.asList(obsProp));
         Object response = getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
         return (FeatureCollection) response;
     }
@@ -247,11 +247,11 @@ public class OceanotronSosConnector extends SOS2Connector {
     protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
             String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(seriesEntity.getProcedure().getDomainId())));
-        request.setObservedProperties(new ArrayList<>(asList(seriesEntity.getPhenomenon().getDomainId())));
+        request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
+        request.setObservedProperties(asList(seriesEntity.getPhenomenon().getDomainId()));
         request.setSpatialFilter(createSpatialFilter(seriesEntity.getFeature()));
         if (temporalFilter != null) {
-            request.setTemporalFilters(new ArrayList<>(asList(temporalFilter)));
+            request.setTemporalFilters(asList(temporalFilter));
         }
         if (responseFormat != null) {
             request.setResponseFormat(responseFormat);
