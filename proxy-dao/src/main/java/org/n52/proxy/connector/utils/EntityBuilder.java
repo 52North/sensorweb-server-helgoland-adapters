@@ -126,16 +126,4 @@ public class EntityBuilder {
         return entity;
     }
 
-    public static void updateDatasetEntity(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
-        dataset.setProcedure(procedure);
-        dataset.setCategory(category);
-        dataset.setFeature(feature);
-        dataset.setPhenomenon(phenomenon);
-        dataset.setOffering(offering);
-        dataset.setPublished(TRUE);
-        dataset.setDeleted(FALSE);
-        dataset.setService(service);
-    }
-
 }

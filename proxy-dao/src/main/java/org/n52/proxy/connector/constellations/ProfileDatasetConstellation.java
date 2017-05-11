@@ -8,12 +8,6 @@ package org.n52.proxy.connector.constellations;
 import java.util.Date;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.CategoryEntity;
-import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.FeatureEntity;
-import org.n52.series.db.beans.OfferingEntity;
-import org.n52.series.db.beans.PhenomenonEntity;
-import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ProfileDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 
@@ -40,11 +34,8 @@ public class ProfileDatasetConstellation extends DatasetConstellation<ProfileDat
     }
 
     @Override
-    public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
-            OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
+    protected ProfileDatasetEntity createDatasetEntity(ProxyServiceEntity service) {
         ProfileDatasetEntity dataset = new ProfileDatasetEntity();
-        dataset.setDomainId(this.getDomainId());
-        EntityBuilder.updateDatasetEntity(dataset, procedure, category, feature, offering, phenomenon, service);
         if (unit == null) {
             unit = EntityBuilder.createUnit("", null, service);
         }
