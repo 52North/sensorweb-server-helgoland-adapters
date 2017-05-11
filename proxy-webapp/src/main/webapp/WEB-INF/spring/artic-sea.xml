@@ -33,8 +33,8 @@
     <!--<bean class="org.n52.svalbard.decode.SosDecoderv20"/>
     <bean class="org.n52.svalbard.decode.SosStringDecoderv20"/>-->
     <bean class="org.n52.svalbard.decode.SwesDecoderv20"/>
-    <!--<bean class="org.n52.svalbard.decode.SwesStringDecoderv20" />
-    <bean class="org.n52.svalbard.decode.SweCommonDecoderV20"/>-->
+    <!--<bean class="org.n52.svalbard.decode.SwesStringDecoderv20"/>-->
+    <bean class="org.n52.svalbard.decode.SweCommonDecoderV20"/>
     <bean class="org.n52.svalbard.decode.OmDecoderv20"/>
     <bean class="org.n52.svalbard.decode.SensorMLDecoderV101"/>
     <bean class="org.n52.svalbard.decode.SamplingDecoderv20"/>
@@ -48,6 +48,7 @@
     <bean class="org.n52.svalbard.decode.CapabilitiesDecoder"/>
     <bean class="org.n52.svalbard.decode.CapabilitiesTypeDecoder"/>
     <bean class="org.n52.svalbard.decode.GetObservationResponseDocumentDecoder"/>
+    <bean class="org.n52.svalbard.decode.GetObservationByIdResponseDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.GetFeatureOfInterestResponseDocumentDecoder"/>
     <!--<bean class="org.n52.svalbard.decode.GeologyLogCoverageDecoder"/>-->
     <bean class="org.n52.proxy.decode.SamplingFeatureDecoder"/>
@@ -84,6 +85,7 @@
     <bean class="org.n52.svalbard.encode.GetCapabilitiesRequestEncoder"/>
     <bean class="org.n52.svalbard.encode.GetCapabilitiesV1RequestEncoder"/>
     <bean class="org.n52.svalbard.encode.GetObservationRequestEncoder"/>
+    <bean class="org.n52.svalbard.encode.GetObservationByIdRequestEncoder"/>
     <bean class="org.n52.svalbard.encode.GetFeatureOfInterestRequestEncoder"/>
 
 </beans>

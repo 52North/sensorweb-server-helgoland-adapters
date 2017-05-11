@@ -39,7 +39,7 @@ import org.n52.series.db.beans.ProcedureEntity;
 /**
  * @author Jan Schulte
  */
-public abstract class DatasetConstellation {
+public abstract class DatasetConstellation<T extends DatasetEntity> {
 
     private final String procedure;
     private final String offering;
