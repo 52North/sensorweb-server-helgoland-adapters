@@ -24,7 +24,7 @@ public abstract class AbstractConnector {
     @Autowired
     protected EncoderRepository encoderRepository;
 
-    private final int CONNECTION_TIMEOUT = 30000;
+    private static final int CONNECTION_TIMEOUT = 30000;
 
     public String getConnectorName() {
         return getClass().getName();

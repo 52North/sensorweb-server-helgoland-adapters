@@ -28,6 +28,8 @@
  */
 package org.n52.proxy.connector.constellations;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -39,7 +41,7 @@ import org.n52.series.db.beans.ProcedureEntity;
 /**
  * @author Jan Schulte
  */
-public abstract class DatasetConstellation {
+public abstract class DatasetConstellation<T extends DatasetEntity> {
 
     private final String procedure;
     private final String offering;
@@ -92,12 +94,26 @@ public abstract class DatasetConstellation {
                 + ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
     }
 
-    public abstract DatasetEntity createDatasetEntity(
+    public final DatasetEntity createDatasetEntity(
             ProcedureEntity procedure,
             CategoryEntity category,
             FeatureEntity feature,
             OfferingEntity offering,
             PhenomenonEntity phenomenon,
-            ProxyServiceEntity service);
+            ProxyServiceEntity service) {
+        DatasetEntity datasetEntity = createDatasetEntity(service);
+        datasetEntity.setDomainId(this.getDomainId());
+        datasetEntity.setProcedure(procedure);
+        datasetEntity.setCategory(category);
+        datasetEntity.setFeature(feature);
+        datasetEntity.setPhenomenon(phenomenon);
+        datasetEntity.setOffering(offering);
+        datasetEntity.setPublished(TRUE);
+        datasetEntity.setDeleted(FALSE);
+        datasetEntity.setService(service);
+        return datasetEntity;
+    };
+
+    protected abstract T createDatasetEntity(ProxyServiceEntity service);
 
 }

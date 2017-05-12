@@ -105,7 +105,7 @@ public class SOS2Connector extends AbstractSosConnector {
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation);
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
-        addDatasets(serviceConstellation, sosCaps, config.getUrl());
+        addDatasets(serviceConstellation, sosCaps, config);
         return serviceConstellation;
     }
 
@@ -149,7 +149,7 @@ public class SOS2Connector extends AbstractSosConnector {
                 createFirstTimefilter());
         if (response.getObservationCollection().size() >= 1) {
             String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-            return createUnit(unit, (ProxyServiceEntity) seriesEntity.getService());
+            return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
         }
         return null;
     }
@@ -168,28 +168,27 @@ public class SOS2Connector extends AbstractSosConnector {
         return dataEntity;
     }
 
-    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
+    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, DataSourceConfiguration config) {
         sosCaps.getContents().ifPresent((sosObsOfferings) -> {
             sosObsOfferings.forEach((sosObsOff) -> {
-                doForOffering(sosObsOff, serviceConstellation, serviceUri);
+                doForOffering(sosObsOff, serviceConstellation, config);
             });
         });
     }
 
-    protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
-            String serviceUri) {
+    protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
         offering.getProcedures().forEach((procedureId) -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
-            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId, serviceUri);
+            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId, config.getUrl());
             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
             if (abstractFeature instanceof SamplingFeature) {
                 addFeature((SamplingFeature) abstractFeature, serviceConstellation);
             }
 
-            GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, serviceUri);
+            GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, config.getUrl());
             gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
                 String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
                 String categoryId = addCategory(dataAval, serviceConstellation);
@@ -206,29 +205,39 @@ public class SOS2Connector extends AbstractSosConnector {
 
     protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByProcedure(String procedureId, String serviceUri) {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(procedureId)));
+        request.setProcedures(asList(procedureId));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
     }
 
     protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByFeature(String featureId, String serviceUri) {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
-        request.setFeatureIdentifiers(new ArrayList<>(asList(featureId)));
+        request.setFeatureIdentifiers(asList(featureId));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
     }
 
     private GetDataAvailabilityResponse getDataAvailabilityResponse(String procedureId, String serviceUri) {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(procedureId)));
+        request.setProcedures(asList(procedureId));
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
     }
 
     protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
             TemporalFilter temporalFilter) {
+        return createObservationResponse(seriesEntity, temporalFilter, null);
+    }
+
+    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
+            String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
-        request.setProcedures(new ArrayList<>(asList(seriesEntity.getProcedure().getDomainId())));
-        request.setObservedProperties(new ArrayList<>(asList(seriesEntity.getPhenomenon().getDomainId())));
-        request.setFeatureIdentifiers(new ArrayList<>(asList(seriesEntity.getFeature().getDomainId())));
-        request.setTemporalFilters(new ArrayList<>(asList(temporalFilter)));
+        request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
+        request.setObservedProperties(asList(seriesEntity.getPhenomenon().getDomainId()));
+        request.setFeatureIdentifiers(asList(seriesEntity.getFeature().getDomainId()));
+        if (temporalFilter != null) {
+            request.setTemporalFilters(asList(temporalFilter));
+        }
+        if (responseFormat != null) {
+            request.setResponseFormat(responseFormat);
+        }
         return (GetObservationResponse) this.getSosResponseFor(request, NS_SOS_20,
                 seriesEntity.getService().getUrl());
     }

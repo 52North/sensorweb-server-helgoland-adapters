@@ -36,6 +36,7 @@ import org.hibernate.Session;
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.DatasetOutput;
 import org.n52.proxy.connector.AbstractConnector;
+import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DatasetEntity;
@@ -58,9 +59,14 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
     protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
             throws DataAccessException {
         if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {
-            String connectorName = ((ProxyServiceEntity) series.getService()).getConnector();
+            final ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
+            final String connectorName = service.getConnector();
             AbstractConnector connector = connectorMap.get(connectorName);
             UnitEntity unit = connector.getUom(series);
+            if (unit == null) {
+                // create empty unit
+                unit = createUnit("", null, service);
+            }
             series.setUnit(unit);
             session.save(unit);
             session.save(series);

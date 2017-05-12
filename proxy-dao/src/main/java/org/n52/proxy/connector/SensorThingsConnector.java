@@ -41,9 +41,9 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private static final org.slf4j.Logger LOGGER = getLogger(SensorThingsConnector.class);
 
-    private Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
+    private final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
 
-    private DateTimeFormatter formatter = forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
+    private final DateTimeFormatter formatter = forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
     public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
@@ -103,6 +103,7 @@ public class SensorThingsConnector extends AbstractConnector {
                     featureId);
             constellation.setDomainId(Integer.toString(datastream.iotID));
             constellation.setUnit(createUnit(datastream.unitOfMeasurement.symbol,
+                    datastream.unitOfMeasurement.definition,
                     serviceConstellation.getService()));
             serviceConstellation.add(constellation);
         }
@@ -179,7 +180,7 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private String addFeature(Location location, ServiceConstellation serviceConstellation) {
         String featureId = Integer.toString(location.iotID);
-        serviceConstellation.putFeature(featureId, location.name, location.location.coordinates.get(1),
+        serviceConstellation.putFeature(featureId, location.name, null, location.location.coordinates.get(1),
                 location.location.coordinates.get(0), 4326);
         return featureId;
     }

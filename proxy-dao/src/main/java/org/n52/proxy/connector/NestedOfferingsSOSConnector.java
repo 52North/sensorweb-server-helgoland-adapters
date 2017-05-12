@@ -75,11 +75,10 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     @Override
-    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
-            String serviceUri) {
+    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
         obsOff.getExtension(RELATED_OFFERINGS).ifPresent((extension) -> {
             if (extension instanceof RelatedOfferings) {
-                addNestedOfferings((RelatedOfferings) extension, serviceConstellation, serviceUri);
+                addNestedOfferings((RelatedOfferings) extension, serviceConstellation, config.getUrl());
             }
         });
     }
@@ -124,7 +123,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
         // TODO implement
-        return createUnit("unit", (ProxyServiceEntity) seriesEntity.getService());
+        return createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,

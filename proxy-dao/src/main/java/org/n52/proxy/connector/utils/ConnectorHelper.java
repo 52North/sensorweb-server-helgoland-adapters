@@ -138,18 +138,14 @@ public class ConnectorHelper {
         return categoryId;
     }
 
-    public static String addFeature(SamplingFeature abstractFeature, ServiceConstellation serviceConstellation) {
-        String featureId = abstractFeature.getIdentifier();
-        String featureName;
-        if (abstractFeature.getName().size() == 1 && abstractFeature.getName().get(0).getValue() != null) {
-            featureName = abstractFeature.getName().get(0).getValue();
-        } else {
-            featureName = featureId;
-        }
-        double lat = abstractFeature.getGeometry().getCoordinate().x;
-        double lng = abstractFeature.getGeometry().getCoordinate().y;
-        int srid = abstractFeature.getGeometry().getSRID();
-        serviceConstellation.putFeature(featureId, featureName, lat, lng, srid);
+    public static String addFeature(SamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
+        String featureId = samplingfeature.getIdentifier();
+        String featureDescription = samplingfeature.getDescription();
+        String featureName = samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
+        double lat = samplingfeature.getGeometry().getCoordinate().x;
+        double lng = samplingfeature.getGeometry().getCoordinate().y;
+        int srid = samplingfeature.getGeometry().getSRID();
+        serviceConstellation.putFeature(featureId, featureName, featureDescription, lat, lng, srid);
         return featureId;
     }
 

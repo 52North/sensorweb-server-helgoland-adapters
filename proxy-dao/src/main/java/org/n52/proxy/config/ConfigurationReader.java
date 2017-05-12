@@ -43,7 +43,7 @@ public class ConfigurationReader {
     private final DataSourcesConfiguration intervalConfig = readConfig();
 
     private DataSourcesConfiguration readConfig() {
-        try (InputStream config = getClass().getResourceAsStream(CONFIG_FILE);) {
+        try (InputStream config = getClass().getResourceAsStream(CONFIG_FILE)) {
             ObjectMapper om = new ObjectMapper();
             return om.readValue(config, DataSourcesConfiguration.class);
         } catch (Exception e) {

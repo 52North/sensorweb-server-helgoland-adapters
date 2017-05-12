@@ -1,20 +1,13 @@
 package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
-import static org.n52.proxy.connector.utils.EntityBuilder.updateDatasetEntity;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.CategoryEntity;
-import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.FeatureEntity;
-import org.n52.series.db.beans.OfferingEntity;
-import org.n52.series.db.beans.PhenomenonEntity;
-import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.TextDatasetEntity;
 
 /**
  * @author Jan Schulte
  */
-public class TextDatasetConstellation extends DatasetConstellation {
+public class TextDatasetConstellation extends DatasetConstellation<TextDatasetEntity> {
 
     public TextDatasetConstellation(String procedure, String offering, String category, String phenomenon,
             String feature) {
@@ -22,11 +15,8 @@ public class TextDatasetConstellation extends DatasetConstellation {
     }
 
     @Override
-    public DatasetEntity createDatasetEntity(ProcedureEntity procedure, CategoryEntity category, FeatureEntity feature,
-            OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
+    protected TextDatasetEntity createDatasetEntity(ProxyServiceEntity service) {
         TextDatasetEntity textDataset = new TextDatasetEntity();
-        textDataset.setDomainId(this.getDomainId());
-        updateDatasetEntity(textDataset, procedure, category, feature, offering, phenomenon, service);
         textDataset.setFirstValueAt(new Date());
         textDataset.setLastValueAt(new Date());
         return textDataset;

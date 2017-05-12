@@ -89,10 +89,11 @@ public class EntityBuilder {
         return category;
     }
 
-    public static FeatureEntity createFeature(String domainId, String name, GeometryEntity geometry,
+    public static FeatureEntity createFeature(String domainId, String name, String description, GeometryEntity geometry,
             ProxyServiceEntity service) {
         FeatureEntity feature = new FeatureEntity();
         feature.setName(name);
+        feature.setDescription(description);
         feature.setDomainId(domainId);
         feature.setGeometryEntity(geometry);
         feature.setService(service);
@@ -117,23 +118,12 @@ public class EntityBuilder {
         return phenomenon;
     }
 
-    public static UnitEntity createUnit(String unit, ProxyServiceEntity service) {
+    public static UnitEntity createUnit(String unit, String unitDescription, ProxyServiceEntity service) {
         UnitEntity entity = new UnitEntity();
         entity.setName(unit);
+        entity.setDescription(unitDescription);
         entity.setService(service);
         return entity;
-    }
-
-    public static void updateDatasetEntity(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
-        dataset.setProcedure(procedure);
-        dataset.setCategory(category);
-        dataset.setFeature(feature);
-        dataset.setPhenomenon(phenomenon);
-        dataset.setOffering(offering);
-        dataset.setPublished(TRUE);
-        dataset.setDeleted(FALSE);
-        dataset.setService(service);
     }
 
 }
