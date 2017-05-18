@@ -28,14 +28,15 @@
  */
 package org.n52.proxy.db.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
 import static org.hibernate.criterion.Restrictions.eq;
-import org.n52.proxy.db.beans.RelatedFeatureEntity;
 import static org.n52.proxy.db.beans.RelatedFeatureEntity.FEATURE;
 import static org.n52.proxy.db.beans.RelatedFeatureEntity.SERVICE;
+
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.n52.proxy.db.beans.RelatedFeatureEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.AbstractDao;
@@ -51,14 +52,9 @@ public class ProxyRelatedFeatureDao extends AbstractDao<RelatedFeatureEntity>
     }
 
     @Override
-    public List<RelatedFeatureEntity> find(DbQuery query) {
-        return new ArrayList<>();
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     public List<RelatedFeatureEntity> getAllInstances(DbQuery query) throws DataAccessException {
-        return getDefaultCriteria().list();
+        return getDefaultCriteria(ProxyDbQuery.createDefaults()).list();
     }
 
     @Override

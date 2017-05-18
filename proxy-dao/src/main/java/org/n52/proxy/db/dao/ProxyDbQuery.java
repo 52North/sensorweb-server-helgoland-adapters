@@ -28,14 +28,15 @@
  */
 package org.n52.proxy.db.dao;
 
-import org.hibernate.Criteria;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Restrictions.in;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import org.hibernate.Criteria;
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.series.db.dao.QueryUtils;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public class ProxyDbQuery extends DbQuery {
 
@@ -47,6 +48,10 @@ public class ProxyDbQuery extends DbQuery {
 
     public ProxyDbQuery(IoParameters parameters) {
         super(parameters);
+    }
+
+    public static ProxyDbQuery createDefaults() {
+        return createFrom(IoParameters.createDefaults());
     }
 
     public static ProxyDbQuery createFrom(IoParameters parameters) {

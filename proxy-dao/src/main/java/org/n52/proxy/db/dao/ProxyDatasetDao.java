@@ -28,19 +28,21 @@
  */
 package org.n52.proxy.db.dao;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hibernate.criterion.Restrictions.eq;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.List;
 import java.util.Set;
-import static java.util.stream.Collectors.toSet;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import static org.hibernate.criterion.Restrictions.eq;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
 
@@ -106,7 +108,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     public void removeAllOfService(ProxyServiceEntity service) {
-        getDefaultCriteria()
+        getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach((dataset) -> session.delete(dataset));
@@ -125,7 +127,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     private DatasetEntity getInstance(DatasetEntity dataset) {
-        Criteria criteria = getDefaultCriteria()
+        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_VALUETYPE, dataset.getValueType()))
                 .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
                 .add(eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
@@ -140,7 +142,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     private List<T> getDatasetsForService(ServiceEntity service) {
-        Criteria criteria = getDefaultCriteria()
+        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
