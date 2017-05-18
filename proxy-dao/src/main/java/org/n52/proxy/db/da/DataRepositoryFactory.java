@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.n52.io.ConfigTypedFactory;
-import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.AbstractConnector;
 import org.n52.series.db.HibernateSessionStore;
 import org.n52.series.db.da.IDataRepositoryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepositor
     @Autowired
     private HibernateSessionStore sessionStore;
 
-    private Map<String, AbstractSosConnector> connectorMap = new HashMap<>();
+    private Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
     public DataRepositoryFactory() {
         super(DEFAULT_CONFIG_FILE);
@@ -56,7 +56,7 @@ public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepositor
     }
 
     @Autowired
-    public void setConnectors(List<AbstractSosConnector> connectors) {
+    public void setConnectors(List<AbstractConnector> connectors) {
         connectors.forEach((connector) -> {
             connectorMap.put(connector.getConnectorName(), connector);
         });

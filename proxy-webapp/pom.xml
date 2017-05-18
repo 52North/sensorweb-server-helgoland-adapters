@@ -36,8 +36,8 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>series-dao</artifactId>
+            <groupId>${project.groupId}.db</groupId>
+            <artifactId>dao</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

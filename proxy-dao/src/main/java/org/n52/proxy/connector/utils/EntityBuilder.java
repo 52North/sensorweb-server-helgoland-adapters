@@ -28,8 +28,9 @@
  */
 package org.n52.proxy.connector.utils;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.vividsolutions.jts.io.ParseException;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -39,10 +40,15 @@ import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.svalbard.decode.exception.DecodingException;
-import org.n52.svalbard.util.JTSHelper;
+import static org.n52.shetland.util.JTSHelper.createGeometryFromWKT;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class EntityBuilder {
+
+    private static final org.slf4j.Logger LOGGER = getLogger(EntityBuilder.class);
+
+    private EntityBuilder() {
+    }
 
     public static ProxyServiceEntity createService(String name, String description, String connector, String url,
             String version) {
@@ -83,10 +89,11 @@ public class EntityBuilder {
         return category;
     }
 
-    public static FeatureEntity createFeature(String domainId, String name, GeometryEntity geometry,
+    public static FeatureEntity createFeature(String domainId, String name, String description, GeometryEntity geometry,
             ProxyServiceEntity service) {
         FeatureEntity feature = new FeatureEntity();
         feature.setName(name);
+        feature.setDescription(description);
         feature.setDomainId(domainId);
         feature.setGeometryEntity(geometry);
         feature.setService(service);
@@ -96,9 +103,9 @@ public class EntityBuilder {
     public static GeometryEntity createGeometry(double latitude, double longitude, int srid) {
         GeometryEntity geometry = new GeometryEntity();
         try {
-            geometry.setGeometry(JTSHelper.createGeometryFromWKT("POINT (" + longitude + " " + latitude + ")", srid));
-        } catch (DecodingException ex) {
-            Logger.getLogger(EntityBuilder.class.getName()).log(Level.SEVERE, null, ex);
+            geometry.setGeometry(createGeometryFromWKT("POINT (" + longitude + " " + latitude + ")", srid));
+        } catch (ParseException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
         }
         return geometry;
     }
@@ -111,23 +118,12 @@ public class EntityBuilder {
         return phenomenon;
     }
 
-    public static UnitEntity createUnit(String unit, ProxyServiceEntity service) {
+    public static UnitEntity createUnit(String unit, String unitDescription, ProxyServiceEntity service) {
         UnitEntity entity = new UnitEntity();
         entity.setName(unit);
+        entity.setDescription(unitDescription);
         entity.setService(service);
         return entity;
-    }
-
-    public static void updateDatasetEntity(DatasetEntity dataset, ProcedureEntity procedure, CategoryEntity category,
-            FeatureEntity feature, OfferingEntity offering, PhenomenonEntity phenomenon, ProxyServiceEntity service) {
-        dataset.setProcedure(procedure);
-        dataset.setCategory(category);
-        dataset.setFeature(feature);
-        dataset.setPhenomenon(phenomenon);
-        dataset.setOffering(offering);
-        dataset.setPublished(Boolean.TRUE);
-        dataset.setDeleted(Boolean.FALSE);
-        dataset.setService(service);
     }
 
 }

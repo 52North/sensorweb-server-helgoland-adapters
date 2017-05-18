@@ -42,8 +42,8 @@ public class RelatedFeatureEntity {
     private long relatedFeatureId;
     private FeatureEntity feature;
     private ServiceEntity service;
-    private Set<RelatedFeatureRoleEntity> relatedFeatureRoles = new HashSet<RelatedFeatureRoleEntity>(0);
-    private Set<OfferingEntity> offerings = new HashSet<OfferingEntity>(0);
+    private Set<RelatedFeatureRoleEntity> relatedFeatureRoles = new HashSet<>(0);
+    private Set<OfferingEntity> offerings = new HashSet<>(0);
 
     public RelatedFeatureEntity() {
     }

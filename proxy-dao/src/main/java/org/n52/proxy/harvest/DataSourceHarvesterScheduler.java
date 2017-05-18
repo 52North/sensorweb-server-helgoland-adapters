@@ -31,7 +31,7 @@ package org.n52.proxy.harvest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toSet;
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.ConfigurationReader;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -40,14 +40,14 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
+import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DataSourceHarvesterScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
+    private static final Logger LOGGER = getLogger(DataSourceHarvesterScheduler.class);
 
     private ConfigurationReader configurationProvider;
 
@@ -74,7 +74,7 @@ public class DataSourceHarvesterScheduler {
                 .stream()
                 .filter((t) ->  t.getJob().isEnabled())
                 .map((t) -> t.getUrl())
-                .collect(Collectors.toSet());
+                .collect(toSet());
         insertRepository.removeNonMatchingServices(configuredUrls);
 
         for (DataSourceConfiguration dataSourceConfig : configurationProvider.getDataSource()) {
@@ -100,7 +100,7 @@ public class DataSourceHarvesterScheduler {
                 scheduler.scheduleJob(details, trigger);
                 if (taskToSchedule.isTriggerAtStartup()) {
                     LOGGER.debug("Schedule job '{}' to run once at startup.", details.getKey());
-                    Trigger onceAtStartup = TriggerBuilder.newTrigger()
+                    Trigger onceAtStartup = newTrigger()
                             .withIdentity(details.getKey() + "_onceAtStartup")
                             .forJob(details.getKey()).build();
                     scheduler.scheduleJob(onceAtStartup);
