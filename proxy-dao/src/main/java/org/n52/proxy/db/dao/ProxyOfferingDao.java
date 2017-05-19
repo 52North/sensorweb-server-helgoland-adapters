@@ -28,19 +28,21 @@
  */
 package org.n52.proxy.db.dao;
 
-import java.util.Collection;
-import java.util.List;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.criterion.DetachedCriteria;
 import static org.hibernate.criterion.DetachedCriteria.forClass;
 import static org.hibernate.criterion.Projections.distinct;
 import static org.hibernate.criterion.Projections.property;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Restrictions.in;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
-import org.n52.series.db.beans.DatasetEntity;
 import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.OfferingDao;
@@ -89,7 +91,7 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
 
     @SuppressWarnings("unchecked")
     public List<OfferingEntity> getInstancesFor(Collection<String> domainIds) {
-        Criteria c = getDefaultCriteria()
+        Criteria c = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(in(PROPERTY_DOMAIN_ID, domainIds));
         return c.list();
     }

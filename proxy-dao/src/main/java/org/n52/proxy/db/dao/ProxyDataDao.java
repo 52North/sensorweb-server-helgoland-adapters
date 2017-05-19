@@ -28,11 +28,12 @@
  */
 package org.n52.proxy.db.dao;
 
-import org.hibernate.Session;
 import static org.hibernate.criterion.Projections.rowCount;
 import static org.hibernate.criterion.Restrictions.eq;
-import org.n52.series.db.beans.DataEntity;
 import static org.n52.series.db.beans.DataEntity.SERIES_PKID;
+
+import org.hibernate.Session;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.dao.DataDao;
 
@@ -47,7 +48,7 @@ public class ProxyDataDao<T extends DataEntity> extends DataDao<T> {
     }
 
     public Long getObservationCount(DatasetEntity<?> entity) {
-        return (Long) getDefaultCriteria()
+        return (Long) getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(SERIES_PKID, entity.getPkid()))
                 .setProjection(rowCount())
                 .uniqueResult();
