@@ -43,6 +43,7 @@ public class ProfileDatasetConstellation extends DatasetConstellation<ProfileDat
         dataset.setVerticalParameterName(verticalParameterName);
         dataset.setFirstValueAt(new Date());
         dataset.setLastValueAt(new Date());
+        dataset.setValueType("quantity-profile");
         return dataset;
     }
 
