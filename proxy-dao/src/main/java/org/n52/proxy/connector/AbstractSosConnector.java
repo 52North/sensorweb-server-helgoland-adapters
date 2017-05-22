@@ -70,12 +70,16 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     protected Object getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
+        XmlObject xmlRequest = null;
         try {
             EncoderKey encoderKey = getEncoderKey(namespace, request);
-            XmlObject xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
+            xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
             HttpResponse response = sendPostRequest(xmlRequest, serviceUrl);
             return decodeResponse(response);
         } catch (EncodingException | IOException | XmlException | DecodingException ex) {
+            if (xmlRequest != null) {
+                LOGGER.info(xmlRequest.xmlText());
+            }
             LOGGER.error(ex.getLocalizedMessage(), ex);
             return null;
         }
