@@ -70,12 +70,11 @@ public class DataSourceHarvesterScheduler {
             return;
         }
 
-        Set<String> configuredUrls = configurationProvider.getDataSource()
+        Set<DataSourceConfiguration> configuredServices = configurationProvider.getDataSource()
                 .stream()
                 .filter((t) ->  t.getJob().isEnabled())
-                .map((t) -> t.getUrl())
                 .collect(toSet());
-        insertRepository.removeNonMatchingServices(configuredUrls);
+        insertRepository.removeNonMatchingServices(configuredServices);
 
         for (DataSourceConfiguration dataSourceConfig : configurationProvider.getDataSource()) {
             LOGGER.info(dataSourceConfig.getItemName() + " " + dataSourceConfig.getUrl());

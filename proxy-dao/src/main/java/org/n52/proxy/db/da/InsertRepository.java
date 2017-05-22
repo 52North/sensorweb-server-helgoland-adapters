@@ -34,6 +34,7 @@ import java.util.Set;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.proxy.db.beans.RelatedFeatureEntity;
 import org.n52.proxy.db.beans.RelatedFeatureRoleEntity;
@@ -91,11 +92,19 @@ public class InsertRepository extends SessionAwareRepository {
         }
     }
 
-    public void removeNonMatchingServices(Set<String> configuredUrls) {
+    public void removeNonMatchingServices(Set<DataSourceConfiguration> configuredServices) {
         Session session = getSession();
         try {
             new ProxyServiceDao(session).getAllServices().stream()
-                    .filter((t) -> !configuredUrls.contains(t.getUrl()))
+                    .filter((t) -> {
+                        boolean canBeRemoved = true;
+                        for (DataSourceConfiguration entry : configuredServices) {
+                            if (entry.getUrl().equals(t.getUrl()) && entry.getItemName().equals(t.getName())) {
+                                canBeRemoved = false;
+                            }
+                        }
+                        return canBeRemoved;
+                    })
                     .forEach(this::removeService);
         } finally {
             returnSession(session);
