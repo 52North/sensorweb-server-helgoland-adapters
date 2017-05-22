@@ -47,6 +47,7 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
 
     private static final String COLUMN_TYPE = "type";
     private static final String COLUMN_URL = "url";
+    private static final String COLUMN_NAME = "name";
 
     public ProxyServiceDao(Session session) {
         super(session);
@@ -66,7 +67,8 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
     private ProxyServiceEntity getInstance(ProxyServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(eq(COLUMN_TYPE, service.getType()))
-                .add(eq(COLUMN_URL, service.getUrl()));
+                .add(eq(COLUMN_URL, service.getUrl()))
+                .add(eq(COLUMN_NAME, service.getName()));
         return (ProxyServiceEntity) criteria.uniqueResult();
     }
 
