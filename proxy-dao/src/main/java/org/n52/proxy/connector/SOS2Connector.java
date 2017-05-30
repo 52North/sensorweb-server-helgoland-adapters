@@ -59,6 +59,7 @@ import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.om.OmObservation;
+import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
@@ -168,7 +169,8 @@ public class SOS2Connector extends AbstractSosConnector {
         return dataEntity;
     }
 
-    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, DataSourceConfiguration config) {
+    protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
+            DataSourceConfiguration config) {
         sosCaps.getContents().ifPresent((sosObsOfferings) -> {
             sosObsOfferings.forEach((sosObsOff) -> {
                 doForOffering(sosObsOff, serviceConstellation, config);
@@ -176,17 +178,16 @@ public class SOS2Connector extends AbstractSosConnector {
         });
     }
 
-    protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
+    protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
+            DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
         offering.getProcedures().forEach((procedureId) -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
-            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId, config.getUrl());
-            AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-            if (abstractFeature instanceof SamplingFeature) {
-                addFeature((SamplingFeature) abstractFeature, serviceConstellation);
-            }
+            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId,
+                    config.getUrl());
+            createFeature(foiResponse.getAbstractFeature(), serviceConstellation);
 
             GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, config.getUrl());
             gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
@@ -201,6 +202,15 @@ public class SOS2Connector extends AbstractSosConnector {
 
             LOGGER.info(foiResponse.toString());
         });
+    }
+
+    protected void createFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
+        if (feature instanceof SamplingFeature) {
+            addFeature((SamplingFeature) feature, serviceConstellation);
+        } else if (feature instanceof FeatureCollection) {
+            ((FeatureCollection) feature).forEach((AbstractFeature featureEntry) -> createFeature(featureEntry,
+                    serviceConstellation));
+        }
     }
 
     protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByProcedure(String procedureId, String serviceUri) {
