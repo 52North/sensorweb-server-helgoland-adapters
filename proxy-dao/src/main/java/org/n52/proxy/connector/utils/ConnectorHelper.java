@@ -46,11 +46,15 @@ import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.FIRST;
 import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.LATEST;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
+import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Jan Schulte
  */
 public class ConnectorHelper {
+
+    private static final Logger LOGGER = getLogger(ConnectorHelper.class);
 
     private ConnectorHelper() {
     }
@@ -142,10 +146,14 @@ public class ConnectorHelper {
         String featureId = samplingfeature.getIdentifier();
         String featureDescription = samplingfeature.getDescription();
         String featureName = samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
-        double lat = samplingfeature.getGeometry().getCoordinate().x;
-        double lng = samplingfeature.getGeometry().getCoordinate().y;
-        int srid = samplingfeature.getGeometry().getSRID();
-        serviceConstellation.putFeature(featureId, featureName, featureDescription, lat, lng, srid);
+        if (samplingfeature.getGeometry() != null) {
+            double lat = samplingfeature.getGeometry().getCoordinate().x;
+            double lng = samplingfeature.getGeometry().getCoordinate().y;
+            int srid = samplingfeature.getGeometry().getSRID();
+            serviceConstellation.putFeature(featureId, featureName, featureDescription, lat, lng, srid);
+        } else {
+            LOGGER.warn("No geometry found");
+        }
         return featureId;
     }
 
