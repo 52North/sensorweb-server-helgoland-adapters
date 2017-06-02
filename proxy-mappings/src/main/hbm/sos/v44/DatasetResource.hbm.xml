@@ -17,14 +17,14 @@
         <many-to-one class="PlatformEntity" column="procedureid" insert="false" name="platform" update="false"/>
         <property column="published" name="published" type="org.hibernate.type.TrueFalseType"/>
         <property column="deleted" name="deleted" type="org.hibernate.type.TrueFalseType"/>
-        <property column="seriesType" name="datasetType" type="string" insert="false" update="false"/>
+        <property column="seriesType" name="valueType" type="string" insert="false" update="false"/>
 
         <property column="identifier" name="domainId" type="string"/>
         <property column="firsttimestamp" name="firstValueAt" type="timestamp"/>
         <property column="lasttimestamp" name="lastValueAt" type="timestamp"/>
         <many-to-one class="org.n52.proxy.db.beans.ProxyServiceEntity" column="service" name="service"/>
 
-        <subclass discriminator-value="measurement" name="MeasurementDatasetEntity">
+        <subclass discriminator-value="quantity" name="QuantityDatasetEntity">
             <property formula="3" name="numberOfDecimals" type="int"/>
             <component class="org.n52.series.db.beans.ObservationEntity" name="firstValue">
                 <property column="firsttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>
@@ -55,6 +55,16 @@
                 <key column="observationid"/>
                 <index column="seriesid"/>
                 <one-to-many class="org.n52.series.db.beans.DataEntity"/>
+            </list>-->
+        </subclass>
+
+        <subclass discriminator-value="quantity-profile" name="ProfileDatasetEntity">
+            <property name="verticalParameterName" formula="'depth'" type="string" />
+            <many-to-one class="UnitEntity" column="unitid" name="unit"/>
+<!--            <list fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <index column="seriesid" />
+                <one-to-many class="DataEntity" />
             </list>-->
         </subclass>
     </class>

@@ -30,27 +30,37 @@ package org.n52.proxy.connector.utils;
 
 import org.joda.time.DateTime;
 import org.n52.proxy.config.DataSourceConfiguration;
+import static org.n52.proxy.connector.utils.EntityBuilder.createService;
 import org.n52.series.db.dao.DbQuery;
-import org.n52.shetland.ogc.filter.FilterConstants;
+import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_During;
+import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_Equals;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.CodeType;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
-import org.n52.shetland.ogc.om.OmConstants;
+import static org.n52.shetland.ogc.om.OmConstants.PHENOMENON_TIME_NAME;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
-import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
+import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.FIRST;
+import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.LATEST;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
+import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Jan Schulte
  */
 public class ConnectorHelper {
 
+    private static final Logger LOGGER = getLogger(ConnectorHelper.class);
+
+    private ConnectorHelper() {
+    }
+
     public static void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation) {
-        serviceConstellation.setService(EntityBuilder.createService(config.getItemName(), "here goes description",
+        serviceConstellation.setService(createService(config.getItemName(), "here goes description",
                 config.getConnector(), config.getUrl(), config.getVersion()));
     }
 
@@ -72,6 +82,11 @@ public class ConnectorHelper {
         return offeringId;
     }
 
+    public static String addOffering(String offeringId, String offeringName, ServiceConstellation serviceConstellation) {
+        serviceConstellation.putOffering(offeringId, offeringName);
+        return offeringId;
+    }
+
     public static String addProcedure(String procedureId, boolean insitu, boolean mobile,
             ServiceConstellation serviceConstellation) {
         serviceConstellation.putProcedure(procedureId, procedureId, insitu, mobile);
@@ -86,8 +101,20 @@ public class ConnectorHelper {
         return procedureId;
     }
 
+    public static String addProcedure(String procedureId, String procedureName, boolean insitu, boolean mobile,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putProcedure(procedureId, procedureName, insitu, mobile);
+        return procedureId;
+    }
+
     public static String addPhenomenon(String phenomenonId, ServiceConstellation serviceConstellation) {
         serviceConstellation.putPhenomenon(phenomenonId, phenomenonId);
+        return phenomenonId;
+    }
+
+    public static String addPhenomenon(String phenomenonId, String phenomenonName,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putPhenomenon(phenomenonId, phenomenonName);
         return phenomenonId;
     }
 
@@ -110,41 +137,45 @@ public class ConnectorHelper {
         return categoryId;
     }
 
-    public static String addFeature(SamplingFeature abstractFeature, ServiceConstellation serviceConstellation) {
-        String featureId = abstractFeature.getIdentifier();
-        String featureName;
-        if (abstractFeature.getName().size() == 1 && abstractFeature.getName().get(0).getValue() != null) {
-            featureName = abstractFeature.getName().get(0).getValue();
+    public static String addCategory(String categoryId, String categoryName, ServiceConstellation serviceConstellation) {
+        serviceConstellation.putCategory(categoryId, categoryName);
+        return categoryId;
+    }
+
+    public static String addFeature(SamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
+        String featureId = samplingfeature.getIdentifier();
+        String featureDescription = samplingfeature.getDescription();
+        String featureName = samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
+        if (samplingfeature.getGeometry() != null) {
+            double lat = samplingfeature.getGeometry().getCoordinate().x;
+            double lng = samplingfeature.getGeometry().getCoordinate().y;
+            int srid = samplingfeature.getGeometry().getSRID();
+            serviceConstellation.putFeature(featureId, featureName, featureDescription, lat, lng, srid);
         } else {
-            featureName = featureId;
+            LOGGER.warn("No geometry found");
         }
-        double lat = abstractFeature.getGeometry().getCoordinate().x;
-        double lng = abstractFeature.getGeometry().getCoordinate().y;
-        int srid = abstractFeature.getGeometry().getSRID();
-        serviceConstellation.putFeature(featureId, featureName, lat, lng, srid);
         return featureId;
     }
 
     public static TemporalFilter createFirstTimefilter() {
-        Time time = new TimeInstant(ExtendedIndeterminateTime.FIRST);
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, OmConstants.PHENOMENON_TIME_NAME);
+        Time time = new TimeInstant(FIRST);
+        return new TemporalFilter(TM_Equals, time, PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createLatestTimefilter() {
-        Time time = new TimeInstant(ExtendedIndeterminateTime.LATEST);
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_Equals, time, OmConstants.PHENOMENON_TIME_NAME);
+        Time time = new TimeInstant(LATEST);
+        return new TemporalFilter(TM_Equals, time, PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createTimePeriodFilter(DbQuery query) {
         Time time = new TimePeriod(query.getTimespan().getStart(), query.getTimespan().getEnd());
-        return new TemporalFilter(FilterConstants.TimeOperator.TM_During, time, OmConstants.PHENOMENON_TIME_NAME);
+        return new TemporalFilter(TM_During, time, PHENOMENON_TIME_NAME);
     }
 
     public static TemporalFilter createTimeInstantFilter(DateTime dateTime) {
         return new TemporalFilter(
-                FilterConstants.TimeOperator.TM_Equals,
-                new TimeInstant(dateTime),
-                OmConstants.PHENOMENON_TIME_NAME);
+                TM_Equals,
+                new TimeInstant(dateTime), PHENOMENON_TIME_NAME);
     }
 
 }

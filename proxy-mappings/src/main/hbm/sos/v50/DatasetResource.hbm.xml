@@ -17,7 +17,7 @@
         <many-to-one class="PlatformEntity" column="platformId" insert="false" name="platform" update="false" foreign-key="platformFk"/>
         <property column="published" name="published" type="org.hibernate.type.TrueFalseType"/>
         <property column="deleted" name="deleted" type="org.hibernate.type.TrueFalseType"/>
-        <property column="seriesType" name="datasetType" type="string" insert="false" update="false"/>
+        <property column="seriesType" name="valueType" type="string" insert="false" update="false"/>
 
         <property column="identifier" name="domainId" type="string"/>
         <property column="firsttimestamp" name="firstValueAt" type="timestamp"/>
@@ -26,7 +26,7 @@
         <!-- only for proxy -->
         <property column="observationcount" name="observationCount" type="long"/>
 
-        <subclass discriminator-value="measurement" name="MeasurementDatasetEntity">
+        <subclass discriminator-value="quantity" name="QuantityDatasetEntity">
             <property formula="3" name="numberOfDecimals" type="int"/>
             <component class="org.n52.series.db.beans.ObservationEntity" name="firstValue">
                 <property column="firsttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>

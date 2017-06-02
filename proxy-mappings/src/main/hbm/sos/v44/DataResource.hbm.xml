@@ -13,7 +13,7 @@
         <property column="deleted" name="deleted" type="org.hibernate.type.TrueFalseType"/>
         <property column="validTimeStart" name="validTimeStart" not-null="false" type="timestamp"/>
         <property column="validTimeEnd" name="validTimeEnd" not-null="false" type="timestamp"/>
-        <component class="org.n52.series.db.beans.GeometryEntity" name="geometry">
+        <component class="org.n52.series.db.beans.GeometryEntity" name="geometryEntity">
             <!--
            <property column="lat" name="lat" type="double" />
            <property column="lon" name="lon" type="double" />
@@ -26,7 +26,7 @@
             <one-to-many class="DataParameter"/>
         </set>-->
 
-        <joined-subclass extends="DataEntity" name="MeasurementDataEntity" table="numericValue">
+        <joined-subclass extends="DataEntity" name="QuantityDataEntity" table="numericValue">
             <key column="observationid"/>
             <property column="value" name="value" type="double"/>
         </joined-subclass>

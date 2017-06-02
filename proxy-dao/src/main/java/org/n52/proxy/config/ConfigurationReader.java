@@ -32,18 +32,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class ConfigurationReader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
+    private static final Logger LOGGER = getLogger(ConfigurationReader.class);
 
     private static final String CONFIG_FILE = "/config-data-sources.json";
 
     private final DataSourcesConfiguration intervalConfig = readConfig();
 
     private DataSourcesConfiguration readConfig() {
-        try (InputStream config = getClass().getResourceAsStream(CONFIG_FILE);) {
+        try (InputStream config = getClass().getResourceAsStream(CONFIG_FILE)) {
             ObjectMapper om = new ObjectMapper();
             return om.readValue(config, DataSourcesConfiguration.class);
         } catch (Exception e) {

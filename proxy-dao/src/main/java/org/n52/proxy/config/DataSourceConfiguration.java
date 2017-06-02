@@ -28,12 +28,17 @@
  */
 package org.n52.proxy.config;
 
+import java.util.List;
+
 public class DataSourceConfiguration {
 
     private String itemName;
     private String url;
     private String version;
     private String connector;
+    private String type;
+    private List<String> allowedOfferings;
+
     private DataSourceJobConfiguration job;
 
     public DataSourceJobConfiguration getJob() {
@@ -76,10 +81,26 @@ public class DataSourceConfiguration {
         this.connector = connector;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public List<String> getAllowedOfferings() {
+        return allowedOfferings;
+    }
+
+    public void setAllowedOfferings(List<String> allowedOfferings) {
+        this.allowedOfferings = allowedOfferings;
+    }
+
     @Override
     public String toString() {
         return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url
-                + ", version=" + version + ", connector=" + connector + "}";
+                + ", version=" + version + ", connector=" + connector + ", type=" + type + "}";
     }
 
 }
