@@ -62,8 +62,9 @@ import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
-import org.n52.shetland.ogc.ows.OwsServiceProvider;
+import org.n52.shetland.ogc.ows.OwsOperation;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
+import org.n52.shetland.ogc.sos.Sos2Constants;
 import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
 import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
 import org.n52.shetland.ogc.sos.SosCapabilities;
@@ -71,10 +72,13 @@ import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityRequest;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
+import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
 import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
 import org.n52.shetland.ogc.sos.request.GetObservationRequest;
+import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
+import org.n52.shetland.ogc.swes.SwesConstants;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -91,12 +95,22 @@ public class SOS2Connector extends AbstractSosConnector {
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         OwsCapabilities owsCaps = capabilities.getCapabilities();
         if (owsCaps.getVersion().equals(SERVICEVERSION) && owsCaps.getServiceProvider().isPresent()) {
-            OwsServiceProvider servProvider = owsCaps.getServiceProvider().get();
-            if (servProvider.getProviderName().equals("52North")) {
-                return true;
-            }
+            return supportsGDA(owsCaps);
         }
         return false;
+    }
+
+    protected boolean supportsGDA(OwsCapabilities owsCaps) {
+        boolean handle;
+        handle = owsCaps.getOperationsMetadata().map((metadata) -> {
+            for (OwsOperation operation : metadata.getOperations()) {
+                if (operation.getName().equals("GetDataAvailability")) {
+                    return true;
+                }
+            }
+            return false;
+        }).get();
+        return handle;
     }
 
     @Override
@@ -107,6 +121,7 @@ public class SOS2Connector extends AbstractSosConnector {
         addService(config, serviceConstellation);
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
         addDatasets(serviceConstellation, sosCaps, config);
+        LOGGER.info("{} requests were sended to harvest the service {}", counter, config.getItemName());
         return serviceConstellation;
     }
 
@@ -187,28 +202,29 @@ public class SOS2Connector extends AbstractSosConnector {
 
             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId,
                     config.getUrl());
-            createFeature(foiResponse.getAbstractFeature(), serviceConstellation);
+            addAbstractFeature(foiResponse.getAbstractFeature(), serviceConstellation);
 
             GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, config.getUrl());
-            gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
-                String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
-                String categoryId = addCategory(dataAval, serviceConstellation);
-                String featureId = dataAval.getFeatureOfInterest().getHref();
-                // TODO maybe not only QuantityDatasetConstellation
-                serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                        phenomenonId,
-                        featureId));
-            });
-
+            if (gdaResponse != null) {
+                gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
+                    String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
+                    String categoryId = addCategory(dataAval, serviceConstellation);
+                    String featureId = dataAval.getFeatureOfInterest().getHref();
+                    // TODO maybe not only QuantityDatasetConstellation
+                    serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
+                            phenomenonId,
+                            featureId));
+                });
+            }
             LOGGER.info(foiResponse.toString());
         });
     }
 
-    protected void createFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
+    protected void addAbstractFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
         if (feature instanceof SamplingFeature) {
             addFeature((SamplingFeature) feature, serviceConstellation);
         } else if (feature instanceof FeatureCollection) {
-            ((FeatureCollection) feature).forEach((AbstractFeature featureEntry) -> createFeature(featureEntry,
+            ((FeatureCollection) feature).forEach((AbstractFeature featureEntry) -> addAbstractFeature(featureEntry,
                     serviceConstellation));
         }
     }
@@ -223,6 +239,13 @@ public class SOS2Connector extends AbstractSosConnector {
         GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
         request.setFeatureIdentifiers(asList(featureId));
         return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
+    }
+
+    protected DescribeSensorResponse getDescribeSensorResponse(String procedureId, String url, String format) {
+        DescribeSensorRequest request = new DescribeSensorRequest(SOS, Sos2Constants.SERVICEVERSION);
+        request.setProcedure(procedureId);
+        request.setProcedureDescriptionFormat(format);
+        return (DescribeSensorResponse) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
     }
 
     private GetDataAvailabilityResponse getDataAvailabilityResponse(String procedureId, String serviceUri) {

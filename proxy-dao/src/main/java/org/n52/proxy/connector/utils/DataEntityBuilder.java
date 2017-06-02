@@ -27,7 +27,7 @@ public class DataEntityBuilder {
     public static DataEntity createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
         SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
-        setTime(obsValue, dataEntity);
+        setPhenomenonTime(obsValue, dataEntity);
         QuantityValue value = (QuantityValue) obsValue.getValue();
         dataEntity.setValue(value.getValue());
         return dataEntity;
@@ -36,7 +36,7 @@ public class DataEntityBuilder {
     public static DataEntity createCountDataEntity(OmObservation observation) {
         CountDataEntity dataEntity = new CountDataEntity();
         SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
-        setTime(obsValue, dataEntity);
+        setPhenomenonTime(obsValue, dataEntity);
         QuantityValue value = (QuantityValue) obsValue.getValue();
         dataEntity.setValue(value.getValue().intValue());
         return dataEntity;
@@ -50,7 +50,7 @@ public class DataEntityBuilder {
         return dataEntity;
     }
 
-    private static void setTime(SingleObservationValue obsValue, DataEntity dataEntity) {
+    private static void setPhenomenonTime(SingleObservationValue obsValue, DataEntity dataEntity) {
         Time phenomenonTime = obsValue.getPhenomenonTime();
         if (phenomenonTime instanceof TimeInstant) {
             TimeInstant instant = (TimeInstant) phenomenonTime;

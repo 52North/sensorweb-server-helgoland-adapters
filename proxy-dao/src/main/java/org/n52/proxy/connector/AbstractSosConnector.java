@@ -47,6 +47,8 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
+    
+    protected int counter = 0;
 
     private static final Logger LOGGER = getLogger(AbstractSosConnector.class);
 
@@ -72,6 +74,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     protected Object getSosResponseFor(OwsServiceRequest request, String namespace, String serviceUrl) {
         XmlObject xmlRequest = null;
         try {
+            counter++;
             EncoderKey encoderKey = getEncoderKey(namespace, request);
             xmlRequest = (XmlObject) encoderRepository.getEncoder(encoderKey).encode(request);
             HttpResponse response = sendPostRequest(xmlRequest, serviceUrl);
@@ -80,7 +83,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             if (xmlRequest != null) {
                 LOGGER.info(xmlRequest.xmlText());
             }
-            LOGGER.error(ex.getLocalizedMessage(), ex);
+            LOGGER.error(ex.getLocalizedMessage());
             return null;
         }
     }
