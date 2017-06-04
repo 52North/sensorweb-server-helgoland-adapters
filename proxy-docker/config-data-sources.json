@@ -1,0 +1,34 @@
+{
+    "dataSources": [
+        {
+            "itemName": "sos1",
+            "url": "http://localhost:8081/52n-sos-webapp/service",
+            "version": "2.0.0",
+            "job": {
+                "cronExpression": "0 0 0/1 * * ?",
+                "enabled": false,
+                "triggerAtStartup": true
+            }
+        },
+        {
+            "itemName": "sos2",
+            "url": "http://localhost:8082/52n-sos-webapp/service",
+            "version": "2.0.0",
+            "job": {
+                "cronExpression": "0 0 0/1 * * ?",
+                "enabled": false,
+                "triggerAtStartup": true
+            }
+        },
+        {
+            "itemName": "sensorwebtestbed",
+            "url": "http://sensorweb.demo.52north.org/sensorwebtestbed/service",
+            "version": "2.0.0",
+            "job": {
+                "cronExpression": "0 0 0/1 * * ?",
+                "enabled": true,
+                "triggerAtStartup": true
+            }
+        }
+    ]
+}
