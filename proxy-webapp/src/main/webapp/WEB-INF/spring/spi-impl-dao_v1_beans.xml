@@ -32,6 +32,13 @@
     <bean id="datasetService" class="org.n52.series.srv.DatasetAccessService">
         <constructor-arg index="0" ref="datasetRepository" />
     </bean>
+    <bean id="cachingDataService" class="org.n52.cache.CachingDataService">
+        <constructor-arg index="0" ref="datasetService" />
+        <constructor-arg index="1" ref="datasetService" />
+        <constructor-arg index="2">
+            <null/>
+        </constructor-arg>
+    </bean>
     <bean id="geometriesService" class="org.n52.series.srv.AccessService">
         <constructor-arg index="0" ref="geometriesRepository" />
     </bean>
