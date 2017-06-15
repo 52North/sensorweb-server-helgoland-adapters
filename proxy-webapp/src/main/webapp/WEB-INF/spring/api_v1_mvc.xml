@@ -85,7 +85,7 @@
     </bean>
 
     <bean class="org.n52.web.ctrl.DatasetController" parent="parameterController">
-        <property name="parameterService" ref="datasetService" />
+        <property name="parameterService" ref="cachingDataService"/>
         <property name="metadataExtensions">
             <list merge="true">
                 <bean class="org.n52.io.extension.RenderingHintsExtension" />
@@ -98,8 +98,8 @@
     </bean>
 
     <bean class="org.n52.web.ctrl.DataController">
-        <property name="dataService" ref="datasetService" />
-        <property name="datasetService" ref="datasetService" />
+        <property name="dataService"  ref="cachingDataService" />
+        <property name="datasetService"  ref="cachingDataService" />
         <property name="requestIntervalRestriction" value="P1Y1D" />
     </bean>
 

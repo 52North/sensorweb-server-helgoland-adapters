@@ -1,0 +1,91 @@
+#
+# With this docker-compose file, you get three containers:
+# - a tomcat
+# - a postgresql database server
+#
+# http://localhost:80/ redirects to the /52n-sos-webapp and uses the latest version of the tomcat M.x branch with Java 8 JRE.
+#
+# When configuring the SOS, please use the following information:
+# - Datasource configuration
+#   - datasource: PostgreSQL/PostGIS
+#   - host: db
+# Everything else could be used with the default values.
+# Feel free to comment out the tomcat version you do not need.
+#
+# Just run docker-compose up in the directory of this file.
+version: '3'
+services:
+  # First SOS
+  sos1-db:
+    image: mdillon/postgis:9.5
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sos
+  sos1:
+    image: tomcat:8-jre8-alpine
+    ports:
+      - 8081:8080
+      # Map jdpa port to random host port
+      - 8000
+    links:
+      - sos1-db
+    volumes:
+      - "${SOS_WAR}:/usr/local/tomcat/webapps/52n-sos-webapp.war"
+    environment:
+      - JPDA_ADDRESS=8000
+      - JPDA_TRANSPORT=dt_socket
+    command: ["catalina.sh", "jpda", "run"]
+
+  # Second SOS
+  sos2-db:
+    image: mdillon/postgis:9.5
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sos
+  sos2:
+    image: tomcat:8-jre8-alpine
+    ports:
+      - 8082:8080
+      # Map jdpa port to random host port
+      - 8000
+    links:
+      - sos2-db
+    volumes:
+      - "${SOS_WAR}:/usr/local/tomcat/webapps/52n-sos-webapp.war"
+    environment:
+      - JPDA_ADDRESS=8000
+      - JPDA_TRANSPORT=dt_socket
+    command: ["catalina.sh", "jpda", "run"]
+
+  # Proxy
+  proxy-db:
+    image: mdillon/postgis:9.5
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=sos
+  sos-proxy:
+    # change to 7- or 9- to change the tomcat version
+    image: tomcat:8-jre8-alpine
+    ports:
+      - 8080:8080
+      - 8000
+    links:
+      - proxy-db:postgres
+      - sos1
+      - sos2
+    volumes:
+      - "../proxy-webapp/target/proxy-webapp:/usr/local/tomcat/webapps/proxy-webapp:ro"
+      - "./config-data-sources.json:/usr/local/tomcat/webapps/proxy-webapp/WEB-INF/classes/config-data-sources.json:ro"
+    environment:
+      - JPDA_ADDRESS=8000
+      - JPDA_TRANSPORT=dt_socket
+    command: ["catalina.sh", "jpda", "run"]
