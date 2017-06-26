@@ -28,14 +28,16 @@
  */
 package org.n52.proxy.db.dao;
 
+import static org.hibernate.criterion.Restrictions.eq;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.List;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import static org.hibernate.criterion.Restrictions.eq;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.dao.ServiceDao;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -45,6 +47,7 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
 
     private static final String COLUMN_TYPE = "type";
     private static final String COLUMN_URL = "url";
+    private static final String COLUMN_NAME = "name";
 
     public ProxyServiceDao(Session session) {
         super(session);
@@ -64,12 +67,13 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
     private ProxyServiceEntity getInstance(ProxyServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(eq(COLUMN_TYPE, service.getType()))
-                .add(eq(COLUMN_URL, service.getUrl()));
+                .add(eq(COLUMN_URL, service.getUrl()))
+                .add(eq(COLUMN_NAME, service.getName()));
         return (ProxyServiceEntity) criteria.uniqueResult();
     }
 
     public List<ProxyServiceEntity> getAllServices() {
-        Criteria criteria = getDefaultCriteria();
+        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults());
         return criteria.list();
     }
 

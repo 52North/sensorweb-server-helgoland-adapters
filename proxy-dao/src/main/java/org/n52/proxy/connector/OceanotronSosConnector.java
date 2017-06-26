@@ -33,16 +33,11 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.ProfileDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
@@ -53,7 +48,6 @@ import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
-import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.parameter.Parameter;
 import org.n52.series.db.beans.parameter.ParameterQuantity;
@@ -62,7 +56,6 @@ import org.n52.shetland.ogc.filter.FilterConstants;
 import org.n52.shetland.ogc.filter.SpatialFilter;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
-import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.ObservationValue;
 import org.n52.shetland.ogc.om.OmObservation;
@@ -225,7 +218,6 @@ public class OceanotronSosConnector extends SOS2Connector {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent((obsOffs) -> {
                 obsOffs.forEach((SosObservationOffering obsOff) -> {
-                    // TODO remove if
                     if (config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
                         addElem(obsOff, serviceConstellation, config.getUrl());
                     }
@@ -249,8 +241,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                     if (!obsProp.equals("sea_water_salinity")) {
                         if (member instanceof System) {
                             List<SmlComponent> components = ((HasComponents<System>) member).getComponents();
-                            // TODO use components.size() instead of 1
-                            for (int i = 0; i < 1; i++) {
+                            for (int i = 0; i < components.size(); i++) {
                                 LOGGER.info("Still get " + (components.size() - i) + " components");
                                 addElem(components.get(i), obsProp, offeringId, servConst, url);
                             }

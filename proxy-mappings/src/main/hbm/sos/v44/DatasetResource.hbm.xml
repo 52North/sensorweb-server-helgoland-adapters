@@ -60,7 +60,7 @@
 
         <subclass discriminator-value="quantity-profile" name="ProfileDatasetEntity">
             <property name="verticalParameterName" formula="'depth'" type="string" />
-            <many-to-one class="UnitEntity" column="unitid" insert="false" name="unit" update="false" />
+            <many-to-one class="UnitEntity" column="unitid" name="unit"/>
 <!--            <list fetch="select" inverse="true" name="observations" table="observation">
                 <key column="observationid" />
                 <index column="seriesid" />

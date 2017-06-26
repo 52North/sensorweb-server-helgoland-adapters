@@ -28,19 +28,21 @@
  */
 package org.n52.proxy.db.dao;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hibernate.criterion.Restrictions.eq;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.List;
 import java.util.Set;
-import static java.util.stream.Collectors.toSet;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import static org.hibernate.criterion.Restrictions.eq;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
 
@@ -53,7 +55,6 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     private static final String COLUMN_PROCEDURE_PKID = "procedure.pkid";
     private static final String COLUMN_PHENOMENON_PKID = "phenomenon.pkid";
     private static final String COLUMN_OFFERING_PKID = "offering.pkid";
-    private static final String COLUMN_UNIT_PKID = "unit.pkid";
 
     public ProxyDatasetDao(Session session) {
         super(session);
@@ -106,7 +107,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     public void removeAllOfService(ProxyServiceEntity service) {
-        getDefaultCriteria()
+        getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach((dataset) -> session.delete(dataset));
@@ -125,7 +126,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     private DatasetEntity getInstance(DatasetEntity dataset) {
-        Criteria criteria = getDefaultCriteria()
+        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_VALUETYPE, dataset.getValueType()))
                 .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
                 .add(eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
@@ -133,14 +134,11 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
                 .add(eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
                 .add(eq(COLUMN_OFFERING_PKID, dataset.getOffering().getPkid()))
                 .add(eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
-        if (dataset.getUnit() != null) {
-            criteria.add(eq(COLUMN_UNIT_PKID, dataset.getUnit().getPkid()));
-        }
         return (T) criteria.uniqueResult();
     }
 
     private List<T> getDatasetsForService(ServiceEntity service) {
-        Criteria criteria = getDefaultCriteria()
+        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
