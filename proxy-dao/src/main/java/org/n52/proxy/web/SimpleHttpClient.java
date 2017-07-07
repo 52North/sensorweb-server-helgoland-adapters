@@ -28,24 +28,24 @@
  */
 package org.n52.proxy.web;
 
-import java.io.IOException;
 import static org.apache.http.Consts.UTF_8;
+import static org.apache.http.entity.ContentType.create;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.ContentType;
-import static org.apache.http.entity.ContentType.create;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import static org.apache.http.params.CoreConnectionPNames.CONNECTION_TIMEOUT;
-import static org.apache.http.params.CoreConnectionPNames.SO_TIMEOUT;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 
 public class SimpleHttpClient implements HttpClient {
@@ -58,7 +58,7 @@ public class SimpleHttpClient implements HttpClient {
 
     private static final ContentType CONTENT_TYPE_TEXT_XML = create("text/xml", UTF_8);
 
-    private DefaultHttpClient httpclient;
+    private org.apache.http.client.HttpClient httpclient;
 
     /**
      * Creates an instance with <code>timeout = {@value #DEFAULT_CONNECTION_TIMEOUT}</code> ms.
@@ -83,22 +83,15 @@ public class SimpleHttpClient implements HttpClient {
      * @param socketTimeout the socket timeout in milliseconds.
      */
     public SimpleHttpClient(int connectionTimeout, int socketTimeout) {
-        ClientConnectionManager cm = getConnectionManager();
-        this.httpclient = (cm == null) ? new DefaultHttpClient() : new DefaultHttpClient(cm);
-        this.httpclient.getParams().setParameter(CONNECTION_TIMEOUT, connectionTimeout);
-        this.httpclient.getParams().setParameter(SO_TIMEOUT, socketTimeout);
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        httpclient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeout);
+        httpclient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeout);
+        this.httpclient = httpclient;
+
     }
 
-    /**
-     * @return null by default
-     */
-    public ClientConnectionManager getConnectionManager() {
-        return null;
-    }
-
-    @Override
-    public DefaultHttpClient getHttpClientToDecorate() {
-        return httpclient;
+    protected SimpleHttpClient(org.apache.http.client.HttpClient httpclient) {
+        this.httpclient = httpclient;
     }
 
     @Override
@@ -137,16 +130,16 @@ public class SimpleHttpClient implements HttpClient {
         try {
             return httpclient.execute(method);
         } catch (IOException e) {
-            throw new HttpClientErrorException(INTERNAL_SERVER_ERROR, e.toString());
+            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
         }
     }
 
     public void setConnectionTimout(int timeout) {
-        httpclient.getParams().setParameter(CONNECTION_TIMEOUT, timeout);
+        httpclient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
     }
 
     public void setSocketTimout(int timeout) {
-        httpclient.getParams().setParameter(SO_TIMEOUT, timeout);
+        httpclient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
     }
 
 }

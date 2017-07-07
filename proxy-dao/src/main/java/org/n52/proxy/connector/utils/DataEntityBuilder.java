@@ -1,6 +1,10 @@
 package org.n52.proxy.connector.utils;
 
 import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
@@ -11,8 +15,6 @@ import org.n52.shetland.ogc.gml.time.TimePeriod;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.SingleObservationValue;
 import org.n52.shetland.ogc.om.values.QuantityValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Jan Schulte
@@ -24,25 +26,25 @@ public class DataEntityBuilder {
     private DataEntityBuilder() {
     }
 
-    public static DataEntity createQuantityDataEntity(OmObservation observation) {
+    public static DataEntity<Double> createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
-        SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+        SingleObservationValue<?> obsValue = (SingleObservationValue<?>) observation.getValue();
         setPhenomenonTime(obsValue, dataEntity);
         QuantityValue value = (QuantityValue) obsValue.getValue();
         dataEntity.setValue(value.getValue());
         return dataEntity;
     }
 
-    public static DataEntity createCountDataEntity(OmObservation observation) {
+    public static DataEntity<Integer> createCountDataEntity(OmObservation observation) {
         CountDataEntity dataEntity = new CountDataEntity();
-        SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+        SingleObservationValue<?> obsValue = (SingleObservationValue) observation.getValue();
         setPhenomenonTime(obsValue, dataEntity);
         QuantityValue value = (QuantityValue) obsValue.getValue();
         dataEntity.setValue(value.getValue().intValue());
         return dataEntity;
     }
 
-    public static DataEntity createTextDataEntity(OmObservation observation) {
+    public static DataEntity<String> createTextDataEntity(OmObservation observation) {
         TextDataEntity dataEntity = new TextDataEntity();
         dataEntity.setTimestart(new Date());
         dataEntity.setTimeend(new Date());
@@ -50,7 +52,7 @@ public class DataEntityBuilder {
         return dataEntity;
     }
 
-    private static void setPhenomenonTime(SingleObservationValue obsValue, DataEntity dataEntity) {
+    private static void setPhenomenonTime(SingleObservationValue<?> obsValue, DataEntity<?> dataEntity) {
         Time phenomenonTime = obsValue.getPhenomenonTime();
         if (phenomenonTime instanceof TimeInstant) {
             TimeInstant instant = (TimeInstant) phenomenonTime;

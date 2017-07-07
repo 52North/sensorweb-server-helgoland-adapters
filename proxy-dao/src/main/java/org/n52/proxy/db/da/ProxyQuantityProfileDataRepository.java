@@ -6,7 +6,9 @@
 package org.n52.proxy.db.da;
 
 import java.util.Map;
+
 import org.hibernate.Session;
+
 import org.n52.io.response.dataset.profile.ProfileData;
 import org.n52.io.response.dataset.profile.ProfileValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -28,7 +30,7 @@ public class ProxyQuantityProfileDataRepository
     private Map<String, AbstractConnector> connectorMap;
 
     @Override
-    public void setConnectorMap(Map connectorMap) {
+    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
         this.connectorMap = connectorMap;
     }
 
@@ -38,16 +40,20 @@ public class ProxyQuantityProfileDataRepository
     }
 
     @Override
-    public ProfileValue getFirstValue(ProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
-        DataEntity firstObs = getConnector(profileDatasetEntity).getFirstObservation(profileDatasetEntity).orElse(null);
-        if (firstObs == null) return null;
+    public ProfileValue<Double> getFirstValue(ProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
+        DataEntity<?> firstObs = getConnector(profileDatasetEntity).getFirstObservation(profileDatasetEntity).orElse(null);
+        if (firstObs == null) {
+            return null;
+        }
         return createSeriesValueFor((ProfileDataEntity) firstObs, profileDatasetEntity, query);
     }
 
     @Override
-    public ProfileValue getLastValue(ProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
-        DataEntity lastObs = getConnector(profileDatasetEntity).getLastObservation(profileDatasetEntity).orElse(null);
-        if (lastObs == null) return null;
+    public ProfileValue<Double> getLastValue(ProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
+        DataEntity<?> lastObs = getConnector(profileDatasetEntity).getLastObservation(profileDatasetEntity).orElse(null);
+        if (lastObs == null) {
+            return null;
+        }
         return createSeriesValueFor((ProfileDataEntity)lastObs, profileDatasetEntity, query);
     }
 

@@ -1,6 +1,7 @@
 package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
+
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.TextDatasetEntity;
 

@@ -28,26 +28,28 @@
  */
 package org.n52.proxy.connector.utils;
 
-import org.joda.time.DateTime;
-import org.n52.proxy.config.DataSourceConfiguration;
 import static org.n52.proxy.connector.utils.EntityBuilder.createService;
-import org.n52.series.db.dao.DbQuery;
 import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_During;
 import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_Equals;
+import static org.n52.shetland.ogc.om.OmConstants.PHENOMENON_TIME_NAME;
+import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.FIRST;
+import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.LATEST;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.CodeType;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
-import static org.n52.shetland.ogc.om.OmConstants.PHENOMENON_TIME_NAME;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
-import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.FIRST;
-import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.LATEST;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Jan Schulte

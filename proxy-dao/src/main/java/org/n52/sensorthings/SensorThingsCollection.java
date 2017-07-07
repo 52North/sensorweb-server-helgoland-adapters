@@ -1,7 +1,8 @@
 package org.n52.sensorthings;
 
-import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
  * @author Jan Schulte

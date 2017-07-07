@@ -28,16 +28,19 @@
  */
 package org.n52.proxy.connector;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+import static org.n52.shetland.ogc.sos.SosConstants.SOS;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import org.slf4j.Logger;
+
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.ProfileDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
@@ -67,13 +70,11 @@ import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sensorML.AbstractProcess;
-import org.n52.shetland.ogc.sensorML.HasComponents;
 import org.n52.shetland.ogc.sensorML.SensorML;
 import org.n52.shetland.ogc.sensorML.System;
 import org.n52.shetland.ogc.sensorML.elements.SmlComponent;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
 import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
@@ -86,8 +87,10 @@ import org.n52.shetland.ogc.swe.SweField;
 import org.n52.shetland.ogc.swe.simpleType.SweQuantity;
 import org.n52.shetland.ogc.swes.SwesConstants;
 import org.n52.shetland.util.ReferencedEnvelope;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 public class OceanotronSosConnector extends SOS2Connector {
 
@@ -109,21 +112,19 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
         GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
                 "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
-        ArrayList<DataEntity> data = new ArrayList<>();
-        observationResponse.getObservationCollection().forEach((observation) -> {
-            data.add(createProfileDataEntity(observation, seriesEntity));
-        });
-        return data;
+        return observationResponse.getObservationCollection().toStream()
+                .map((observation) -> createProfileDataEntity(observation, seriesEntity))
+                .collect(toList());
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
-                "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
-        List<OmObservation> omColl = observationResponse.getObservationCollection();
+                                                                                             "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+        List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
         if (omColl.size() == 1) {
             OmObservation observation = omColl.get(0);
             ObservationValue<? extends Value<?>> observationValue = observation.getValue();
@@ -142,7 +143,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         return null;
     }
 
-    private DataEntity createProfileDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
+    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
         ProfileDataEntity dataEntity = new ProfileDataEntity();
         ObservationValue<? extends Value<?>> obsValue = observation.getValue();
         Date timestamp = ((TimeInstant) obsValue.getPhenomenonTime()).getValue().toDate();
@@ -202,17 +203,18 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         // TODO implement
         return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         // TODO implement
         return Optional.empty();
     }
 
+    @Override
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
             DataSourceConfiguration config) {
         if (sosCaps != null) {
@@ -240,7 +242,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                 obsOff.getObservableProperties().forEach((String obsProp) -> {
                     if (!obsProp.equals("sea_water_salinity")) {
                         if (member instanceof System) {
-                            List<SmlComponent> components = ((HasComponents<System>) member).getComponents();
+                            List<SmlComponent> components = ((System) member).getComponents();
                             for (int i = 0; i < components.size(); i++) {
                                 LOGGER.info("Still get " + (components.size() - i) + " components");
                                 addElem(components.get(i), obsProp, offeringId, servConst, url);
@@ -308,7 +310,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
+    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity, TemporalFilter temporalFilter,
             String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, Sos2Constants.SERVICEVERSION);
         request.setProcedures(Arrays.asList(seriesEntity.getProcedure().getDomainId()));

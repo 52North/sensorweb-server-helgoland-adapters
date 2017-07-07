@@ -1,25 +1,25 @@
 package org.n52.proxy.connector;
 
-import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import static java.util.Optional.of;
+import static org.joda.time.format.DateTimeFormat.forPattern;
+import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
+import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import static java.util.Optional.of;
+
 import org.apache.http.HttpResponse;
 import org.joda.time.DateTime;
-import static org.joda.time.format.DateTimeFormat.forPattern;
 import org.joda.time.format.DateTimeFormatter;
+
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ConnectorHelper;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.sensorthings.Datastream;
 import org.n52.sensorthings.Datastreams;
@@ -35,7 +35,11 @@ import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 
 public class SensorThingsConnector extends AbstractConnector {
 
@@ -46,22 +50,22 @@ public class SensorThingsConnector extends AbstractConnector {
     private final DateTimeFormatter formatter = forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
         return createObservations(seriesEntity, query.getTimespan().getStart(), query.getTimespan().getEnd());
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         return seriesEntity.getUnit();
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         return of(createObservationBounds(entity, "asc"));
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         return of(createObservationBounds(entity, "desc"));
     }
 
@@ -109,7 +113,7 @@ public class SensorThingsConnector extends AbstractConnector {
         }
     }
 
-    private Object doGetRequest(String urlString, Class clazz) {
+    private Object doGetRequest(String urlString, Class<?> clazz) {
         try {
             HttpResponse response = sendGetRequest(urlString);
             return gson.fromJson(new InputStreamReader(response.getEntity().getContent()), clazz);
@@ -121,7 +125,7 @@ public class SensorThingsConnector extends AbstractConnector {
         return null;
     }
 
-    private Object doGetRequest(String url, String entity, Class clazz) {
+    private Object doGetRequest(String url, String entity, Class<?> clazz) {
         return doGetRequest(url + entity, clazz);
     }
 
@@ -129,14 +133,14 @@ public class SensorThingsConnector extends AbstractConnector {
         return (Datastreams) doGetRequest(url, "Datastreams?$expand=Sensor,Thing,ObservedProperty", Datastreams.class);
     }
 
-    private List<DataEntity> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
+    private List<DataEntity<?>> createObservations(DatasetEntity<?> seriesEntity, DateTime start, DateTime end) {
         Observations observations = (Observations) doGetRequest(
                 seriesEntity.getService().getUrl(),
                 "Datastreams(" + seriesEntity.getDomainId() + ")/Observations?$filter=phenomenonTime%20gt%20'" + start.toString(
                 formatter) + "'%20and%20phenomenonTime%20lt%20'" + end.toString(formatter) + "'",
                 Observations.class
         );
-        ArrayList<DataEntity> list = new ArrayList<>();
+        List<DataEntity<?>> list = new LinkedList<>();
         addObservationsToList(observations, list);
         while (observations.nextLink != null) {
             observations = (Observations) doGetRequest(observations.nextLink, Observations.class);
@@ -145,13 +149,11 @@ public class SensorThingsConnector extends AbstractConnector {
         return list;
     }
 
-    private void addObservationsToList(Observations observations, ArrayList<DataEntity> list) {
-        observations.value.forEach((observation) -> {
-            list.add(createObservation(observation));
-        });
+    private void addObservationsToList(Observations observations, List<DataEntity<?>> list) {
+        observations.value.stream().map(this::createObservation).forEach(list::add);
     }
 
-    private DataEntity createObservationBounds(DatasetEntity entity, String order) {
+    private DataEntity<?> createObservationBounds(DatasetEntity<?> entity, String order) {
         Observations observations = (Observations) doGetRequest(entity.getService().getUrl(),
                 "Datastreams(" + entity.getDomainId() + ")/Observations?$orderby=phenomenonTime%20" + order + "&$top=1",
                 Observations.class);
@@ -185,7 +187,7 @@ public class SensorThingsConnector extends AbstractConnector {
         return featureId;
     }
 
-    private DataEntity createObservation(Observation observation) {
+    private DataEntity<?> createObservation(Observation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
         dataEntity.setTimestart(observation.phenomenonTime);
         dataEntity.setTimeend(observation.phenomenonTime);

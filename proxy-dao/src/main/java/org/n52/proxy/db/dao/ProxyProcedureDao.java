@@ -28,16 +28,18 @@
  */
 package org.n52.proxy.db.dao;
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.criterion.DetachedCriteria;
 import static org.hibernate.criterion.DetachedCriteria.forClass;
 import static org.hibernate.criterion.Projections.distinct;
 import static org.hibernate.criterion.Projections.property;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
-import org.n52.series.db.beans.DatasetEntity;
 import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
+
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+
+import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.ProcedureDao;
@@ -61,13 +63,12 @@ public class ProxyProcedureDao extends ProcedureDao implements InsertDao<Procedu
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .add(propertyNotIn("pkid", createDetachedDatasetFilter()));
-        criteria.list().forEach(entry -> {
-            session.delete(entry);
-        });
+        criteria.list().forEach(session::delete);
     }
 
     private ProcedureEntity getInstance(ProcedureEntity procedure) {

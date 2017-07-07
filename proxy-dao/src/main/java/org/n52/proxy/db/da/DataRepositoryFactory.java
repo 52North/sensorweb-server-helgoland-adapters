@@ -32,20 +32,24 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.n52.io.ConfigTypedFactory;
-import org.n52.proxy.connector.AbstractConnector;
-import org.n52.series.db.HibernateSessionStore;
-import org.n52.series.db.da.IDataRepositoryFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepository> implements IDataRepositoryFactory {
+import org.n52.io.ConfigTypedFactory;
+import org.n52.io.response.dataset.AbstractValue;
+import org.n52.proxy.connector.AbstractConnector;
+import org.n52.series.db.HibernateSessionStore;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.da.IDataRepositoryFactory;
+
+public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends AbstractValue<?>> extends ConfigTypedFactory<ProxyDataRepository<D,V>> implements IDataRepositoryFactory {
 
     private static final String DEFAULT_CONFIG_FILE = "dataset-repository-factory-proxy.properties";
 
     @Autowired
     private HibernateSessionStore sessionStore;
 
-    private Map<String, AbstractConnector> connectorMap = new HashMap<>();
+    private final Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
     public DataRepositoryFactory() {
         super(DEFAULT_CONFIG_FILE);
@@ -57,13 +61,11 @@ public class DataRepositoryFactory extends ConfigTypedFactory<ProxyDataRepositor
 
     @Autowired
     public void setConnectors(List<AbstractConnector> connectors) {
-        connectors.forEach((connector) -> {
-            connectorMap.put(connector.getConnectorName(), connector);
-        });
+        connectors.forEach(connector -> connectorMap.put(connector.getConnectorName(), connector));
     }
 
     @Override
-    protected ProxyDataRepository initInstance(ProxyDataRepository instance) {
+    protected ProxyDataRepository<D, V> initInstance(ProxyDataRepository<D, V> instance) {
         instance.setSessionStore(sessionStore);
         instance.setConnectorMap(connectorMap);
         return instance;

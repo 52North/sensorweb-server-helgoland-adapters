@@ -32,12 +32,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.springframework.web.client.HttpClientErrorException;
 
 public interface HttpClient {
-
-    DefaultHttpClient getHttpClientToDecorate();
 
     HttpResponse executeGet(String uri) throws HttpClientErrorException;
 

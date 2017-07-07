@@ -28,13 +28,27 @@
  */
 package org.n52.proxy.harvest;
 
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.quartz.JobBuilder.newJob;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Set;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.PersistJobDataAfterExecution;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.config.DataSourceJobConfiguration;
@@ -54,18 +68,6 @@ import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import static org.quartz.JobBuilder.newJob;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.PersistJobDataAfterExecution;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -194,9 +196,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 feature.setService(service);
                 offering.setService(service);
                 phenomenon.setService(service);
-                DatasetEntity entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
+                DatasetEntity<?> entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
                         service);
-                DatasetEntity inserted = insertRepository.insertDataset(entity);
+                DatasetEntity<?> inserted = insertRepository.insertDataset(entity);
                 datasetIds.remove(inserted.getPkid());
                 LOGGER.info("Add dataset constellation: " + dataset);
             } else {

@@ -28,17 +28,19 @@
  */
 package org.n52.proxy.db.dao;
 
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.criterion.DetachedCriteria;
 import static org.hibernate.criterion.DetachedCriteria.forClass;
 import static org.hibernate.criterion.Projections.distinct;
 import static org.hibernate.criterion.Projections.property;
 import static org.hibernate.criterion.Restrictions.eq;
 import static org.hibernate.criterion.Subqueries.propertyNotIn;
+import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
+
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import static org.n52.series.db.beans.DescribableEntity.PROPERTY_DOMAIN_ID;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.CategoryDao;
 
@@ -68,19 +70,16 @@ public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryE
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .add(propertyNotIn("pkid", createDetachedDatasetFilter()));
-        criteria.list().forEach(entry -> {
-            session.delete(entry);
-        });
+        criteria.list().forEach(session::delete);
     }
 
     private DetachedCriteria createDetachedDatasetFilter() {
-        DetachedCriteria filter = forClass(DatasetEntity.class)
-                .setProjection(distinct(property(getDatasetProperty())));
-        return filter;
+        return forClass(DatasetEntity.class).setProjection(distinct(property(getDatasetProperty())));
     }
 
 }

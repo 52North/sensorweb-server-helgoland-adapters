@@ -28,11 +28,18 @@
  */
 package org.n52.proxy.connector;
 
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import org.slf4j.Logger;
+
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -41,13 +48,9 @@ import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.exception.EncodingException;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
-    
+
     protected int counter = 0;
 
     private static final Logger LOGGER = getLogger(AbstractSosConnector.class);

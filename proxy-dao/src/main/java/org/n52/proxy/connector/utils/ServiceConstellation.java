@@ -28,17 +28,19 @@
  */
 package org.n52.proxy.connector.utils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import org.n52.proxy.connector.constellations.DatasetConstellation;
 import static org.n52.proxy.connector.utils.EntityBuilder.createCategory;
 import static org.n52.proxy.connector.utils.EntityBuilder.createFeature;
 import static org.n52.proxy.connector.utils.EntityBuilder.createGeometry;
 import static org.n52.proxy.connector.utils.EntityBuilder.createOffering;
 import static org.n52.proxy.connector.utils.EntityBuilder.createPhenomenon;
 import static org.n52.proxy.connector.utils.EntityBuilder.createProcedure;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.FeatureEntity;
@@ -67,7 +69,7 @@ public class ServiceConstellation {
     private final Map<String, FeatureEntity> features = new HashMap<>();
 
     // dataset collection
-    private final Collection<DatasetConstellation> datasets = new HashSet<>();
+    private final Collection<DatasetConstellation<?>> datasets = new HashSet<>();
 
     public ProxyServiceEntity getService() {
         return service;
@@ -117,7 +119,7 @@ public class ServiceConstellation {
         return features.containsKey(featureId);
     }
 
-    public Collection<DatasetConstellation> getDatasets() {
+    public Collection<DatasetConstellation<?>> getDatasets() {
         return datasets;
     }
 
@@ -148,7 +150,7 @@ public class ServiceConstellation {
         return procedures.put(id, createProcedure(id, name, insitu, mobile, service));
     }
 
-    public boolean add(DatasetConstellation e) {
+    public boolean add(DatasetConstellation<?> e) {
         return datasets.add(e);
     }
 

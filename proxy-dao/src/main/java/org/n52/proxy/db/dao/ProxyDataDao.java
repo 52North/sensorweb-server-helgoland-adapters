@@ -33,11 +33,12 @@ import static org.hibernate.criterion.Restrictions.eq;
 import static org.n52.series.db.beans.DataEntity.SERIES_PKID;
 
 import org.hibernate.Session;
+
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.dao.DataDao;
 
-public class ProxyDataDao<T extends DataEntity> extends DataDao<T> {
+public class ProxyDataDao<T extends DataEntity<?>> extends DataDao<T> {
 
     public ProxyDataDao(Session session) {
         super(session);

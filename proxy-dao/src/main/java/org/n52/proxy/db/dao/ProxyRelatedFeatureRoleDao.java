@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+
 import org.n52.proxy.db.beans.RelatedFeatureRoleEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.ServiceEntity;

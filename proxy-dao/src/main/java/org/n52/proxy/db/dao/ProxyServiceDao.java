@@ -35,10 +35,11 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.dao.ServiceDao;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.series.db.dao.ServiceDao;
 
 @Transactional
 public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServiceEntity> {
@@ -72,9 +73,9 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
         return (ProxyServiceEntity) criteria.uniqueResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<ProxyServiceEntity> getAllServices() {
-        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults());
-        return criteria.list();
+        return getDefaultCriteria(ProxyDbQuery.createDefaults()).list();
     }
 
     public void deleteInstance(ProxyServiceEntity service) {

@@ -29,24 +29,28 @@
 package org.n52.proxy.db.da;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.n52.io.response.dataset.DatasetOutput;
 import org.n52.io.response.dataset.TimeseriesMetadataOutput;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.da.TimeseriesRepository;
 import org.n52.series.db.dao.DbQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jan Schulte
  */
+@Deprecated
 public class ProxyTimeseriesRepository extends TimeseriesRepository {
 
     @Autowired
-    private ProxyDatasetRepository datasetRepository;
+    private ProxyDatasetRepository<?> datasetRepository;
 
     @Override
+    @SuppressWarnings("rawtypes")
     protected TimeseriesMetadataOutput createExpanded(QuantityDatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
         TimeseriesMetadataOutput output = super.createExpanded(series, query, session);

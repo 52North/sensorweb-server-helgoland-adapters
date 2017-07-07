@@ -29,22 +29,26 @@
 package org.n52.proxy.db.da;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.DatasetOutput;
 import org.n52.proxy.connector.AbstractConnector;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.da.DatasetRepository;
 import org.n52.series.db.dao.DbQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da.DatasetRepository<T> {
+public class ProxyDatasetRepository<T extends Data<?>> extends DatasetRepository<T> {
 
     private Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
@@ -56,6 +60,7 @@ public class ProxyDatasetRepository<T extends Data> extends org.n52.series.db.da
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
             throws DataAccessException {
         if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {

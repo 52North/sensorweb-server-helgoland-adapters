@@ -28,11 +28,9 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.ArrayList;
+
 import static java.util.Arrays.asList;
-import java.util.List;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
+import static java.util.stream.Collectors.toList;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
@@ -40,6 +38,17 @@ import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addProcedure;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
 import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilter;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
+import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
+import static org.n52.shetland.ogc.sos.SosConstants.SOS;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -52,16 +61,12 @@ import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.om.values.QuantityValue;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
-import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+
 
 /**
  * @author Jan Schulte
@@ -87,15 +92,13 @@ public class HydroSOSConnector extends SOS2Connector {
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
                 query));
 
-        List<DataEntity> data = new ArrayList<>();
-
-        obsResp.getObservationCollection().forEach((observation) -> {
+        List<DataEntity<?>> data = obsResp.getObservationCollection().toStream().map((observation) -> {
             QuantityDataEntity entity = new QuantityDataEntity();
-            SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+            SingleObservationValue<?> obsValue = (SingleObservationValue) observation.getValue();
 
             TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
             entity.setTimestart(instant.getValue().toDate());
@@ -103,8 +106,8 @@ public class HydroSOSConnector extends SOS2Connector {
             QuantityValue value = (QuantityValue) obsValue.getValue();
             entity.setValue(value.getValue());
 
-            data.add(entity);
-        });
+            return entity;
+        }).collect(toList());
         LOGGER.info("Found " + data.size() + " Entries");
         return data;
     }

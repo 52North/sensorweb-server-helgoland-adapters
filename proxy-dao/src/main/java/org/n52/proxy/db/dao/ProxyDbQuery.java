@@ -33,10 +33,11 @@ import static org.hibernate.criterion.Restrictions.in;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.hibernate.Criteria;
+import org.slf4j.Logger;
+
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.series.db.dao.QueryUtils;
-import org.slf4j.Logger;
 
 public class ProxyDbQuery extends DbQuery {
 

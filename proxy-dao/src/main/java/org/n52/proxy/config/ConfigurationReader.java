@@ -28,11 +28,14 @@
  */
 package org.n52.proxy.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.InputStream;
 import java.util.List;
+
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ConfigurationReader {
 

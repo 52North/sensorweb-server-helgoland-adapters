@@ -28,12 +28,8 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.ArrayList;
 import static java.util.Arrays.asList;
-import java.util.List;
-import java.util.Optional;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
+import static java.util.stream.Collectors.toList;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
@@ -47,6 +43,20 @@ import static org.n52.proxy.connector.utils.DataEntityBuilder.createCountDataEnt
 import static org.n52.proxy.connector.utils.DataEntityBuilder.createQuantityDataEntity;
 import static org.n52.proxy.connector.utils.DataEntityBuilder.createTextDataEntity;
 import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
+import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
+import static org.n52.shetland.ogc.sos.SosConstants.SOS;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CountDatasetEntity;
@@ -63,12 +73,10 @@ import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsOperation;
+import org.n52.shetland.ogc.ows.OwsOperationsMetadata;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
-import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityRequest;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
@@ -79,9 +87,6 @@ import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swes.SwesConstants;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
 public class SOS2Connector extends AbstractSosConnector {
@@ -90,6 +95,8 @@ public class SOS2Connector extends AbstractSosConnector {
 
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
+     * @param config the config
+     * @param capabilities the cababilities
      */
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
@@ -101,16 +108,12 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     protected boolean supportsGDA(OwsCapabilities owsCaps) {
-        boolean handle;
-        handle = owsCaps.getOperationsMetadata().map((metadata) -> {
-            for (OwsOperation operation : metadata.getOperations()) {
-                if (operation.getName().equals("GetDataAvailability")) {
-                    return true;
-                }
-            }
-            return false;
-        }).get();
-        return handle;
+        return owsCaps.getOperationsMetadata()
+                .map(OwsOperationsMetadata::getOperations)
+                .map(Set::stream)
+                .map(operation -> operation.map(OwsOperation::getName))
+                .map(names -> names.anyMatch(name -> name.equals("GetDataAvailability")))
+                .orElse(false);
     }
 
     @Override
@@ -126,71 +129,60 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
-                query));
-        List<DataEntity> data = new ArrayList<>();
-        obsResp.getObservationCollection().forEach((observation) -> {
-            data.add(createDataEntity(observation, seriesEntity));
-        });
-        LOGGER.info("Found " + data.size() + " Entries");
-        return data;
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+            GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
+                    query));
+            List<DataEntity<?>> data = obsResp.getObservationCollection().toStream()
+                    .map(observation -> createDataEntity(observation, seriesEntity))
+                    .collect(toList());
+            LOGGER.info("Found " + data.size() + " Entries");
+            return data;
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         return createObservationResponse(entity, createFirstTimefilter())
-                .getObservationCollection()
-                .stream()
+                .getObservationCollection().toStream()
                 .findFirst()
-                .map((obs) -> {
-                    return createDataEntity(obs, entity);
-                });
+                .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         return createObservationResponse(entity, createLatestTimefilter())
-                .getObservationCollection()
-                .stream()
+                .getObservationCollection().toStream()
                 .findFirst()
-                .map((obs) -> {
-                    return createDataEntity(obs, entity);
-                });
+                .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         GetObservationResponse response = createObservationResponse(seriesEntity,
-                createFirstTimefilter());
-        if (response.getObservationCollection().size() >= 1) {
-            String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-            return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
-        }
-        return null;
+                                                                    createFirstTimefilter());
+        return response.getObservationCollection().toStream()
+                .findFirst().map(o -> o.getValue().getValue().getUnit())
+                .map(unit -> createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
+                .orElse(null);
     }
 
-    protected DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
-        DataEntity dataEntity = null;
+    protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
         if (seriesEntity instanceof QuantityDatasetEntity) {
-            dataEntity = createQuantityDataEntity(observation);
+            return createQuantityDataEntity(observation);
         } else if (seriesEntity instanceof CountDatasetEntity) {
-            dataEntity = createCountDataEntity(observation);
+            return createCountDataEntity(observation);
         } else if (seriesEntity instanceof TextDatasetEntity) {
-            dataEntity = createTextDataEntity(observation);
+            return createTextDataEntity(observation);
         } else {
             LOGGER.error("No supported datasetEntity for ", seriesEntity);
+            return null;
         }
-        return dataEntity;
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
             DataSourceConfiguration config) {
-        sosCaps.getContents().ifPresent((sosObsOfferings) -> {
-            sosObsOfferings.forEach((sosObsOff) -> {
-                doForOffering(sosObsOff, serviceConstellation, config);
-            });
-        });
+        sosCaps.getContents().ifPresent(contents
+                -> contents.forEach(sosObsOff
+                        -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
@@ -254,12 +246,12 @@ public class SOS2Connector extends AbstractSosConnector {
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
     }
 
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
+    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
             TemporalFilter temporalFilter) {
         return createObservationResponse(seriesEntity, temporalFilter, null);
     }
 
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
+    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity, TemporalFilter temporalFilter,
             String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));

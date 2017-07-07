@@ -36,6 +36,7 @@ import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+
 import org.n52.proxy.db.beans.RelatedFeatureEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.ServiceEntity;
@@ -78,12 +79,11 @@ public class ProxyRelatedFeatureDao extends AbstractDao<RelatedFeatureEntity>
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(eq(SERVICE, service));
-        criteria.list().forEach(entry -> {
-            session.delete(entry);
-        });
+        criteria.list().forEach(session::delete);
     }
 
     private RelatedFeatureEntity getInstance(RelatedFeatureEntity relatedFeature) {

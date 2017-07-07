@@ -28,16 +28,9 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.ArrayList;
 import static java.util.Arrays.asList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import static java.util.Optional.of;
-import org.joda.time.DateTime;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
+import static java.util.stream.Collectors.toList;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
@@ -45,6 +38,23 @@ import static org.n52.proxy.connector.utils.ConnectorHelper.addProcedure;
 import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
 import static org.n52.proxy.connector.utils.ConnectorHelper.createTimeInstantFilter;
 import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
+import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
+import static org.n52.shetland.ogc.sos.SosConstants.SOS;
+import static org.n52.shetland.ogc.sos.gda.GetDataAvailabilityConstants.NS_GDA_20;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -57,24 +67,18 @@ import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.NamedValue;
 import org.n52.shetland.ogc.om.SingleObservationValue;
-import org.n52.shetland.ogc.om.values.GeometryValue;
 import org.n52.shetland.ogc.om.values.QuantityValue;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
-import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
-import static org.n52.shetland.ogc.sos.gda.GetDataAvailabilityConstants.NS_GDA_20;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityRequest;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.request.GetObservationRequest;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Configurable;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 @Configurable
 public class TrajectorySOSConnector extends AbstractSosConnector {
@@ -108,60 +112,51 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
         Date start = new Date();
         LOGGER.info("Start GetObs request");
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, null);
 
         LOGGER.info("Process GetObs response");
 
-        List<DataEntity> data = new ArrayList<>();
-
-        obsResp.getObservationCollection().forEach((observation) -> {
+        List<DataEntity<?>> data = obsResp.getObservationCollection().toStream().map((observation) -> {
             QuantityDataEntity entity = new QuantityDataEntity();
-            SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+            SingleObservationValue<?> obsValue = (SingleObservationValue) observation.getValue();
             TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
             entity.setTimestart(instant.getValue().toDate());
             entity.setTimeend(instant.getValue().toDate());
             QuantityValue value = (QuantityValue) obsValue.getValue();
             entity.setValue(value.getValue());
             Collection<NamedValue<?>> parameters = observation.getParameter();
-            parameters.forEach((parameter) -> {
-                if (parameter.getName().getHref().equals(
-                        "http://www.opengis.net/def/param-name/OGC-OM/2.0/samplingGeometry")
-                        && parameter.getValue() instanceof GeometryValue) {
-                    GeometryValue geom = (GeometryValue) parameter.getValue();
-                    GeometryEntity geometryEntity = new GeometryEntity();
-                    geometryEntity.setLat(geom.getGeometry().getCoordinate().x);
-                    geometryEntity.setLon(geom.getGeometry().getCoordinate().y);
-                    geometryEntity.setAlt(geom.getGeometry().getCoordinate().z);
-                    entity.setGeometryEntity(geometryEntity);
-                }
-            });
-            data.add(entity);
-        });
+            NamedValue<Geometry> parameter = observation.getSpatialFilteringProfileParameter();
+            if (parameter != null) {
+                entity.setGeometryEntity(new GeometryEntity().setGeometry(parameter.getValue().getValue()));
+            }
+            return entity;
+        }).collect(toList());
         LOGGER.info("Found " + data.size() + " Entries");
         LOGGER.info("End GetObs request in " + ((new Date()).getTime() - start.getTime()) + " ms");
         return data;
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         GetDataAvailabilityResponse availabilityResponse = getDataAvailabilityResponse(seriesEntity);
         if (availabilityResponse.getDataAvailabilities().size() == 1) {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
             GetObservationResponse response = createObservationResponse(seriesEntity,
-                    createTimeInstantFilter(start));
-            if (response.getObservationCollection().size() >= 1) {
-                String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-                return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
-            }
+                                                                    createTimeInstantFilter(start));
+
+            return response.getObservationCollection().toStream()
+                    .findFirst().map(o -> o.getValue().getValue().getUnit())
+                    .map(unit -> createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
+                    .orElse(null);
         }
         return null;
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         // currently only return default first observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
@@ -171,7 +166,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         // currently only return default last observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
@@ -237,7 +232,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, url);
     }
 
-    private GetDataAvailabilityResponse getDataAvailabilityResponse(DatasetEntity seriesEntity) {
+    private GetDataAvailabilityResponse getDataAvailabilityResponse(DatasetEntity<?> seriesEntity) {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
         request.setOffering(asList(seriesEntity.getOffering().getDomainId()));
@@ -247,7 +242,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                 seriesEntity.getService().getUrl());
     }
 
-    private GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
+    private GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
             TemporalFilter temporalFilter) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
