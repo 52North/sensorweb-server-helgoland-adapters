@@ -33,6 +33,7 @@ import static java.util.Arrays.asList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import static java.util.Optional.of;
 import org.joda.time.DateTime;
@@ -61,6 +62,7 @@ import org.n52.shetland.ogc.om.values.GeometryValue;
 import org.n52.shetland.ogc.om.values.QuantityValue;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
 import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
@@ -117,29 +119,33 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
         List<DataEntity> data = new ArrayList<>();
 
-        obsResp.getObservationCollection().forEach((observation) -> {
-            QuantityDataEntity entity = new QuantityDataEntity();
-            SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
-            TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
-            entity.setTimestart(instant.getValue().toDate());
-            entity.setTimeend(instant.getValue().toDate());
-            QuantityValue value = (QuantityValue) obsValue.getValue();
-            entity.setValue(value.getValue());
-            Collection<NamedValue<?>> parameters = observation.getParameter();
-            parameters.forEach((parameter) -> {
-                if (parameter.getName().getHref().equals(
-                        "http://www.opengis.net/def/param-name/OGC-OM/2.0/samplingGeometry")
-                        && parameter.getValue() instanceof GeometryValue) {
-                    GeometryValue geom = (GeometryValue) parameter.getValue();
-                    GeometryEntity geometryEntity = new GeometryEntity();
-                    geometryEntity.setLat(geom.getGeometry().getCoordinate().x);
-                    geometryEntity.setLon(geom.getGeometry().getCoordinate().y);
-                    geometryEntity.setAlt(geom.getGeometry().getCoordinate().z);
-                    entity.setGeometryEntity(geometryEntity);
-                }
+        try {
+            obsResp.getObservationCollection().forEachRemaining((observation) -> {
+                QuantityDataEntity entity = new QuantityDataEntity();
+                SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+                TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
+                entity.setTimestart(instant.getValue().toDate());
+                entity.setTimeend(instant.getValue().toDate());
+                QuantityValue value = (QuantityValue) obsValue.getValue();
+                entity.setValue(value.getValue());
+                Collection<NamedValue<?>> parameters = observation.getParameter();
+                parameters.forEach((parameter) -> {
+                    if (parameter.getName().getHref().equals(
+                            "http://www.opengis.net/def/param-name/OGC-OM/2.0/samplingGeometry")
+                            && parameter.getValue() instanceof GeometryValue) {
+                        GeometryValue geom = (GeometryValue) parameter.getValue();
+                        GeometryEntity geometryEntity = new GeometryEntity();
+                        geometryEntity.setLat(geom.getGeometry().getCoordinate().x);
+                        geometryEntity.setLon(geom.getGeometry().getCoordinate().y);
+                        geometryEntity.setAlt(geom.getGeometry().getCoordinate().z);
+                        entity.setGeometryEntity(geometryEntity);
+                    }
+                });
+                data.add(entity);
             });
-            data.add(entity);
-        });
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing observations!", e);
+        }
         LOGGER.info("Found " + data.size() + " Entries");
         LOGGER.info("End GetObs request in " + ((new Date()).getTime() - start.getTime()) + " ms");
         return data;
@@ -152,9 +158,13 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
             GetObservationResponse response = createObservationResponse(seriesEntity,
                     createTimeInstantFilter(start));
-            if (response.getObservationCollection().size() >= 1) {
-                String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-                return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
+            try {
+                if (response.getObservationCollection().hasNext()) {
+                    String unit = response.getObservationCollection().next().getValue().getValue().getUnit();
+                    return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
+                }
+            } catch (NoSuchElementException | OwsExceptionReport e) {
+                LOGGER.error("Error while querying unit from observation!", e);
             }
         }
         return null;
@@ -232,7 +242,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
         request.setNamespace(NS_GDA_20);
         request.setProcedures(asList(procedureId));
-        request.setOffering(asList(offeringId));
+        request.addOffering(offeringId);
         request.setObservedProperty(asList(obsPropId));
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, url);
     }
@@ -240,7 +250,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     private GetDataAvailabilityResponse getDataAvailabilityResponse(DatasetEntity seriesEntity) {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
-        request.setOffering(asList(seriesEntity.getOffering().getDomainId()));
+        request.addOffering(seriesEntity.getOffering().getDomainId());
         request.setObservedProperty(asList(seriesEntity.getPhenomenon().getDomainId()));
         request.setFeatureOfInterest(asList(seriesEntity.getFeature().getDomainId()));
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20,

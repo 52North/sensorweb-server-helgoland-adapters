@@ -51,6 +51,7 @@ import org.n52.shetland.ogc.om.SingleObservationValue;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.om.values.QuantityValue;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
 import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
@@ -93,18 +94,22 @@ public class HydroSOSConnector extends SOS2Connector {
 
         List<DataEntity> data = new ArrayList<>();
 
-        obsResp.getObservationCollection().forEach((observation) -> {
-            QuantityDataEntity entity = new QuantityDataEntity();
-            SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
+        try {
+            obsResp.getObservationCollection().forEachRemaining((observation) -> {
+                QuantityDataEntity entity = new QuantityDataEntity();
+                SingleObservationValue obsValue = (SingleObservationValue) observation.getValue();
 
-            TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
-            entity.setTimestart(instant.getValue().toDate());
-            entity.setTimeend(instant.getValue().toDate());
-            QuantityValue value = (QuantityValue) obsValue.getValue();
-            entity.setValue(value.getValue());
+                TimeInstant instant = (TimeInstant) obsValue.getPhenomenonTime();
+                entity.setTimestart(instant.getValue().toDate());
+                entity.setTimeend(instant.getValue().toDate());
+                QuantityValue value = (QuantityValue) obsValue.getValue();
+                entity.setValue(value.getValue());
 
-            data.add(entity);
-        });
+                data.add(entity);
+            });
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing observations!", e);
+        }
         LOGGER.info("Found " + data.size() + " Entries");
         return data;
     }

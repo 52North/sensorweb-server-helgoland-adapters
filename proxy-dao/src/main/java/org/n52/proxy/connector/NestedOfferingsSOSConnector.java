@@ -51,6 +51,7 @@ import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
@@ -113,9 +114,13 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
                 query));
         List<DataEntity> data = new ArrayList<>();
-        obsResp.getObservationCollection().forEach((observation) -> {
-            data.add(createDataEntity(observation, seriesEntity));
-        });
+        try {
+            obsResp.getObservationCollection().forEachRemaining((observation) -> {
+                data.add(createDataEntity(observation, seriesEntity));
+            });
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing observations!", e);
+        }
         LOGGER.info("Found " + data.size() + " Entries");
         return data;
     }

@@ -57,6 +57,7 @@ import org.n52.shetland.ogc.filter.SpatialFilter;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
+import org.n52.shetland.ogc.om.ObservationStream;
 import org.n52.shetland.ogc.om.ObservationValue;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
@@ -65,6 +66,7 @@ import org.n52.shetland.ogc.om.values.SweDataArrayValue;
 import org.n52.shetland.ogc.om.values.Value;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sensorML.AbstractProcess;
 import org.n52.shetland.ogc.sensorML.HasComponents;
@@ -113,9 +115,13 @@ public class OceanotronSosConnector extends SOS2Connector {
         GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
                 "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
         ArrayList<DataEntity> data = new ArrayList<>();
-        observationResponse.getObservationCollection().forEach((observation) -> {
-            data.add(createProfileDataEntity(observation, seriesEntity));
-        });
+        try {
+            observationResponse.getObservationCollection().forEachRemaining((observation) -> {
+                data.add(createProfileDataEntity(observation, seriesEntity));
+            });
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing observations!", e);
+        }
         return data;
     }
 
@@ -123,21 +129,25 @@ public class OceanotronSosConnector extends SOS2Connector {
     public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
                 "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
-        List<OmObservation> omColl = observationResponse.getObservationCollection();
-        if (omColl.size() == 1) {
-            OmObservation observation = omColl.get(0);
-            ObservationValue<? extends Value<?>> observationValue = observation.getValue();
-            if (observationValue.getValue() instanceof SweDataArrayValue) {
-                SweDataArray dataArray = ((SweDataArrayValue) observationValue.getValue()).getValue();
-                SweAbstractDataComponent elementType = dataArray.getElementType();
-                if (elementType instanceof SweDataRecord) {
-                    SweDataRecord sweDataRecord = (SweDataRecord) elementType;
-                    List<SweField> fields = sweDataRecord.getFields();
-                    if (fields.size() == 2) {
-                        return createUnitEntity(fields.get(1), (ProxyServiceEntity) seriesEntity.getService());
+        ObservationStream omColl = observationResponse.getObservationCollection();
+        try {
+            if (omColl.hasNext()) {
+                OmObservation observation = omColl.next();
+                ObservationValue<? extends Value<?>> observationValue = observation.getValue();
+                if (observationValue.getValue() instanceof SweDataArrayValue) {
+                    SweDataArray dataArray = ((SweDataArrayValue) observationValue.getValue()).getValue();
+                    SweAbstractDataComponent elementType = dataArray.getElementType();
+                    if (elementType instanceof SweDataRecord) {
+                        SweDataRecord sweDataRecord = (SweDataRecord) elementType;
+                        List<SweField> fields = sweDataRecord.getFields();
+                        if (fields.size() == 2) {
+                            return createUnitEntity(fields.get(1), (ProxyServiceEntity) seriesEntity.getService());
+                        }
                     }
                 }
             }
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying unit observations!", e);
         }
         return null;
     }
