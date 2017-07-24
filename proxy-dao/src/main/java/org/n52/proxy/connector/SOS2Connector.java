@@ -31,6 +31,7 @@ package org.n52.proxy.connector;
 import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
@@ -58,11 +59,13 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
+import org.n52.shetland.ogc.om.ObservationStream;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsOperation;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
@@ -130,42 +133,56 @@ public class SOS2Connector extends AbstractSosConnector {
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
                 query));
         List<DataEntity> data = new ArrayList<>();
-        obsResp.getObservationCollection().forEach((observation) -> {
-            data.add(createDataEntity(observation, seriesEntity));
-        });
+        try {
+            obsResp.getObservationCollection().forEachRemaining((observation) -> {
+                data.add(createDataEntity(observation, seriesEntity));
+            });
+        } catch (OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing observations!", e);
+        }
         LOGGER.info("Found " + data.size() + " Entries");
         return data;
     }
 
     @Override
     public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-        return createObservationResponse(entity, createFirstTimefilter())
-                .getObservationCollection()
-                .stream()
-                .findFirst()
-                .map((obs) -> {
-                    return createDataEntity(obs, entity);
-                });
+        ObservationStream os = createObservationResponse(entity, createFirstTimefilter())
+                .getObservationCollection();
+        try {
+            if (os.hasNext()) {
+                return Optional.of(createDataEntity(os.next(), entity));
+            }
+        } catch (NoSuchElementException | OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing first observation!", e);
+        }
+        return Optional.empty();
     }
 
     @Override
     public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-        return createObservationResponse(entity, createLatestTimefilter())
-                .getObservationCollection()
-                .stream()
-                .findFirst()
-                .map((obs) -> {
-                    return createDataEntity(obs, entity);
-                });
+        ObservationStream os = createObservationResponse(entity, createLatestTimefilter())
+                .getObservationCollection();
+        try {
+            if (os.hasNext()) {
+                return Optional.of(createDataEntity(os.next(), entity));
+            }
+        } catch (NoSuchElementException | OwsExceptionReport e) {
+            LOGGER.error("Error while querying and processing last observation!", e);
+        }
+        return Optional.empty();
     }
 
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetObservationResponse response = createObservationResponse(seriesEntity,
                 createFirstTimefilter());
-        if (response.getObservationCollection().size() >= 1) {
-            String unit = response.getObservationCollection().get(0).getValue().getValue().getUnit();
-            return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
+        try {
+            if (response.getObservationCollection().hasNext()) {
+                String unit = response.getObservationCollection().next().getValue().getValue().getUnit();
+                return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
+            }
+        } catch (NoSuchElementException | OwsExceptionReport e) {
+            LOGGER.error("Error while querying unit from observation!", e);
         }
         return null;
     }

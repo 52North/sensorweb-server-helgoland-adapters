@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
-    
+
     protected int counter = 0;
 
     private static final Logger LOGGER = getLogger(AbstractSosConnector.class);
