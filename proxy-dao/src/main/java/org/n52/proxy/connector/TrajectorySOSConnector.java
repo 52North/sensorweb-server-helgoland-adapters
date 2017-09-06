@@ -146,7 +146,6 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
             GetObservationResponse response = createObservationResponse(seriesEntity,
                                                                     createTimeInstantFilter(start));
-
             return response.getObservationCollection().toStream()
                     .findFirst().map(o -> o.getValue().getValue().getUnit())
                     .map(unit -> createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
@@ -227,7 +226,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
         request.setNamespace(NS_GDA_20);
         request.setProcedures(asList(procedureId));
-        request.setOffering(asList(offeringId));
+        request.addOffering(offeringId);
         request.setObservedProperty(asList(obsPropId));
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, url);
     }
@@ -235,7 +234,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     private GetDataAvailabilityResponse getDataAvailabilityResponse(DatasetEntity<?> seriesEntity) {
         GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
-        request.setOffering(asList(seriesEntity.getOffering().getDomainId()));
+        request.addOffering(seriesEntity.getOffering().getDomainId());
         request.setObservedProperty(asList(seriesEntity.getPhenomenon().getDomainId()));
         request.setFeatureOfInterest(asList(seriesEntity.getFeature().getDomainId()));
         return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20,

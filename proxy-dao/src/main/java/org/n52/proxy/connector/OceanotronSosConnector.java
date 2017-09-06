@@ -139,7 +139,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                     }
                 }
             }
-        }
+        } 
         return null;
     }
 
