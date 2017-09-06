@@ -53,6 +53,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import org.n52.janmayen.Stopwatch;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
@@ -113,7 +114,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        Date start = new Date();
+        Stopwatch stopwatch = new Stopwatch().start();
         LOGGER.info("Start GetObs request");
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, null);
 
@@ -134,8 +135,8 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             }
             return entity;
         }).collect(toList());
-        LOGGER.info("Found " + data.size() + " Entries");
-        LOGGER.info("End GetObs request in " + ((new Date()).getTime() - start.getTime()) + " ms");
+        LOGGER.info("Found {}  Entries", data.size());
+        LOGGER.info("End GetObs request in {}", stopwatch);
         return data;
     }
 

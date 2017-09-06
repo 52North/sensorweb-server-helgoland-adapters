@@ -19,14 +19,13 @@ import org.n52.svalbard.encode.EncoderRepository;
  * @author Jan Schulte
  */
 public abstract class AbstractConnector {
+    private static final int CONNECTION_TIMEOUT = 30000;
 
     @Autowired
     protected DecoderRepository decoderRepository;
 
     @Autowired
     protected EncoderRepository encoderRepository;
-
-    private static final int CONNECTION_TIMEOUT = 30000;
 
     public String getConnectorName() {
         return getClass().getName();

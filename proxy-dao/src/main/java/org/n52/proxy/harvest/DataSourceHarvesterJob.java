@@ -88,6 +88,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     @Autowired
     private Set<AbstractConnector> connectors;
 
+    public DataSourceHarvesterJob() {
+    }
+
     public DataSourceConfiguration getConfig() {
         return config;
     }
@@ -96,8 +99,6 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         this.config = config;
     }
 
-    public DataSourceHarvesterJob() {
-    }
 
     @Override
     public JobDetail createJobDetails() {
