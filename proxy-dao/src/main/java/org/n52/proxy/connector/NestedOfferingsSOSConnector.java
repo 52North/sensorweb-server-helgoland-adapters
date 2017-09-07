@@ -44,6 +44,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.n52.janmayen.function.Functions;
+import org.n52.janmayen.function.Predicates;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ProxyException;
@@ -61,7 +63,6 @@ import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
-import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
 
 /**
@@ -78,11 +79,9 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
-        obsOff.getExtension(RELATED_OFFERINGS).ifPresent((extension) -> {
-            if (extension instanceof RelatedOfferings) {
-                addNestedOfferings((RelatedOfferings) extension, serviceConstellation, config.getUrl());
-            }
-        });
+        obsOff.getExtension(RELATED_OFFERINGS)
+                .filter(Predicates.instanceOf(RelatedOfferings.class))
+                .ifPresent(e -> addNestedOfferings((RelatedOfferings) e, serviceConstellation, config.getUrl()));
     }
 
     @Override
@@ -112,12 +111,11 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //    }
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
-                query));
-        List<DataEntity<?>> data = obsResp.getObservationCollection().toStream()
-                .map((observation) -> createDataEntity(observation, seriesEntity))
+        List<DataEntity<?>> data = createObservationResponse(seriesEntity, createTimePeriodFilter(query))
+                .getObservationCollection().toStream()
+                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
                 .collect(toList());
-        LOGGER.info("Found " + data.size() + " Entries");
+        LOGGER.info("Found {} Entries", data.size());
         return data;
     }
 
@@ -132,7 +130,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         relatedOfferings.getValue().forEach((context) -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
-                LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
+                LOGGER.info("Fetch nested offerings for {}", relatedOffering.getTitle());
                 if (relatedOffering.getTitle().equalsIgnoreCase(
                         "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
                     GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());

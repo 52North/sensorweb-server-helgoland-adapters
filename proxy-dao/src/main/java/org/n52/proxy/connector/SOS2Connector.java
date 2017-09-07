@@ -51,10 +51,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
@@ -95,7 +97,8 @@ public class SOS2Connector extends AbstractSosConnector {
 
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
-     * @param config the config
+     *
+     * @param config       the config
      * @param capabilities the cababilities
      */
     @Override
@@ -111,9 +114,9 @@ public class SOS2Connector extends AbstractSosConnector {
         return owsCaps.getOperationsMetadata()
                 .map(OwsOperationsMetadata::getOperations)
                 .map(Set::stream)
-                .map(operation -> operation.map(OwsOperation::getName))
-                .map(names -> names.anyMatch(name -> name.equals("GetDataAvailability")))
-                .orElse(false);
+                .orElseGet(Stream::empty)
+                .map(OwsOperation::getName)
+                .anyMatch(name -> name.equals("GetDataAvailability"));
     }
 
     @Override
@@ -130,13 +133,12 @@ public class SOS2Connector extends AbstractSosConnector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-            GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
-                    query));
-            List<DataEntity<?>> data = obsResp.getObservationCollection().toStream()
-                    .map(observation -> createDataEntity(observation, seriesEntity))
-                    .collect(toList());
-            LOGGER.info("Found " + data.size() + " Entries");
-            return data;
+        List<DataEntity<?>> data = createObservationResponse(seriesEntity, createTimePeriodFilter(query))
+                .getObservationCollection().toStream()
+                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
+                .collect(toList());
+        LOGGER.info("Found {} Entries", data.size());
+        return data;
     }
 
     @Override
@@ -179,33 +181,33 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-            DataSourceConfiguration config) {
+                               DataSourceConfiguration config) {
         sosCaps.getContents().ifPresent(contents
                 -> contents.forEach(sosObsOff
                         -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
-            DataSourceConfiguration config) {
+                                 DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
         offering.getProcedures().forEach((procedureId) -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId,
-                    config.getUrl());
+                                                                                               config.getUrl());
             addAbstractFeature(foiResponse.getAbstractFeature(), serviceConstellation);
 
             GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, config.getUrl());
             if (gdaResponse != null) {
-                gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
+                gdaResponse.getDataAvailabilities().forEach(dataAval -> {
                     String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
                     String categoryId = addCategory(dataAval, serviceConstellation);
                     String featureId = dataAval.getFeatureOfInterest().getHref();
                     // TODO maybe not only QuantityDatasetConstellation
                     serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                            phenomenonId,
-                            featureId));
+                                                                              phenomenonId,
+                                                                              featureId));
                 });
             }
             LOGGER.info(foiResponse.toString());
@@ -216,8 +218,8 @@ public class SOS2Connector extends AbstractSosConnector {
         if (feature instanceof SamplingFeature) {
             addFeature((SamplingFeature) feature, serviceConstellation);
         } else if (feature instanceof FeatureCollection) {
-            ((FeatureCollection) feature).forEach((AbstractFeature featureEntry) -> addAbstractFeature(featureEntry,
-                    serviceConstellation));
+            ((FeatureCollection) feature)
+                    .forEach(featureEntry -> addAbstractFeature(featureEntry, serviceConstellation));
         }
     }
 
@@ -247,12 +249,13 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
-            TemporalFilter temporalFilter) {
+                                                               TemporalFilter temporalFilter) {
         return createObservationResponse(seriesEntity, temporalFilter, null);
     }
 
-    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity, TemporalFilter temporalFilter,
-            String responseFormat) {
+    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
+                                                               TemporalFilter temporalFilter,
+                                                               String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
         request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
         request.setObservedProperties(asList(seriesEntity.getPhenomenon().getDomainId()));
@@ -264,7 +267,7 @@ public class SOS2Connector extends AbstractSosConnector {
             request.setResponseFormat(responseFormat);
         }
         return (GetObservationResponse) this.getSosResponseFor(request, NS_SOS_20,
-                seriesEntity.getService().getUrl());
+                                                               seriesEntity.getService().getUrl());
     }
 
 }
