@@ -662,11 +662,11 @@
             <properties>
                 <env>dev</env>
                 <!-- externalize build parameters for productive environment -->
-                <local.configfile>${custom.properties.directory}/${project.build.finalName}-${env}.properties</local.configfile>
+                <local.configFile>${custom.properties.directory}/${project.build.finalName}-${env}.properties</local.configFile>
             </properties>
             <build>
                 <filters>
-                    <filter>${local.configfile}</filter>
+                    <filter>${local.configFile}</filter>
                 </filters>
             </build>
         </profile>
