@@ -51,6 +51,7 @@ import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
+import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -90,7 +91,6 @@ import org.n52.shetland.ogc.swes.SwesConstants;
 import org.n52.shetland.util.ReferencedEnvelope;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
 public class OceanotronSosConnector extends SOS2Connector {
@@ -325,18 +325,28 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private SpatialFilter createSpatialFilter(FeatureEntity feature) {
+
+        return Optional.ofNullable(feature)
+                .map(FeatureEntity::getGeometryEntity)
+                .map(GeometryEntity::getGeometry)
+                .flatMap(Functions.castIfInstanceOf(Point.class))
+                .map(this::createEnvelope)
+                .map(this::createSpatialFilter)
+                .orElse(null);
+    }
+
+    private SpatialFilter createSpatialFilter(ReferencedEnvelope envelope) {
         SpatialFilter spatialFilter = new SpatialFilter();
-        Geometry geometry = feature.getGeometry();
-        if (geometry instanceof Point) {
-            Point point = (Point) geometry;
-            double x = point.getCoordinate().x;
-            double y = point.getCoordinate().y;
-            ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(new Envelope(x, x, y, y), point.getSRID());
-            spatialFilter.setGeometry(referencedEnvelope);
-            spatialFilter.setOperator(FilterConstants.SpatialOperator.Overlaps);
-            return spatialFilter;
-        }
-        return null;
+        spatialFilter.setGeometry(envelope);
+        spatialFilter.setOperator(FilterConstants.SpatialOperator.Overlaps);
+        return spatialFilter;
+    }
+
+    private ReferencedEnvelope createEnvelope(Point point) {
+        double x = point.getCoordinate().x;
+        double y = point.getCoordinate().y;
+        int srid = point.getSRID();
+        return new ReferencedEnvelope(new Envelope(x, x, y, y), srid);
     }
 
 }

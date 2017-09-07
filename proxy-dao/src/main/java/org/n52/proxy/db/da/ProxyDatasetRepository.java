@@ -61,7 +61,7 @@ public class ProxyDatasetRepository<T extends Data<?>> extends DatasetRepository
 
     @Override
     @SuppressWarnings("rawtypes")
-    protected DatasetOutput createExpanded(DatasetEntity<?> series, DbQuery query, Session session)
+    protected DatasetOutput createExpanded(DatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
         if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {
             final ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
