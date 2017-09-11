@@ -8,7 +8,7 @@
                 <param name="sequence">seriesId_seq</param>
             </generator>
         </id>
-        <discriminator column="seriesType" force="true" type="string"/>
+        <discriminator column="seriesType" force="true" type="string" />
         <many-to-one class="CategoryEntity" column="categoryid" name="category" />
         <many-to-one class="ProcedureEntity" column="procedureid" name="procedure"/>
         <many-to-one class="OfferingEntity" column="offeringid" name="offering"/>
@@ -22,50 +22,65 @@
         <property column="identifier" name="domainId" type="string"/>
         <property column="firsttimestamp" name="firstValueAt" type="timestamp"/>
         <property column="lasttimestamp" name="lastValueAt" type="timestamp"/>
+
+        <set inverse="true" name="resultTimes" table="observation">
+            <key column="seriesid" />
+            <element column="resulttime" type="timestamp" />
+        </set>
+
         <many-to-one class="org.n52.proxy.db.beans.ProxyServiceEntity" column="service" name="service"/>
 
         <subclass discriminator-value="quantity" name="QuantityDatasetEntity">
             <property formula="3" name="numberOfDecimals" type="int"/>
-            <component class="org.n52.series.db.beans.ObservationEntity" name="firstValue">
-                <property column="firsttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>
-                <property column="firstnumericvalue" name="value" type="double"/>
+            <!-- first value for backwards compatibility -->
+            <component class="ObservationEntity" name="firstValue">
+                <property column="firsttimestamp" name="timestart" type="timestamp" insert="false" update="false" />
+                <property column="firsttimestamp" name="timeend" type="timestamp" insert="false" update="false" />
+                <property column="firstnumericvalue" name="value" type="double" />
             </component>
-            <component class="org.n52.series.db.beans.ObservationEntity" name="lastValue">
-                <property column="lasttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>
-                <property column="lastnumericvalue" name="value" type="double"/>
+            <!-- last value for backwards compatibility -->
+            <component class="ObservationEntity" name="lastValue">
+                <property column="lasttimestamp" name="timestart" type="timestamp" insert="false" update="false" />
+                <property column="lasttimestamp" name="timeend" type="timestamp" insert="false" update="false" />
+                <property column="lastnumericvalue" name="value" type="double" />
             </component>
-            <many-to-one class="org.n52.series.db.beans.UnitEntity" column="unitid" name="unit"/>
-            <!--<list fetch="select" inverse="true" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <many-to-one class="UnitEntity" column="unitid" name="unit" />
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="QuantityDataEntity" />
+            </bag>
+            -->
         </subclass>
 
         <subclass discriminator-value="text" name="TextDatasetEntity">
-            <!--<list fetch="select" inverse="true" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="TextDataEntity" />
+            </bag>
+            -->
         </subclass>
 
         <subclass discriminator-value="count" name="CountDatasetEntity">
-            <!--<list fetch="select" inverse="false" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="CountDataEntity" />
+            </bag>
+            -->
         </subclass>
 
         <subclass discriminator-value="quantity-profile" name="ProfileDatasetEntity">
             <property name="verticalParameterName" formula="'depth'" type="string" />
-            <many-to-one class="UnitEntity" column="unitid" name="unit"/>
-<!--            <list fetch="select" inverse="true" name="observations" table="observation">
+            <many-to-one class="UnitEntity" column="unitid" insert="false" name="unit" update="false" />
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
                 <key column="observationid" />
-                <index column="seriesid" />
-                <one-to-many class="DataEntity" />
-            </list>-->
+                <one-to-many class="ProfileDataEntity" />
+            </bag>
+            -->
         </subclass>
+
     </class>
 </hibernate-mapping>

@@ -22,42 +22,56 @@
         <property column="identifier" name="domainId" type="string"/>
         <property column="firsttimestamp" name="firstValueAt" type="timestamp"/>
         <property column="lasttimestamp" name="lastValueAt" type="timestamp"/>
+
+        <set inverse="true" name="resultTimes" table="observation">
+            <key column="seriesid" />
+            <element column="resulttime" type="string" />
+        </set>
+
+
         <many-to-one class="ServiceEntity" column="service" name="service" unique-key="datasetIdentifier"/>
         <!-- only for proxy -->
         <property column="observationcount" name="observationCount" type="long"/>
 
         <subclass discriminator-value="quantity" name="QuantityDatasetEntity">
             <property formula="3" name="numberOfDecimals" type="int"/>
-            <component class="org.n52.series.db.beans.ObservationEntity" name="firstValue">
-                <property column="firsttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>
+            <!-- first value for backwards compatibility -->
+            <component class="ObservationEntity" name="firstValue">
+                <property column="firsttimestamp" name="timestart" type="timestamp" insert="false" update="false"/>
+                <property column="firsttimestamp" name="timeend" type="timestamp" insert="false" update="false"/>
                 <property column="firstnumericvalue" name="value" type="double"/>
             </component>
-            <component class="org.n52.series.db.beans.ObservationEntity" name="lastValue">
-                <property column="lasttimestamp" name="timestamp" type="timestamp" insert="false" update="false"/>
+            <!-- last value for backwards compatibility -->
+            <component class="ObservationEntity" name="lastValue">
+                <property column="lasttimestamp" name="timestart" type="timestamp" insert="false" update="false"/>
+                <property column="lasttimestamp" name="timeend" type="timestamp" insert="false" update="false"/>
                 <property column="lastnumericvalue" name="value" type="double"/>
             </component>
             <many-to-one class="org.n52.series.db.beans.UnitEntity" column="unitid" name="unit"/>
-            <!--<list fetch="select" inverse="true" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="QuantityDataEntity" />
+            </bag>
+            -->
         </subclass>
 
         <subclass discriminator-value="text" name="TextDatasetEntity">
-            <!--<list fetch="select" inverse="true" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="TextDataEntity" />
+            </bag>
+            -->
         </subclass>
 
         <subclass discriminator-value="count" name="CountDatasetEntity">
-            <!--<list fetch="select" inverse="false" name="observations" table="observation">
-                <key column="observationid"/>
-                <index column="seriesid"/>
-                <one-to-many class="org.n52.series.db.beans.DataEntity"/>
-            </list>-->
+            <!--
+            <bag fetch="select" inverse="true" name="observations" table="observation">
+                <key column="observationid" />
+                <one-to-many class="CountDataEntity" />
+            </bag>
+            -->
         </subclass>
     </class>
 </hibernate-mapping>

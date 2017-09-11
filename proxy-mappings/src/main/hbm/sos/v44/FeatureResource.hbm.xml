@@ -11,7 +11,7 @@
 
         <property column="identifier" name="domainId" type="string"/>
         <property column="name" name="name" type="string"/>
-        <property column="name" insert="false" name="description" type="string" update="false"/>
+        <property column="description"  name="description" type="string"/>
         <component class="GeometryEntity" name="geometryEntity">
             <!--
            <property column="lat" name="lat" type="double" />
@@ -19,6 +19,21 @@
             -->
             <property column="geom" name="geometry" type="org.hibernate.spatial.GeometryType"/>
         </component>
+        <!--
+        <set name="children" table="featurerelation" inverse="false" fetch="select">
+            <key column="parentFeatureId" not-null="true"/>
+            <many-to-many class="FeatureEntity" column="childFeatureId" />
+        </set>
+        <set name="parents" table="featurerelation" inverse="false" fetch="select">
+            <key column="childFeatureId" not-null="true"/>
+            <many-to-many class="FeatureEntity" column="parentFeatureId" />
+        </set>
+
+        <set inverse="true" name="parameters" table="featureparameter">
+            <key column="featureofinterestid" not-null="true"/>
+            <one-to-many class="org.n52.series.db.beans.parameter.FeatureParameter" entity-name="RestFeatureParameter"/>
+        </set>
+        -->
         <many-to-one class="ServiceEntity" column="serviceid" name="service"/>
     </class>
 </hibernate-mapping>

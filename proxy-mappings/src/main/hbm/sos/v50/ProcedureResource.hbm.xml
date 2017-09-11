@@ -4,7 +4,6 @@
     <class name="ProcedureEntity" table="`procedure`">
         <id name="pkid" type="long">
             <column name="procedureid"/>
-            <!--<generator class="assigned"/>-->
             <generator class="native">
                 <param name="sequence">procedureId_seq</param>
             </generator>
@@ -12,19 +11,20 @@
         <property column="identifier" name="domainId" type="string" not-null="true" unique-key="procIdentifier"/>
         <property column="name" name="name" type="string"/>
         <property column="description"  name="description" type="string"/>
-        <!--<property column="name" name="description" type="string"/>-->
-        <property column="reference" name="reference" type="org.hibernate.type.TrueFalseType"/>
+        <property formula="'F'" name="reference" type="org.hibernate.type.TrueFalseType"/>
         <property column="mobile" name="mobile" type="org.hibernate.type.TrueFalseType"/>
         <property column="insitu" name="insitu" type="org.hibernate.type.TrueFalseType"/>
-        <many-to-one class="ServiceEntity" column="serviceid" name="service" unique-key="procIdentifier"/>
-        <set name="childs" table="procedurehierarchy" inverse="false" fetch="select" cascade="all">
-            <key column="parentProcedureId" not-null="true"/>
-            <many-to-many entity-name="org.n52.series.db.beans.ProcedureEntity" column="childProcedureId" foreign-key="procedureChildFk"/>
+
+        <set name="children" table="sensorsystem" inverse="false" fetch="select" cascade="all">
+            <key column="parentsensorid" not-null="true"/>
+            <many-to-many entity-name="ProcedureEntity" column="childsensorid" foreign-key="procedureChildFk"/>
         </set>
-        <set name="parents" table="procedurehierarchy" inverse="false" fetch="select" cascade="all">
-            <key column="childProcedureId" not-null="true"/>
-            <many-to-many entity-name="org.n52.series.db.beans.ProcedureEntity" column="parentProcedureId" foreign-key="procedureParentFk"/>
+        <set name="parents" table="sensorsystem" inverse="false" fetch="select" cascade="all">
+            <key column="childsensorid" not-null="true"/>
+            <many-to-many entity-name="ProcedureEntity" column="parentsensorid" foreign-key="procedureParentFk"/>
         </set>
         <property column="proceduredescriptionformat" name="procedureDescriptionFormat" type="string"/>
+
+        <many-to-one class="ServiceEntity" column="serviceid" name="service" unique-key="procIdentifier"/>
     </class>
 </hibernate-mapping>

@@ -12,13 +12,13 @@
         <property column="name" name="name" type="string"/>
         <property column="description" name="description" type="string"/>
         <many-to-one class="ServiceEntity" column="serviceid" name="service" unique-key="offIdentifier"/>
-        <set name="childs" table="offeringhierarchy" inverse="false" fetch="select" cascade="all">
-            <key column="parentOfferingId" not-null="true" />
-            <many-to-many entity-name="org.n52.series.db.beans.OfferingEntity" column="childOfferingId" foreign-key="offeringChildFk"/>
+        <set name="children" table="offeringrelation" inverse="false" fetch="select" cascade="all">
+            <key column="parentofferingid" not-null="true" />
+            <many-to-many entity-name="OfferingEntity" column="childofferingid"/>
         </set>
-        <set name="parents" table="offeringhierarchy" inverse="false" fetch="select" cascade="all">
-            <key column="childOfferingId" not-null="true" />
-            <many-to-many entity-name="org.n52.series.db.beans.OfferingEntity" column="parentOfferingId" foreign-key="offeringParentFk"/>
+        <set name="parents" table="offeringrelation" inverse="false" fetch="select" cascade="all">
+            <key column="childofferingid" not-null="true" />
+            <many-to-many entity-name="OfferingEntity" column="parentofferingid"/>
         </set>
         <set name="observationTypes" table="offeringobservationtypes" inverse="false" fetch="select" cascade="all">
             <key column="offeringId" not-null="true"/>

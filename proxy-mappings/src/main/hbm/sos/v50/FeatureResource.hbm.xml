@@ -19,14 +19,21 @@
             -->
             <property column="geom" name="geometry" type="org.hibernate.spatial.GeometryType"/>
         </component>
-        <many-to-one class="ServiceEntity" column="serviceid" name="service" unique-key="featIdentifier"/>
-        <set name="childs" table="featurehierarchy" inverse="false" fetch="select" cascade="all">
+        <set name="children" table="featurerelation" inverse="false" fetch="select">
             <key column="parentFeatureId" not-null="true"/>
-            <many-to-many entity-name="org.n52.series.db.beans.FeatureEntity" column="childFeatureId" foreign-key="featureOfInterestChildFk"/>
+            <many-to-many class="FeatureEntity" column="childFeatureId" not-null="true" foreign-key="featureOfInterestChildFk"/>
         </set>
-        <set name="parents" table="featurehierarchy" inverse="false" fetch="select" cascade="all">
+        <set name="parents" table="featurerelation" inverse="false" fetch="select">
             <key column="childFeatureId" not-null="true"/>
-            <many-to-many entity-name="org.n52.series.db.beans.FeatureEntity" column="parentFeatureId" foreign-key="featureOfInterestParentFk"/>
+            <many-to-many class="FeatureEntity" column="parentFeatureId" />
         </set>
+
+        <set inverse="true" name="parameters" table="featureparameter">
+            <key column="featureofinterestid" not-null="true"/>
+            <one-to-many class="org.n52.series.db.beans.parameter.FeatureParameter"/>
+        </set>
+
+        <many-to-one class="ServiceEntity" column="serviceid" name="service" unique-key="featIdentifier"/>
+
     </class>
 </hibernate-mapping>

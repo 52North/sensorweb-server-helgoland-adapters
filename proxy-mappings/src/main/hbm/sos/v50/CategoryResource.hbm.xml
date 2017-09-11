@@ -10,6 +10,7 @@
         </id>
         <property column="identifier" name="domainId" type="string" not-null="true"/>
         <property column="name" name="name" type="string"/>
+        <property column="description"  name="description" type="string"/>
         <many-to-one class="ServiceEntity" column="serviceid" name="service"/>
     </class>
 </hibernate-mapping>
