@@ -16,7 +16,7 @@
     <import resource="spi-impl-dao_v1_beans.xml"/>
     <import resource="spi-impl-dao_v1_beans_legacy.xml"/>
 
-    <import resource="artic-sea.xml"/>
+    <import resource="arctic-sea.xml"/>
 
     <bean class="org.n52.proxy.connector.OceanotronSosConnector"/>
     <bean class="org.n52.proxy.connector.SOS2Connector"/>
