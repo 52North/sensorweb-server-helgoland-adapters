@@ -336,8 +336,8 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     private SpatialFilter createSpatialFilter(FeatureEntity feature) {
         SpatialFilter spatialFilter = new SpatialFilter();
-        Geometry geometry = feature.getGeometry();
-        if (geometry instanceof Point) {
+        Geometry geometry = feature.getGeometryEntity().getGeometry();
+        if (geometry != null && geometry instanceof Point) {
             Point point = (Point) geometry;
             double x = point.getCoordinate().x;
             double y = point.getCoordinate().y;
