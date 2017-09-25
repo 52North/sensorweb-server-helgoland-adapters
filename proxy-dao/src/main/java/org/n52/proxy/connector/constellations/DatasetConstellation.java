@@ -31,8 +31,11 @@ package org.n52.proxy.connector.constellations;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
+import java.util.Optional;
+
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
@@ -50,6 +53,8 @@ public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
     private final String phenomenon;
     private final String feature;
 
+    private DataEntity<?> first;
+    private DataEntity<?> latest;
     private String domainId;
 
     public DatasetConstellation(String procedure, String offering, String category, String phenomenon, String feature) {
@@ -90,9 +95,9 @@ public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
 
     @Override
     public String toString() {
-        return "DatasetConstellation{" + "procedure=" + procedure
-                + ", offering=" + offering + ", category=" + category
-                + ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
+        return "DatasetConstellation{" + "procedure=" + procedure +
+               ", offering=" + offering + ", category=" + category +
+               ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
     }
 
     public final T createDatasetEntity(
@@ -103,7 +108,7 @@ public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
             PhenomenonEntity phenomenon,
             ProxyServiceEntity service) {
         T datasetEntity = createDatasetEntity(service);
-        datasetEntity.setDomainId(this.getDomainId());
+        datasetEntity.setDomainId(getDomainId());
         datasetEntity.setProcedure(procedure);
         datasetEntity.setCategory(category);
         datasetEntity.setFeature(feature);
@@ -112,9 +117,29 @@ public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
         datasetEntity.setPublished(TRUE);
         datasetEntity.setDeleted(FALSE);
         datasetEntity.setService(service);
+
+        getLatest().map(DataEntity::getTimestart).ifPresent(datasetEntity::setLastValueAt);
+        getFirst().map(DataEntity::getTimestart).ifPresent(datasetEntity::setFirstValueAt);
+
         return datasetEntity;
-    };
+    }
 
     protected abstract T createDatasetEntity(ProxyServiceEntity service);
+
+    public Optional<DataEntity<?>> getFirst() {
+        return Optional.ofNullable(first);
+    }
+
+    public void setFirst(DataEntity<?> first) {
+        this.first = first;
+    }
+
+    public Optional<DataEntity<?>> getLatest() {
+        return Optional.ofNullable(latest);
+    }
+
+    public void setLatest(DataEntity<?> latest) {
+        this.latest = latest;
+    }
 
 }

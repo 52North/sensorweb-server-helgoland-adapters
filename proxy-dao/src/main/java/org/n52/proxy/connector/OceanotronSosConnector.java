@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.toSet;
 import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -50,17 +49,12 @@ import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.FeatureEntity;
-import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.parameter.Parameter;
 import org.n52.series.db.beans.parameter.ParameterQuantity;
 import org.n52.series.db.dao.DbQuery;
-import org.n52.shetland.ogc.filter.FilterConstants;
-import org.n52.shetland.ogc.filter.SpatialFilter;
-import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.ObservationValue;
@@ -79,8 +73,7 @@ import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
-import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
-import org.n52.shetland.ogc.sos.request.GetObservationRequest;
+import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swe.SweAbstractDataComponent;
 import org.n52.shetland.ogc.swe.SweDataArray;
@@ -88,10 +81,6 @@ import org.n52.shetland.ogc.swe.SweDataRecord;
 import org.n52.shetland.ogc.swe.SweField;
 import org.n52.shetland.ogc.swe.simpleType.SweQuantity;
 import org.n52.shetland.ogc.swes.SwesConstants;
-import org.n52.shetland.util.ReferencedEnvelope;
-
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Point;
 
 public class OceanotronSosConnector extends SOS2Connector {
 
@@ -109,7 +98,7 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        GetObservationResponse observationResponse = createObservationResponse(
+        GetObservationResponse observationResponse = getObservation(
                 seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
         return observationResponse.getObservationCollection().toStream()
                 .map(observation -> createProfileDataEntity(observation, seriesEntity))
@@ -118,7 +107,7 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     @Override
     public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
-        GetObservationResponse observationResponse = createObservationResponse(
+        GetObservationResponse observationResponse = getObservation(
                 seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
         List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
         if (omColl.size() == 1) {
@@ -260,10 +249,23 @@ public class OceanotronSosConnector extends SOS2Connector {
 
         LOGGER.info("Send getFOI request with procedure component {} and observedProperty {}", procedureComponentId,
                     obsProp);
-        FeatureCollection featureColl = getFeatureOfInterestResponse(procedureComponentId, obsProp, url);
-
-        featureColl.getMembers().forEach((String key, AbstractFeature feature) -> {
-            String foiId = addFeature(feature, servConst);
+        GetFeatureOfInterestResponse response = getFeatureOfInterest(null, procedureComponentId, obsProp, url);
+        if (response.getAbstractFeature() instanceof FeatureCollection) {
+            ((FeatureCollection) response.getAbstractFeature())
+                    .getMembers().forEach((String key, AbstractFeature feature) -> {
+                        String foiId = addAbstractFeature(feature, servConst);
+                        // TODO maybe not only QuantityDatasetConstellation
+                        if (foiId != null) {
+                            ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
+                                    procedureComponentId, offeringId,
+                                    obsProp,
+                                    obsProp,
+                                    foiId);
+                            servConst.add(profileDatasetConstellation);
+                        }
+                    });
+        } else {
+            String foiId = addAbstractFeature(response.getAbstractFeature(), servConst);
             // TODO maybe not only QuantityDatasetConstellation
             if (foiId != null) {
                 ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
@@ -273,19 +275,17 @@ public class OceanotronSosConnector extends SOS2Connector {
                         foiId);
                 servConst.add(profileDatasetConstellation);
             }
-        });
+
+        }
     }
 
-    private String addFeature(AbstractFeature feature, ServiceConstellation servConst) {
+    private String addAbstractFeature(AbstractFeature feature, ServiceConstellation servConst) {
         if (feature instanceof SamplingFeature) {
             String foiId = feature.getGmlId();
             String foiName = feature.getFirstName() != null ? feature.getFirstName().getValue() : feature.getGmlId();
             String foiDescription = feature.getDescription();
             SamplingFeature samplingFeature = (SamplingFeature) feature;
-            int srid = samplingFeature.getGeometry().getSRID();
-            double lon = samplingFeature.getGeometry().getCoordinate().x;
-            double lat = samplingFeature.getGeometry().getCoordinate().y;
-            servConst.putFeature(foiId, foiName, foiDescription, lat, lon, srid);
+            servConst.putFeature(foiId, foiName, foiDescription, samplingFeature.getGeometry());
             return foiId;
         }
         return null;
@@ -296,57 +296,6 @@ public class OceanotronSosConnector extends SOS2Connector {
         request.setProcedure(procedureId);
         request.setProcedureDescriptionFormat("http://www.opengis.net/sensorML/1.0.0");
         return (SensorML) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
-    }
-
-    private FeatureCollection getFeatureOfInterestResponse(String procedureId, String obsProp, String url) {
-        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(Arrays.asList(procedureId));
-        request.setObservedProperties(Arrays.asList(obsProp));
-        Object response = getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
-        return (FeatureCollection) response;
-    }
-
-    @Override
-    protected GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
-                                                               TemporalFilter temporalFilter,
-                                                               String responseFormat) {
-        GetObservationRequest request = new GetObservationRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(Arrays.asList(seriesEntity.getProcedure().getDomainId()));
-        request.setObservedProperties(Arrays.asList(seriesEntity.getPhenomenon().getDomainId()));
-        request.setSpatialFilter(createSpatialFilter(seriesEntity.getFeature()));
-        if (temporalFilter != null) {
-            request.setTemporalFilters(Arrays.asList(temporalFilter));
-        }
-        if (responseFormat != null) {
-            request.setResponseFormat(responseFormat);
-        }
-        return (GetObservationResponse) this.getSosResponseFor(request, Sos2Constants.NS_SOS_20,
-                                                               seriesEntity.getService().getUrl());
-    }
-
-    private SpatialFilter createSpatialFilter(FeatureEntity feature) {
-
-        return Optional.ofNullable(feature)
-                .map(FeatureEntity::getGeometryEntity)
-                .map(GeometryEntity::getGeometry)
-                .flatMap(Functions.castIfInstanceOf(Point.class))
-                .map(this::createEnvelope)
-                .map(this::createSpatialFilter)
-                .orElse(null);
-    }
-
-    private SpatialFilter createSpatialFilter(ReferencedEnvelope envelope) {
-        SpatialFilter spatialFilter = new SpatialFilter();
-        spatialFilter.setGeometry(envelope);
-        spatialFilter.setOperator(FilterConstants.SpatialOperator.Overlaps);
-        return spatialFilter;
-    }
-
-    private ReferencedEnvelope createEnvelope(Point point) {
-        double x = point.getCoordinate().x;
-        double y = point.getCoordinate().y;
-        int srid = point.getSRID();
-        return new ReferencedEnvelope(new Envelope(x, x, y, y), srid);
     }
 
 }

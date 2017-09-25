@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
@@ -92,13 +93,7 @@ public class ProxyDatasetDao<T extends DatasetEntity<?>> extends DatasetDao<T> i
     }
 
     public Set<Long> getIdsForService(ProxyServiceEntity service) {
-        List<T> datasets = getDatasetsForService(service);
-        return datasets
-                .stream()
-                .map((dataset) -> {
-                    return dataset.getPkid();
-                })
-                .collect(toSet());
+        return getDatasetsForService(service).stream().map(DescribableEntity::getPkid).collect(toSet());
     }
 
     public void removeDatasets(Set<Long> datasetIds) {
@@ -147,5 +142,4 @@ public class ProxyDatasetDao<T extends DatasetEntity<?>> extends DatasetDao<T> i
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
-
 }

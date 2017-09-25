@@ -29,14 +29,6 @@
 package org.n52.proxy.connector;
 
 import static java.util.stream.Collectors.toList;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addProcedure;
-import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilter;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
-import static org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants.RELATED_OFFERINGS;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +40,7 @@ import org.n52.janmayen.function.Functions;
 import org.n52.janmayen.function.Predicates;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -63,6 +56,7 @@ import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
+import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
 
 /**
@@ -79,7 +73,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
-        obsOff.getExtension(RELATED_OFFERINGS)
+        obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS)
                 .filter(Predicates.instanceOf(RelatedOfferings.class))
                 .ifPresent(e -> addNestedOfferings((RelatedOfferings) e, serviceConstellation, config.getUrl()));
     }
@@ -111,7 +105,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //    }
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        List<DataEntity<?>> data = createObservationResponse(seriesEntity, createTimePeriodFilter(query))
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimePeriodFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))
                 .collect(toList());
@@ -122,7 +116,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         // TODO implement
-        return createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
+        return EntityBuilder.createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
@@ -141,8 +135,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         String offeringId = addOffering(dataAvail.getOffering(), serviceConstellation);
                         String featureId = dataAvail.getFeatureOfInterest().getHref();
                         if (!serviceConstellation.hasFeature(featureId)) {
-                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
-                                    serviceUri);
+                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(featureId, serviceUri);
                             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
                             if (abstractFeature instanceof SamplingFeature) {
                                 addFeature((SamplingFeature) abstractFeature, serviceConstellation);

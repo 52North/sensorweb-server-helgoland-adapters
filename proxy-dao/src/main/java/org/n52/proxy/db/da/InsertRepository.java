@@ -29,7 +29,6 @@
 package org.n52.proxy.db.da;
 
 import static java.util.stream.Collectors.toSet;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.Set;
@@ -38,12 +37,14 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.proxy.db.beans.RelatedFeatureEntity;
 import org.n52.proxy.db.beans.RelatedFeatureRoleEntity;
 import org.n52.proxy.db.dao.ProxyCategoryDao;
+import org.n52.proxy.db.dao.ProxyDataDao;
 import org.n52.proxy.db.dao.ProxyDatasetDao;
 import org.n52.proxy.db.dao.ProxyFeatureDao;
 import org.n52.proxy.db.dao.ProxyOfferingDao;
@@ -53,6 +54,7 @@ import org.n52.proxy.db.dao.ProxyRelatedFeatureDao;
 import org.n52.proxy.db.dao.ProxyRelatedFeatureRoleDao;
 import org.n52.proxy.db.dao.ProxyServiceDao;
 import org.n52.series.db.beans.CategoryEntity;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
@@ -62,7 +64,7 @@ import org.n52.series.db.da.SessionAwareRepository;
 
 public class InsertRepository extends SessionAwareRepository {
 
-    private static final Logger LOGGER = getLogger(InsertRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(InsertRepository.class);
 
     public synchronized Set<Long> getIdsForService(ProxyServiceEntity service) {
         Session session = getSession();
@@ -87,6 +89,7 @@ public class InsertRepository extends SessionAwareRepository {
             new ProxyFeatureDao(session).clearUnusedForService(service);
             new ProxyPhenomenonDao(session).clearUnusedForService(service);
             new ProxyRelatedFeatureDao(session).clearUnusedForService(service);
+            new ProxyDataDao<>(session).clearUnusedForService(service);
 
             session.flush();
             transaction.commit();
@@ -98,16 +101,9 @@ public class InsertRepository extends SessionAwareRepository {
     public void removeNonMatchingServices(Set<DataSourceConfiguration> configuredServices) {
         Session session = getSession();
         try {
-            new ProxyServiceDao(session).getAllServices().stream()
-                    .filter((t) -> {
-                        boolean canBeRemoved = true;
-                        for (DataSourceConfiguration entry : configuredServices) {
-                            if (entry.getUrl().equals(t.getUrl()) && entry.getItemName().equals(t.getName())) {
-                                canBeRemoved = false;
-                            }
-                        }
-                        return canBeRemoved;
-                    })
+            new ProxyServiceDao(session)
+                    .getAllServices().stream()
+                    .filter(service -> !isConfigured(configuredServices, service))
                     .forEach(this::removeService);
         } finally {
             returnSession(session);
@@ -120,6 +116,7 @@ public class InsertRepository extends SessionAwareRepository {
             Transaction transaction = session.beginTransaction();
 
             new ProxyDatasetDao<>(session).removeAllOfService(service);
+            new ProxyDataDao<>(session).clearUnusedForService(service);
             new ProxyCategoryDao(session).clearUnusedForService(service);
             new ProxyOfferingDao(session).clearUnusedForService(service);
             new ProxyProcedureDao(session).clearUnusedForService(service);
@@ -127,7 +124,8 @@ public class InsertRepository extends SessionAwareRepository {
             new ProxyPhenomenonDao(session).clearUnusedForService(service);
             new ProxyRelatedFeatureDao(session).clearUnusedForService(service);
             new ProxyServiceDao(session).deleteInstance(service);
-
+            new ProxyDataDao<>(session).clearUnusedForService(service);
+            
             session.flush();
             transaction.commit();
         } finally {
@@ -180,7 +178,8 @@ public class InsertRepository extends SessionAwareRepository {
             FeatureEntity feature = insertFeature(dataset.getFeature(), session);
             PhenomenonEntity phenomenon = insertPhenomenon(dataset.getPhenomenon(), session);
 
-            DatasetEntity<?> inserted = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
+            DatasetEntity<?> inserted
+                    = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
 
             session.flush();
             transaction.commit();
@@ -197,7 +196,8 @@ public class InsertRepository extends SessionAwareRepository {
     }
 
     private DatasetEntity<?> insertDataset(DatasetEntity<?> dataset, CategoryEntity category, ProcedureEntity procedure,
-            OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon, Session session) {
+                                           OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon,
+                                           Session session) {
         dataset.setCategory(category);
         dataset.setProcedure(procedure);
         dataset.setOffering(offering);
@@ -254,8 +254,36 @@ public class InsertRepository extends SessionAwareRepository {
     }
 
     private RelatedFeatureRoleEntity insertRelatedFeatureRole(RelatedFeatureRoleEntity relatedFeatureRole,
-            Session session) {
+                                                              Session session) {
         return new ProxyRelatedFeatureRoleDao(session).getOrInsertInstance(relatedFeatureRole);
+    }
+
+    protected boolean isConfigured(Set<DataSourceConfiguration> configuredServices, ProxyServiceEntity service) {
+        return configuredServices.stream().anyMatch(configuration -> equals(configuration, service));
+    }
+
+    protected boolean equals(DataSourceConfiguration configuration, ProxyServiceEntity service) {
+        return configuration.getUrl().equals(service.getUrl()) &&
+               configuration.getItemName().equals(service.getName());
+    }
+
+    public void insertData(DatasetEntity<?> dataset, DataEntity<?> data) {
+        data.setSeriesPkid(data.getPkid());
+        Session session = getSession();
+        Transaction transaction = null;
+        try {
+            transaction = session.beginTransaction();
+            new ProxyDataDao<>(session).getOrInsertInstance(data);
+            session.flush();
+            transaction.commit();
+        } catch (HibernateException e) {
+            LOGGER.error("Error occured while saving related feature: ", e);
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        } finally {
+            returnSession(session);
+        }
     }
 
 }

@@ -12,8 +12,8 @@
         <property column="identifier" name="domainId" type="string"/>
         <property column="name" name="name" type="string"/>
         <property column="description"  name="description" type="string"/>
-        <component class="GeometryEntity" name="geometryEntity">
-            <!--
+        <component class="GeometryEntity" name="geometryEntity" lazy="true">
+        <!--
            <property column="lat" name="lat" type="double" />
            <property column="lon" name="lon" type="double" />
             -->

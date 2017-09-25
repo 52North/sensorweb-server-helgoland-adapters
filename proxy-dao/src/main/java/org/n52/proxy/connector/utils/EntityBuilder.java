@@ -28,7 +28,6 @@
  */
 package org.n52.proxy.connector.utils;
 
-import static org.n52.shetland.util.JTSHelper.createGeometryFromWKT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -39,8 +38,6 @@ import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.UnitEntity;
-
-import com.vividsolutions.jts.io.ParseException;
 
 public class EntityBuilder {
 
@@ -99,15 +96,6 @@ public class EntityBuilder {
         return feature;
     }
 
-    public static GeometryEntity createGeometry(double latitude, double longitude, int srid) {
-        GeometryEntity geometry = new GeometryEntity();
-        try {
-            geometry.setGeometry(createGeometryFromWKT("POINT (" + longitude + " " + latitude + ")", srid));
-        } catch (ParseException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        }
-        return geometry;
-    }
 
     public static PhenomenonEntity createPhenomenon(String domainId, String name, ProxyServiceEntity service) {
         PhenomenonEntity phenomenon = new PhenomenonEntity();

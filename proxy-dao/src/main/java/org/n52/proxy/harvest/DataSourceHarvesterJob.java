@@ -34,6 +34,9 @@ import static org.quartz.JobBuilder.newJob;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
@@ -61,6 +64,7 @@ import org.n52.proxy.db.da.InsertRepository;
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
@@ -99,7 +103,6 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         this.config = config;
     }
 
-
     @Override
     public JobDetail createJobDetails() {
         JobDataMap dataMap = new JobDataMap();
@@ -133,19 +136,21 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
-        ServiceConstellation constellation = null;
+        if (dataSource.getType() == null) {
+            return null;
+        }
         if (dataSource.getType().equals("SOS")) {
             GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
-            constellation = determineSOSConstellation(dataSource, capabilities);
+            return determineSOSConstellation(dataSource, capabilities);
         }
         if (dataSource.getType().equals("SensorThings")) {
-            constellation = determineSensorThingsConstellation(dataSource);
+            return determineSensorThingsConstellation(dataSource);
         }
-        return constellation;
+        return null;
     }
 
     private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
-            GetCapabilitiesResponse capabilities) {
+                                                           GetCapabilitiesResponse capabilities) {
         for (AbstractConnector connector : connectors) {
             if (connector instanceof AbstractSosConnector) {
                 AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
@@ -186,21 +191,22 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
         // save all constellations
         constellation.getDatasets().forEach((dataset) -> {
-            final ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
-            final CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
-            final FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
-            final OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
-            final PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
-            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null) {
-                procedure.setService(service);
-                category.setService(service);
-                feature.setService(service);
-                offering.setService(service);
-                phenomenon.setService(service);
-                DatasetEntity<?> entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
-                        service);
-                DatasetEntity<?> inserted = insertRepository.insertDataset(entity);
-                datasetIds.remove(inserted.getPkid());
+            ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
+            CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
+            FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
+            OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
+            PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
+
+            List<DescribableEntity> entities = Arrays.asList(procedure, category, feature, offering, phenomenon);
+            if (entities.stream().allMatch(Objects::nonNull)) {
+                entities.stream().forEach(x -> x.setService(service));
+                DatasetEntity<?> ds = insertRepository.insertDataset(dataset
+                        .createDatasetEntity(procedure, category, feature, offering, phenomenon, service));
+                datasetIds.remove(ds.getPkid());
+
+                dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
+                dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
+
                 LOGGER.info("Add dataset constellation: " + dataset);
             } else {
                 LOGGER.warn("Can't add dataset: " + dataset);

@@ -47,8 +47,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.client.HttpClientErrorException;
 
 public class SimpleHttpClient implements HttpClient {
 
@@ -97,30 +95,29 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public HttpResponse executeGet(String uri) throws HttpClientErrorException {
+    public HttpResponse executeGet(String uri) throws IOException {
         LOGGER.debug("executing GET method '{}'", uri);
         return executeMethod(new HttpGet(uri));
     }
 
-    public HttpResponse executePost(String uri, XmlObject payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, XmlObject payloadToSend) throws IOException {
         return executePost(uri, payloadToSend.xmlText(), CONTENT_TYPE_TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, String payloadToSend) throws IOException {
         return executePost(uri, payloadToSend, CONTENT_TYPE_TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType)
-            throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws IOException {
         StringEntity requestEntity = new StringEntity(payloadToSend, contentType);
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
     }
 
     @Override
-    public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException {
         LOGGER.debug("executing POST method to '{}'.", uri);
         HttpPost post = new HttpPost(uri);
         post.setEntity(payloadToSend);
@@ -128,12 +125,8 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public HttpResponse executeMethod(HttpRequestBase method) throws HttpClientErrorException {
-        try {
-            return httpclient.execute(method);
-        } catch (IOException e) {
-            throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
-        }
+    public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
+        return httpclient.execute(method);
     }
 
     public void setConnectionTimout(int timeout) {

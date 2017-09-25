@@ -30,8 +30,8 @@
     <!--    <bean class="org.n52.svalbard.decode.FesDecoderv20"/>-->
     <bean class="org.n52.svalbard.decode.GmlDecoderv321"/>
     <bean class="org.n52.svalbard.decode.SosDecoderv100"/>
-    <!--<bean class="org.n52.svalbard.decode.SosDecoderv20"/>
-    <bean class="org.n52.svalbard.decode.SosStringDecoderv20"/>-->
+    <bean class="org.n52.svalbard.decode.SosDecoderv20"/>
+    <bean class="org.n52.svalbard.decode.SosStringDecoderv20"/>
     <bean class="org.n52.svalbard.decode.SwesDecoderv20"/>
     <!--<bean class="org.n52.svalbard.decode.SwesStringDecoderv20"/>-->
     <bean class="org.n52.svalbard.decode.SweCommonDecoderV20"/>

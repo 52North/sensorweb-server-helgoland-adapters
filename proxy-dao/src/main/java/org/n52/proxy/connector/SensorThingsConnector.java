@@ -1,10 +1,5 @@
 package org.n52.proxy.connector;
 
-import static java.util.Optional.of;
-import static org.joda.time.format.DateTimeFormat.forPattern;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,11 +10,14 @@ import java.util.Optional;
 
 import org.apache.http.HttpResponse;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
-import org.n52.proxy.connector.utils.ConnectorHelper;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.sensorthings.Datastream;
 import org.n52.sensorthings.Datastreams;
@@ -43,11 +41,11 @@ import com.google.gson.JsonSyntaxException;
 
 public class SensorThingsConnector extends AbstractConnector {
 
-    private static final org.slf4j.Logger LOGGER = getLogger(SensorThingsConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SensorThingsConnector.class);
 
     private final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
 
-    private final DateTimeFormatter formatter = forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
+    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
@@ -61,12 +59,12 @@ public class SensorThingsConnector extends AbstractConnector {
 
     @Override
     public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
-        return of(createObservationBounds(entity, "asc"));
+        return Optional.of(createObservationBounds(entity, "asc"));
     }
 
     @Override
     public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
-        return of(createObservationBounds(entity, "desc"));
+        return Optional.of(createObservationBounds(entity, "desc"));
     }
 
     public ServiceConstellation getConstellation(DataSourceConfiguration config) {
@@ -106,7 +104,7 @@ public class SensorThingsConnector extends AbstractConnector {
                     phenomenonId,
                     featureId);
             constellation.setDomainId(Integer.toString(datastream.iotID));
-            constellation.setUnit(createUnit(datastream.unitOfMeasurement.symbol,
+            constellation.setUnit(EntityBuilder.createUnit(datastream.unitOfMeasurement.symbol,
                     datastream.unitOfMeasurement.definition,
                     serviceConstellation.getService()));
             serviceConstellation.add(constellation);
@@ -164,20 +162,19 @@ public class SensorThingsConnector extends AbstractConnector {
     }
 
     private String addOffering(Thing thing, ServiceConstellation serviceConstellation) {
-        return ConnectorHelper.addOffering(Integer.toString(thing.iotID), thing.name, serviceConstellation);
+        return addOffering(Integer.toString(thing.iotID), thing.name, serviceConstellation);
     }
 
     private String addPhenomenon(ObservedProperty obsProp, ServiceConstellation serviceConstellation) {
-        return ConnectorHelper.addPhenomenon(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
+        return addPhenomenon(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
     }
 
     private String addProcedure(Sensor sensor, ServiceConstellation serviceConstellation) {
-        return ConnectorHelper.addProcedure(Integer.toString(sensor.iotID), sensor.name, true, false,
-                serviceConstellation);
+        return addProcedure(Integer.toString(sensor.iotID), sensor.name, true, false, serviceConstellation);
     }
 
     private String addCategory(ObservedProperty obsProp, ServiceConstellation serviceConstellation) {
-        return ConnectorHelper.addCategory(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
+        return addCategory(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
     }
 
     private String addFeature(Location location, ServiceConstellation serviceConstellation) {
