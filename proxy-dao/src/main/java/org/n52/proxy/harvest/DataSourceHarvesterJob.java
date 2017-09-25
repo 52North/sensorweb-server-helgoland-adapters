@@ -114,25 +114,24 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
-        DataSourceConfiguration createdConfig = (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
-        return createdConfig;
+        return (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
     }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        LOGGER.info(context.getJobDetail().getKey() + " execution starts.");
+        LOGGER.info("{} execution starts.", context.getJobDetail().getKey());
 
         DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
 
         ServiceConstellation constellation = determineConstellation(dataSource);
 
         if (constellation == null) {
-            LOGGER.warn("No connector found for " + dataSource);
+            LOGGER.warn("No connector found for {}", dataSource);
         } else {
             saveConstellation(constellation);
         }
 
-        LOGGER.info(context.getJobDetail().getKey() + " execution ends.");
+        LOGGER.info("{} execution ends.", context.getJobDetail().getKey());
     }
 
     private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
@@ -155,7 +154,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             if (connector instanceof AbstractSosConnector) {
                 AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
                 if (sosConnector.matches(dataSource, capabilities)) {
-                    LOGGER.info(connector.toString() + " create a constellation for " + dataSource);
+                    LOGGER.info("{} create a constellation for {}", connector.toString(), dataSource);
                     return sosConnector.getConstellation(dataSource, capabilities);
                 }
             }
@@ -207,9 +206,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
                 dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
 
-                LOGGER.info("Add dataset constellation: " + dataset);
+                LOGGER.info("Add dataset constellation: {}", dataset);
             } else {
-                LOGGER.warn("Can't add dataset: " + dataset);
+                LOGGER.warn("Can't add dataset: {}", dataset);
             }
         });
 

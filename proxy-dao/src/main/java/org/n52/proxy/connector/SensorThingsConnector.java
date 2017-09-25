@@ -78,34 +78,34 @@ public class SensorThingsConnector extends AbstractConnector {
     private void createDatasets(ServiceConstellation serviceConstellation, String url) {
         Datastreams datastreams = getDatastreams(url);
         doForDatastreams(datastreams, serviceConstellation);
-        while (datastreams.nextLink != null) {
-            datastreams = (Datastreams) doGetRequest(datastreams.nextLink, Datastreams.class);
+        while (datastreams.getNextLink() != null) {
+            datastreams = (Datastreams) doGetRequest(datastreams.getNextLink(), Datastreams.class);
             doForDatastreams(datastreams, serviceConstellation);
         }
     }
 
     private void doForDatastreams(Datastreams datastreams, ServiceConstellation serviceConstellation) {
-        datastreams.value.forEach((Datastream datastream) -> {
+        datastreams.getValue().forEach((Datastream datastream) -> {
             doForDatastream(datastream, serviceConstellation);
         });
     }
 
     private void doForDatastream(Datastream datastream, ServiceConstellation serviceConstellation) {
-        String offeringId = addOffering(datastream.thing, serviceConstellation);
-        String phenomenonId = addPhenomenon(datastream.observedProperty, serviceConstellation);
-        String procedureId = addProcedure(datastream.sensor, serviceConstellation);
-        String categoryId = addCategory(datastream.observedProperty, serviceConstellation);
-        Locations locations = (Locations) doGetRequest(datastream.thing.locationsLink, Locations.class);
+        String offeringId = addOffering(datastream.getThing(), serviceConstellation);
+        String phenomenonId = addPhenomenon(datastream.getObservedProperty(), serviceConstellation);
+        String procedureId = addProcedure(datastream.getSensor(), serviceConstellation);
+        String categoryId = addCategory(datastream.getObservedProperty(), serviceConstellation);
+        Locations locations = (Locations) doGetRequest(datastream.getThing().getLocationsLink(), Locations.class);
         if (locations != null) {
-            String featureId = addFeature(locations.value.get(0), serviceConstellation);
+            String featureId = addFeature(locations.getValue().get(0), serviceConstellation);
             QuantityDatasetConstellation constellation = new QuantityDatasetConstellation(procedureId,
                     offeringId,
                     categoryId,
                     phenomenonId,
                     featureId);
-            constellation.setDomainId(Integer.toString(datastream.iotID));
-            constellation.setUnit(EntityBuilder.createUnit(datastream.unitOfMeasurement.symbol,
-                    datastream.unitOfMeasurement.definition,
+            constellation.setDomainId(Integer.toString(datastream.getIotID()));
+            constellation.setUnit(EntityBuilder.createUnit(datastream.getUnitOfMeasurement().getSymbol(), datastream.getUnitOfMeasurement()
+                    .getDefinition(),
                     serviceConstellation.getService()));
             serviceConstellation.add(constellation);
         }
@@ -140,55 +140,55 @@ public class SensorThingsConnector extends AbstractConnector {
         );
         List<DataEntity<?>> list = new LinkedList<>();
         addObservationsToList(observations, list);
-        while (observations.nextLink != null) {
-            observations = (Observations) doGetRequest(observations.nextLink, Observations.class);
+        while (observations.getNextLink() != null) {
+            observations = (Observations) doGetRequest(observations.getNextLink(), Observations.class);
             addObservationsToList(observations, list);
         }
         return list;
     }
 
     private void addObservationsToList(Observations observations, List<DataEntity<?>> list) {
-        observations.value.stream().map(this::createObservation).forEach(list::add);
+        observations.getValue().stream().map(this::createObservation).forEach(list::add);
     }
 
     private DataEntity<?> createObservationBounds(DatasetEntity<?> entity, String order) {
         Observations observations = (Observations) doGetRequest(entity.getService().getUrl(),
                 "Datastreams(" + entity.getDomainId() + ")/Observations?$orderby=phenomenonTime%20" + order + "&$top=1",
                 Observations.class);
-        if (observations.value.size() == 1) {
-            return createObservation(observations.value.get(0));
+        if (observations.getValue().size() == 1) {
+            return createObservation(observations.getValue().get(0));
         }
         return null;
     }
 
     private String addOffering(Thing thing, ServiceConstellation serviceConstellation) {
-        return addOffering(Integer.toString(thing.iotID), thing.name, serviceConstellation);
+        return addOffering(Integer.toString(thing.getIotID()), thing.getName(), serviceConstellation);
     }
 
     private String addPhenomenon(ObservedProperty obsProp, ServiceConstellation serviceConstellation) {
-        return addPhenomenon(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
+        return addPhenomenon(Integer.toString(obsProp.getIotID()), obsProp.getName(), serviceConstellation);
     }
 
     private String addProcedure(Sensor sensor, ServiceConstellation serviceConstellation) {
-        return addProcedure(Integer.toString(sensor.iotID), sensor.name, true, false, serviceConstellation);
+        return addProcedure(Integer.toString(sensor.getIotID()), sensor.getName(), true, false, serviceConstellation);
     }
 
     private String addCategory(ObservedProperty obsProp, ServiceConstellation serviceConstellation) {
-        return addCategory(Integer.toString(obsProp.iotID), obsProp.name, serviceConstellation);
+        return addCategory(Integer.toString(obsProp.getIotID()), obsProp.getName(), serviceConstellation);
     }
 
     private String addFeature(Location location, ServiceConstellation serviceConstellation) {
-        String featureId = Integer.toString(location.iotID);
-        serviceConstellation.putFeature(featureId, location.name, null, location.location.coordinates.get(1),
-                location.location.coordinates.get(0), 4326);
+        String featureId = Integer.toString(location.getIotID());
+        serviceConstellation.putFeature(featureId, location.getName(), null, location.getLocation().getCoordinates().get(1),
+                location.getLocation().getCoordinates().get(0), 4326);
         return featureId;
     }
 
     private DataEntity<?> createObservation(Observation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
-        dataEntity.setTimestart(observation.phenomenonTime);
-        dataEntity.setTimeend(observation.phenomenonTime);
-        dataEntity.setValue(observation.result);
+        dataEntity.setTimestart(observation.getPhenomenonTime());
+        dataEntity.setTimeend(observation.getPhenomenonTime());
+        dataEntity.setValue(observation.getResult());
         return dataEntity;
     }
 
