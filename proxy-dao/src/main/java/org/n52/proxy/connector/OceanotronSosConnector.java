@@ -206,7 +206,8 @@ public class OceanotronSosConnector extends SOS2Connector {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent((obsOffs) -> {
                 obsOffs.forEach((SosObservationOffering obsOff) -> {
-                    if (config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
+                    if (config.getAllowedOfferings() == null ||
+                        config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
                         addElem(obsOff, serviceConstellation, config.getUrl());
                     }
                 });
