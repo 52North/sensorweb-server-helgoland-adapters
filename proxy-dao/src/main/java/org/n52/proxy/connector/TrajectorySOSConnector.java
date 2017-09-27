@@ -112,7 +112,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         if (availabilityResponse.getDataAvailabilities().size() == 1) {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
             GetObservationResponse response = createObservationResponse(seriesEntity,
-                                                                        createTimeInstantFilter(start));
+                                                                        createTimeFilter(start));
             return response.getObservationCollection().toStream()
                     .findFirst()
                     .map(OmObservation::getValue)

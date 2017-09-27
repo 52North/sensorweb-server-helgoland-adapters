@@ -89,7 +89,7 @@ public class SOS2Connector extends AbstractSosConnector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        List<DataEntity<?>> data = getObservation(seriesEntity, createTimePeriodFilter(query))
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))
                 .collect(toList());

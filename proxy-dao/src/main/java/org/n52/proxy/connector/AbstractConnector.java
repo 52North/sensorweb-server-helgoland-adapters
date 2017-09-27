@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlObject;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,22 +202,36 @@ public abstract class AbstractConnector {
                                   OmConstants.PHENOMENON_TIME_NAME);
     }
 
-    protected TemporalFilter createTimePeriodFilter(DbQuery query) {
-        if (query.getTimespan() == null) {
-            return null;
-        }
-        return new TemporalFilter(TimeOperator.TM_During,
-                                  new TimePeriod(query.getTimespan()),
-                                  OmConstants.PHENOMENON_TIME_NAME);
+    protected TemporalFilter createTimeFilter(DbQuery query) {
+        return createTimeFilter(query.getTimespan());
     }
 
-    protected TemporalFilter createTimeInstantFilter(DateTime dateTime) {
+    protected TemporalFilter createTimeFilter(DateTime dateTime) {
         if (dateTime == null) {
             return null;
+        } else {
+            TimeInstant instant = new TimeInstant(dateTime);
+            TimeOperator operator = TimeOperator.TM_Equals;
+            String valueReference = OmConstants.PHENOMENON_TIME_NAME;
+            return new TemporalFilter(operator, instant, valueReference);
         }
-        return new TemporalFilter(TimeOperator.TM_Equals,
-                                  new TimeInstant(dateTime),
-                                  OmConstants.PHENOMENON_TIME_NAME);
+    }
+
+    protected TemporalFilter createTimeFilter(Interval timespan) {
+        if (timespan == null) {
+            return null;
+        } else {
+            DateTime start = timespan.getStart();
+            DateTime end = timespan.getEnd();
+            if (start.equals(end)) {
+                return createTimeFilter(start);
+            } else {
+                String valueReference = OmConstants.PHENOMENON_TIME_NAME;
+                TimeOperator operator = TimeOperator.TM_During;
+                TimePeriod period = new TimePeriod(start, end);
+                return new TemporalFilter(operator, period, valueReference);
+            }
+        }
     }
 
     protected SpatialFilter createSpatialFilter(DbQuery query) {
