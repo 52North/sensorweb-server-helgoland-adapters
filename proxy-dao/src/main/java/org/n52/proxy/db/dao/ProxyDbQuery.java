@@ -30,16 +30,12 @@ package org.n52.proxy.db.dao;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.series.db.dao.QueryUtils;
 
 public class ProxyDbQuery extends DbQuery {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDbQuery.class);
 
     private static final String SERVICE_PKID = "service.pkid";
 
@@ -73,9 +69,11 @@ public class ProxyDbQuery extends DbQuery {
         }
         return criteria;
     }
+
     public static ProxyDbQuery createDefaults() {
         return createFrom(IoParameters.createDefaults());
     }
+
     public static ProxyDbQuery createFrom(IoParameters parameters) {
         return new ProxyDbQuery(parameters);
     }

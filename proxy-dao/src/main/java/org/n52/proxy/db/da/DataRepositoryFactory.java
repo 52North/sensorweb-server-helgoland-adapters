@@ -41,13 +41,18 @@ import org.n52.proxy.connector.AbstractConnector;
 import org.n52.series.db.HibernateSessionStore;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.da.IDataRepositoryFactory;
+import org.n52.series.db.da.SessionAwareRepository;
+import org.n52.series.db.dao.DbQueryFactory;
 
-public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends AbstractValue<?>> extends ConfigTypedFactory<ProxyDataRepository<D,V>> implements IDataRepositoryFactory {
+public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends AbstractValue<?>> extends ConfigTypedFactory<ProxyDataRepository<D, V>>
+        implements IDataRepositoryFactory {
 
     private static final String DEFAULT_CONFIG_FILE = "dataset-repository-factory-proxy.properties";
 
     @Autowired
     private HibernateSessionStore sessionStore;
+    @Autowired
+    private DbQueryFactory dbQueryFactory;
 
     private final Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
@@ -68,6 +73,12 @@ public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends Abstrac
     protected ProxyDataRepository<D, V> initInstance(ProxyDataRepository<D, V> instance) {
         instance.setSessionStore(sessionStore);
         instance.setConnectorMap(connectorMap);
+        if (instance instanceof SessionAwareRepository) {
+
+            SessionAwareRepository sessionAwareRepository = (SessionAwareRepository) instance;
+            sessionAwareRepository.setDbQueryFactory(dbQueryFactory);
+
+        }
         return instance;
     }
 
