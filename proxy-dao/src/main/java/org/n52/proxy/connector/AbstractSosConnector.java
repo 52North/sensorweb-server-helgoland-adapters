@@ -56,7 +56,6 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.beans.TextDatasetEntity;
-import org.n52.shetland.ogc.filter.FilterConstants;
 import org.n52.shetland.ogc.filter.SpatialFilter;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.om.OmObservation;
@@ -78,7 +77,6 @@ import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swes.SwesConstants;
-import org.n52.shetland.util.ReferencedEnvelope;
 import org.n52.svalbard.decode.Decoder;
 import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.DecoderRepository;
@@ -277,13 +275,6 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         }
     }
 
-    private SpatialFilter createSpatialFilter(ReferencedEnvelope envelope) {
-        SpatialFilter spatialFilter = new SpatialFilter();
-        spatialFilter.setGeometry(envelope);
-        spatialFilter.setOperator(FilterConstants.SpatialOperator.BBOX);
-        return spatialFilter;
-    }
-
     protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
                                                     TemporalFilter temporalFilter) {
         return getObservation(seriesEntity, temporalFilter, null, null);
@@ -321,17 +312,8 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         request.addObservedProperty(seriesEntity.getPhenomenon().getDomainId());
         request.addFeatureIdentifier(seriesEntity.getFeature().getDomainId());
         Optional.ofNullable(temporalFilter).ifPresent(request::setTemporalFilters);
-//        Optionals.or(
-                Optional.ofNullable(spatialFilter)//,
-//                     () -> Optional.ofNullable(seriesEntity.getFeature())
-//                             .map(FeatureEntity::getGeometryEntity)
-//                             .map(GeometryEntity::getGeometry)
-//                             .map(ReferencedEnvelope::new)
-//                             .map(this::createSpatialFilter))
-                .ifPresent(request::setSpatialFilter);
-
+        Optional.ofNullable(spatialFilter).ifPresent(request::setSpatialFilter);
         Optional.ofNullable(responseFormat).ifPresent(request::setResponseFormat);
-
         return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
                                                           seriesEntity.getService().getUrl());
     }
