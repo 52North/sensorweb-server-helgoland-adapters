@@ -220,26 +220,29 @@ public abstract class AbstractConnector {
     protected TemporalFilter createTimeFilter(Interval timespan) {
         if (timespan == null) {
             return null;
+        } else if (timespan.toDurationMillis() == 0) {
+            return createTimeFilter(timespan.getStart());
         } else {
-            DateTime start = timespan.getStart();
-            DateTime end = timespan.getEnd();
-            if (start.equals(end)) {
-                return createTimeFilter(start);
-            } else {
-                String valueReference = OmConstants.PHENOMENON_TIME_NAME;
-                TimeOperator operator = TimeOperator.TM_During;
-                TimePeriod period = new TimePeriod(start, end);
-                return new TemporalFilter(operator, period, valueReference);
-            }
+            String valueReference = OmConstants.PHENOMENON_TIME_NAME;
+            TimeOperator operator = TimeOperator.TM_During;
+            TimePeriod period = new TimePeriod(timespan);
+            return new TemporalFilter(operator, period, valueReference);
         }
     }
 
     protected SpatialFilter createSpatialFilter(DbQuery query) {
-        Envelope envelope = query.getSpatialFilter();
+        return createSpatialFilter(query.getSpatialFilter());
+    }
+
+    protected SpatialFilter createSpatialFilter(Envelope envelope) {
+        return createSpatialFilter(envelope, 4326);
+    }
+
+    protected SpatialFilter createSpatialFilter(Envelope envelope, int srid) {
         if (envelope == null) {
             return null;
         }
-        Geometry geom = new ReferencedEnvelope(envelope, 4326).toGeometry();
+        Geometry geom = new ReferencedEnvelope(envelope, srid).toGeometry();
         String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
         return new SpatialFilter(SpatialOperator.BBOX, geom, valueReference);
     }
