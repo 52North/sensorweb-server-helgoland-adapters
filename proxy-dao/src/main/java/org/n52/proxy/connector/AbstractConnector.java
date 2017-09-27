@@ -241,9 +241,10 @@ public abstract class AbstractConnector {
     protected SpatialFilter createSpatialFilter(Envelope envelope, int srid) {
         if (envelope == null) {
             return null;
+        } else {
+            Geometry geom = new ReferencedEnvelope(envelope, srid).toGeometry();
+            String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
+            return new SpatialFilter(SpatialOperator.BBOX, geom, valueReference);
         }
-        Geometry geom = new ReferencedEnvelope(envelope, srid).toGeometry();
-        String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
-        return new SpatialFilter(SpatialOperator.BBOX, geom, valueReference);
     }
 }
