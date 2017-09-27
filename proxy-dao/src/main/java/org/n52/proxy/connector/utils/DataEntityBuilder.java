@@ -30,39 +30,39 @@ public class DataEntityBuilder {
 
     public static DataEntity<Double> createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
-        dataEntity.setValue(getNumericValue(observation).doubleValue());
+        getNumericValue(observation).map(Number::doubleValue).ifPresent(dataEntity::setValue);
         return setCommonValues(observation, dataEntity);
     }
 
     public static DataEntity<Integer> createCountDataEntity(OmObservation observation) {
         CountDataEntity dataEntity = new CountDataEntity();
-        dataEntity.setValue(getNumericValue(observation).intValue());
+        getNumericValue(observation).map(Number::intValue).ifPresent(dataEntity::setValue);
         return setCommonValues(observation, dataEntity);
     }
 
     public static DataEntity<String> createTextDataEntity(OmObservation observation) {
         TextDataEntity dataEntity = new TextDataEntity();
-        dataEntity.setValue(getStringValue(observation));
+        getStringValue(observation).ifPresent(dataEntity::setValue);
         return setCommonValues(observation, dataEntity);
     }
 
-    private static Number getNumericValue(OmObservation observation) {
+    private static Optional<Number> getNumericValue(OmObservation observation) {
         SingleObservationValue<?> singleValue = (SingleObservationValue) observation.getValue();
         Object value = singleValue.getValue().getValue();
         if (value instanceof Number) {
-            return (Number) value;
+            return Optional.of((Number) value);
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
-    private static String getStringValue(OmObservation observation) {
+    private static Optional<String> getStringValue(OmObservation observation) {
         SingleObservationValue<?> singleValue = (SingleObservationValue) observation.getValue();
         Object value = singleValue.getValue().getValue();
         if (value instanceof String) {
-            return (String) value;
+            return Optional.of((String) value);
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -132,6 +132,5 @@ public class DataEntityBuilder {
         setGeometry(observation, dataEntity);
         return dataEntity;
     }
-
 
 }

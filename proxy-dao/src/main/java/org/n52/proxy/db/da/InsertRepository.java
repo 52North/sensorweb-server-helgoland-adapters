@@ -125,7 +125,7 @@ public class InsertRepository extends SessionAwareRepository {
             new ProxyRelatedFeatureDao(session).clearUnusedForService(service);
             new ProxyServiceDao(session).deleteInstance(service);
             new ProxyDataDao<>(session).clearUnusedForService(service);
-            
+
             session.flush();
             transaction.commit();
         } finally {

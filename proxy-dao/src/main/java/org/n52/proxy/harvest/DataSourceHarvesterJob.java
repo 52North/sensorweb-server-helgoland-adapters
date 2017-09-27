@@ -48,6 +48,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.config.DataSourceJobConfiguration;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.ConnectorRequestFailedException;
 import org.n52.proxy.connector.SensorThingsConnector;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -119,22 +121,29 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        LOGGER.info("{} execution starts.", context.getJobDetail().getKey());
+        JobKey key = context.getJobDetail().getKey();
+        LOGGER.info("{} execution starts.", key);
 
         DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
 
-        ServiceConstellation constellation = determineConstellation(dataSource);
+        ServiceConstellation constellation;
+        try {
+            constellation = determineConstellation(dataSource);
+            if (constellation == null) {
+                LOGGER.warn("No connector found for {}", dataSource);
+            } else {
+                saveConstellation(constellation);
+            }
 
-        if (constellation == null) {
-            LOGGER.warn("No connector found for {}", dataSource);
-        } else {
-            saveConstellation(constellation);
+            LOGGER.info("{} execution ends.", key);
+        } catch (IOException | DecodingException | ConnectorRequestFailedException ex) {
+            throw new JobExecutionException(ex);
         }
 
-        LOGGER.info("{} execution ends.", context.getJobDetail().getKey());
     }
 
-    private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
+    private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource)
+            throws IOException, DecodingException {
         if (dataSource.getType() == null) {
             return null;
         }
@@ -149,7 +158,8 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
-                                                           GetCapabilitiesResponse capabilities) {
+                                                           GetCapabilitiesResponse capabilities)
+            throws IOException, DecodingException {
         for (AbstractConnector connector : connectors) {
             if (connector instanceof AbstractSosConnector) {
                 AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
@@ -215,7 +225,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         insertRepository.cleanUp(service, datasetIds);
     }
 
-    private GetCapabilitiesResponse getCapabilities(String serviceUrl) {
+    private GetCapabilitiesResponse getCapabilities(String serviceUrl) throws IOException, DecodingException {
         try {
             SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
             String url = serviceUrl;
@@ -229,10 +239,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             return (GetCapabilitiesResponse) decoderRepository
                     .getDecoder(getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
-        } catch (IOException | XmlException | DecodingException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
+        } catch (XmlException ex) {
+            throw new DecodingException(ex);
         }
-        return null;
     }
 
 }

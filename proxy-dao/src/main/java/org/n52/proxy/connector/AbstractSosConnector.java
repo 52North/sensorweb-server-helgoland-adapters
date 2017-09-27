@@ -64,6 +64,7 @@ import org.n52.shetland.ogc.ows.OWSConstants;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsOperation;
 import org.n52.shetland.ogc.ows.OwsOperationsMetadata;
+import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
 import org.n52.shetland.ogc.sos.Sos2Constants;
@@ -78,13 +79,16 @@ import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swes.SwesConstants;
 import org.n52.shetland.util.ReferencedEnvelope;
+import org.n52.svalbard.decode.Decoder;
 import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
+import org.n52.svalbard.decode.exception.NoDecoderForKeyException;
 import org.n52.svalbard.encode.Encoder;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
+import org.n52.svalbard.encode.exception.NoEncoderForKeyException;
 import org.n52.svalbard.util.CodingHelper;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
@@ -140,6 +144,9 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         try {
             EncoderKey encoderKey = CodingHelper.getEncoderKey(namespace, request);
             Encoder<XmlObject, OwsServiceRequest> encoder = getEncoderRepository().getEncoder(encoderKey);
+            if (encoder == null) {
+                throw new NoEncoderForKeyException(encoderKey);
+            }
             XmlObject xmlRequest = encoder.encode(request);
             return decodeResponse(sendPostRequest(xmlRequest, serviceUrl));
         } catch (IOException ex) {
@@ -155,7 +162,15 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         try (InputStream content = response.getEntity().getContent()) {
             XmlObject xmlResponse = XmlObject.Factory.parse(content);
             DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
-            return getDecoderRepository().getDecoder(decoderKey).decode(xmlResponse);
+            Decoder<Object, Object> decoder = getDecoderRepository().getDecoder(decoderKey);
+            if (decoder == null) {
+                throw new NoDecoderForKeyException(decoderKey);
+            }
+            Object decode = decoder.decode(xmlResponse);
+            if (decode instanceof OwsExceptionReport) {
+                throw new ConnectorRequestFailedException((OwsExceptionReport) decode);
+            }
+            return decode;
         } catch (IOException ex) {
             LOGGER.error("Could not retrieve response", ex);
             throw new ConnectorRequestFailedException(ex);
@@ -171,7 +186,8 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
 
     public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
-                                                          GetCapabilitiesResponse capabilities);
+                                                          GetCapabilitiesResponse capabilities)
+            throws IOException, DecodingException;
 
     protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
         if (seriesEntity instanceof QuantityDatasetEntity) {
