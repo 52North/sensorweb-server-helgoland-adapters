@@ -126,6 +126,9 @@ public class DataEntityBuilder {
     }
 
     private static <T, D extends DataEntity<T>> D setCommonValues(OmObservation observation, D dataEntity) {
+        dataEntity.setDeleted(false);
+        dataEntity.setChild(false);
+        dataEntity.setParent(false);
         setPhenomenonTime(observation, dataEntity);
         setValidTime(observation, dataEntity);
         setResultTime(observation, dataEntity);
