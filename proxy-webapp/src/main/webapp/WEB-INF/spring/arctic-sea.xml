@@ -25,6 +25,7 @@
     <!-- Encoder implementations from svalbard -->
     <bean class="org.n52.svalbard.encode.OwsEncoderv110"/>
 
+    <bean class="org.n52.svalbard.decode.OwsExceptionReportDecoder"/>
     <!-- Decoder implementations from svalbard -->
     <!-- request decoder -->
     <!--    <bean class="org.n52.svalbard.decode.FesDecoderv20"/>-->
