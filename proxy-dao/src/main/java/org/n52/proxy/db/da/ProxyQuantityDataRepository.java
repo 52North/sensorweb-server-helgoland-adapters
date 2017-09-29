@@ -29,7 +29,9 @@
 package org.n52.proxy.db.da;
 
 import java.util.Map;
+
 import org.hibernate.Session;
+
 import org.n52.io.response.dataset.quantity.QuantityData;
 import org.n52.io.response.dataset.quantity.QuantityValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -38,16 +40,16 @@ import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.QuantityDatasetEntity;
+import org.n52.series.db.da.QuantityDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyQuantityDataRepository
-        extends org.n52.series.db.da.QuantityDataRepository
+public class ProxyQuantityDataRepository extends QuantityDataRepository
         implements ProxyDataRepository<QuantityDatasetEntity, QuantityValue> {
 
     private Map<String, AbstractConnector> connectorMap;
 
     @Override
-    public void setConnectorMap(Map connectorMap) {
+    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
         this.connectorMap = connectorMap;
     }
 
@@ -58,13 +60,13 @@ public class ProxyQuantityDataRepository
 
     @Override
     public QuantityValue getFirstValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
+        DataEntity<?> firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
         return createSeriesValueFor((QuantityDataEntity) firstObservation, entity, query);
     }
 
     @Override
     public QuantityValue getLastValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
+        DataEntity<?> lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((QuantityDataEntity) lastObservation, entity, query);
     }
 

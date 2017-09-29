@@ -7,9 +7,23 @@ import com.google.gson.annotations.SerializedName;
  */
 public class ObservedProperty extends SensorThingsElement {
 
-    public String definition;
+    private String definition;
 
     @SerializedName("Datastreams@iot.navigationLink")
     String datastreamsLink;
+
+    /**
+     * @return the definition
+     */
+    public String getDefinition() {
+        return definition;
+    }
+
+    /**
+     * @param definition the definition to set
+     */
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
 
 }

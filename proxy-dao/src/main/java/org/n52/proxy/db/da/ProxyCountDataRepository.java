@@ -29,7 +29,9 @@
 package org.n52.proxy.db.da;
 
 import java.util.Map;
+
 import org.hibernate.Session;
+
 import org.n52.io.response.dataset.count.CountData;
 import org.n52.io.response.dataset.count.CountValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -52,13 +54,13 @@ public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepo
 
     @Override
     public CountValue getFirstValue(CountDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
+        DataEntity<?> firstObs = getConnector(entity).getFirstObservation(entity).orElse(null);
         return createSeriesValueFor((CountDataEntity) firstObs, entity, query);
     }
 
     @Override
     public CountValue getLastValue(CountDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
+        DataEntity<?> lastObs = getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((CountDataEntity) lastObs, entity, query);
     }
 

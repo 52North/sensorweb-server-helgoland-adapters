@@ -28,16 +28,20 @@
  */
 package org.n52.proxy.connector;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import java.util.ArrayList;
-import java.util.Arrays;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.n52.shetland.ogc.sos.SosConstants.SOS;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import org.slf4j.Logger;
+
+import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.ProfileDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
@@ -45,41 +49,31 @@ import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.parameter.Parameter;
 import org.n52.series.db.beans.parameter.ParameterQuantity;
 import org.n52.series.db.dao.DbQuery;
-import org.n52.shetland.ogc.filter.FilterConstants;
-import org.n52.shetland.ogc.filter.SpatialFilter;
-import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
-import org.n52.shetland.ogc.om.ObservationStream;
 import org.n52.shetland.ogc.om.ObservationValue;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.om.values.SweDataArrayValue;
 import org.n52.shetland.ogc.om.values.Value;
-import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.OwsServiceProvider;
-import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sensorML.AbstractProcess;
-import org.n52.shetland.ogc.sensorML.HasComponents;
 import org.n52.shetland.ogc.sensorML.SensorML;
 import org.n52.shetland.ogc.sensorML.System;
 import org.n52.shetland.ogc.sensorML.elements.SmlComponent;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
-import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
-import org.n52.shetland.ogc.sos.request.GetObservationRequest;
+import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swe.SweAbstractDataComponent;
 import org.n52.shetland.ogc.swe.SweDataArray;
@@ -87,9 +81,6 @@ import org.n52.shetland.ogc.swe.SweDataRecord;
 import org.n52.shetland.ogc.swe.SweField;
 import org.n52.shetland.ogc.swe.simpleType.SweQuantity;
 import org.n52.shetland.ogc.swes.SwesConstants;
-import org.n52.shetland.util.ReferencedEnvelope;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 public class OceanotronSosConnector extends SOS2Connector {
 
@@ -100,88 +91,74 @@ public class OceanotronSosConnector extends SOS2Connector {
      */
     @Override
     public boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
-        OwsCapabilities owsCaps = capabilities.getCapabilities();
-        if (owsCaps.getServiceProvider().isPresent()) {
-            OwsServiceProvider servProvider = owsCaps.getServiceProvider().get();
-            if (servProvider.getProviderName().equals("Geomatys")) {
-                return true;
-            }
-        }
-        return false;
+        return capabilities.getCapabilities().getServiceProvider()
+                .map(OwsServiceProvider::getProviderName)
+                .filter(name -> name.equals("Geomatys")).isPresent();
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
-                "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
-        ArrayList<DataEntity> data = new ArrayList<>();
-        try {
-            observationResponse.getObservationCollection().forEachRemaining((observation) -> {
-                data.add(createProfileDataEntity(observation, seriesEntity));
-            });
-        } catch (OwsExceptionReport e) {
-            LOGGER.error("Error while querying and processing observations!", e);
-        }
-        return data;
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+        GetObservationResponse observationResponse = getObservation(
+                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+        return observationResponse.getObservationCollection().toStream()
+                .map(observation -> createProfileDataEntity(observation, seriesEntity))
+                .collect(toList());
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
-        GetObservationResponse observationResponse = createObservationResponse(seriesEntity, null,
-                "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
-        ObservationStream omColl = observationResponse.getObservationCollection();
-        try {
-            if (omColl.hasNext()) {
-                OmObservation observation = omColl.next();
-                ObservationValue<? extends Value<?>> observationValue = observation.getValue();
-                if (observationValue.getValue() instanceof SweDataArrayValue) {
-                    SweDataArray dataArray = ((SweDataArrayValue) observationValue.getValue()).getValue();
-                    SweAbstractDataComponent elementType = dataArray.getElementType();
-                    if (elementType instanceof SweDataRecord) {
-                        SweDataRecord sweDataRecord = (SweDataRecord) elementType;
-                        List<SweField> fields = sweDataRecord.getFields();
-                        if (fields.size() == 2) {
-                            return createUnitEntity(fields.get(1), (ProxyServiceEntity) seriesEntity.getService());
-                        }
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+        GetObservationResponse observationResponse = getObservation(
+                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+        List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
+        if (omColl.size() == 1) {
+            OmObservation observation = omColl.get(0);
+            ObservationValue<? extends Value<?>> observationValue = observation.getValue();
+            if (observationValue.getValue() instanceof SweDataArrayValue) {
+                SweDataArray dataArray = ((SweDataArrayValue) observationValue.getValue()).getValue();
+                SweAbstractDataComponent elementType = dataArray.getElementType();
+                if (elementType instanceof SweDataRecord) {
+                    SweDataRecord sweDataRecord = (SweDataRecord) elementType;
+                    List<SweField> fields = sweDataRecord.getFields();
+                    if (fields.size() == 2) {
+                        return createUnitEntity(fields.get(1), (ProxyServiceEntity) seriesEntity.getService());
                     }
                 }
             }
-        } catch (OwsExceptionReport e) {
-            LOGGER.error("Error while querying unit observations!", e);
         }
         return null;
     }
 
-    private DataEntity createProfileDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
+    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
         ProfileDataEntity dataEntity = new ProfileDataEntity();
         ObservationValue<? extends Value<?>> obsValue = observation.getValue();
         Date timestamp = ((TimeInstant) obsValue.getPhenomenonTime()).getValue().toDate();
         dataEntity.setTimestart(timestamp);
         dataEntity.setTimeend(timestamp);
+        ProxyServiceEntity service = (ProxyServiceEntity) seriesEntity.getService();
+        Optional<Set<DataEntity<?>>> values = Optional.ofNullable(obsValue)
+                .map(ObservationValue::getValue)
+                .flatMap(Functions.castIfInstanceOf(SweDataArrayValue.class))
+                .map(SweDataArrayValue::getValue)
+                .map(dataArray -> {
+                    SweAbstractDataComponent elementType = dataArray.getElementType();
+                    UnitEntity verticalUnit = Optional.ofNullable(elementType)
+                            .flatMap(Functions.castIfInstanceOf(SweDataRecord.class))
+                            .map(SweDataRecord::getFields)
+                            .filter(fields -> fields.size() == 2)
+                            .map(fields -> createUnitEntity(fields.get(0), service))
+                            .orElse(null);
 
-        Set<DataEntity<?>> values = new HashSet<>();
-
-        if (obsValue.getValue() instanceof SweDataArrayValue) {
-            SweDataArray dataArray = ((SweDataArrayValue) obsValue.getValue()).getValue();
-            SweAbstractDataComponent elementType = dataArray.getElementType();
-            UnitEntity verticalUnit = null;
-            if (elementType instanceof SweDataRecord) {
-                SweDataRecord sweDataRecord = (SweDataRecord) elementType;
-                List<SweField> fields = sweDataRecord.getFields();
-                if (fields.size() == 2) {
-                    verticalUnit = createUnitEntity(fields.get(0),
-                            (ProxyServiceEntity) seriesEntity.getService());
-                }
-            }
-            for (List<String> valueEntry : dataArray.getValues()) {
-                double measurement = Double.valueOf(valueEntry.get(1));
-                double verticalValue = Double.valueOf(valueEntry.get(0));
-                LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
-                values.add(createVerticalEntry(measurement, timestamp, verticalUnit, verticalValue));
-            }
-        }
-
-        dataEntity.setValue(values);
+                    return dataArray.getValues().stream()
+                            .map(valueEntry -> {
+                                double measurement = Double.valueOf(valueEntry.get(1));
+                                double verticalValue = Double.valueOf(valueEntry.get(0));
+                                LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
+                                return createVerticalEntry(measurement, timestamp, verticalUnit, verticalValue);
+                            })
+                            .map(x -> (DataEntity<?>) x)
+                            .collect(toSet());
+                });
+        dataEntity.setValue(values.orElseGet(HashSet::new));
         return dataEntity;
     }
 
@@ -196,12 +173,12 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private QuantityDataEntity createVerticalEntry(double measurement, Date timestamp, UnitEntity verticalUnit,
-            double verticalValue) {
+                                                   double verticalValue) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setValue(measurement);
         quantityDataEntity.setTimestart(timestamp);
         quantityDataEntity.setTimeend(timestamp);
-        Set<Parameter<?>> parameters = new HashSet<>();
+        Set<Parameter<?>> parameters = new HashSet<>(1);
         ParameterQuantity parameterQuantity = new ParameterQuantity();
         parameterQuantity.setUnit(verticalUnit);
         parameterQuantity.setName("depth");
@@ -212,23 +189,25 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         // TODO implement
         return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         // TODO implement
         return Optional.empty();
     }
 
+    @Override
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-            DataSourceConfiguration config) {
+                               DataSourceConfiguration config) {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent((obsOffs) -> {
                 obsOffs.forEach((SosObservationOffering obsOff) -> {
-                    if (config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
+                    if (config.getAllowedOfferings() == null ||
+                        config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
                         addElem(obsOff, serviceConstellation, config.getUrl());
                     }
                 });
@@ -242,7 +221,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         servConst.putOffering(offeringId, offeringId);
 
         LOGGER.info("Harvest for Offering {} with {} procedure(s), {} observableProperperties", offeringId,
-                obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
+                    obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
         obsOff.getProcedures().forEach((String procedureId) -> {
             LOGGER.info("Harvest Procedure {}", procedureId);
             SensorML sensorML = getDescribeSensorResponse(procedureId, url);
@@ -250,7 +229,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                 obsOff.getObservableProperties().forEach((String obsProp) -> {
                     if (!obsProp.equals("sea_water_salinity")) {
                         if (member instanceof System) {
-                            List<SmlComponent> components = ((HasComponents<System>) member).getComponents();
+                            List<SmlComponent> components = ((System) member).getComponents();
                             for (int i = 0; i < components.size(); i++) {
                                 LOGGER.info("Still get " + (components.size() - i) + " components");
                                 addElem(components.get(i), obsProp, offeringId, servConst, url);
@@ -263,18 +242,31 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private void addElem(SmlComponent component, String obsProp, String offeringId,
-            ServiceConstellation servConst, String url) {
+                         ServiceConstellation servConst, String url) {
         final String procedureComponentId = component.getName();
         servConst.putProcedure(procedureComponentId, procedureComponentId, true, false);
         servConst.putPhenomenon(obsProp, obsProp);
         servConst.putCategory(obsProp, obsProp);
 
         LOGGER.info("Send getFOI request with procedure component {} and observedProperty {}", procedureComponentId,
-                obsProp);
-        FeatureCollection featureColl = getFeatureOfInterestResponse(procedureComponentId, obsProp, url);
-
-        featureColl.getMembers().forEach((String key, AbstractFeature feature) -> {
-            String foiId = addFeature(feature, servConst);
+                    obsProp);
+        GetFeatureOfInterestResponse response = getFeatureOfInterest(null, procedureComponentId, obsProp, url);
+        if (response.getAbstractFeature() instanceof FeatureCollection) {
+            ((FeatureCollection) response.getAbstractFeature())
+                    .getMembers().forEach((String key, AbstractFeature feature) -> {
+                        String foiId = addAbstractFeature(feature, servConst);
+                        // TODO maybe not only QuantityDatasetConstellation
+                        if (foiId != null) {
+                            ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
+                                    procedureComponentId, offeringId,
+                                    obsProp,
+                                    obsProp,
+                                    foiId);
+                            servConst.add(profileDatasetConstellation);
+                        }
+                    });
+        } else {
+            String foiId = addAbstractFeature(response.getAbstractFeature(), servConst);
             // TODO maybe not only QuantityDatasetConstellation
             if (foiId != null) {
                 ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
@@ -284,19 +276,17 @@ public class OceanotronSosConnector extends SOS2Connector {
                         foiId);
                 servConst.add(profileDatasetConstellation);
             }
-        });
+
+        }
     }
 
-    private String addFeature(AbstractFeature feature, ServiceConstellation servConst) {
+    private String addAbstractFeature(AbstractFeature feature, ServiceConstellation servConst) {
         if (feature instanceof SamplingFeature) {
             String foiId = feature.getGmlId();
             String foiName = feature.getFirstName() != null ? feature.getFirstName().getValue() : feature.getGmlId();
             String foiDescription = feature.getDescription();
             SamplingFeature samplingFeature = (SamplingFeature) feature;
-            int srid = samplingFeature.getGeometry().getSRID();
-            double lon = samplingFeature.getGeometry().getCoordinate().x;
-            double lat = samplingFeature.getGeometry().getCoordinate().y;
-            servConst.putFeature(foiId, foiName, foiDescription, lat, lon, srid);
+            servConst.putFeature(foiId, foiName, foiDescription, samplingFeature.getGeometry());
             return foiId;
         }
         return null;
@@ -307,46 +297,6 @@ public class OceanotronSosConnector extends SOS2Connector {
         request.setProcedure(procedureId);
         request.setProcedureDescriptionFormat("http://www.opengis.net/sensorML/1.0.0");
         return (SensorML) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
-    }
-
-    private FeatureCollection getFeatureOfInterestResponse(String procedureId, String obsProp, String url) {
-        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(Arrays.asList(procedureId));
-        request.setObservedProperties(Arrays.asList(obsProp));
-        Object response = getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
-        return (FeatureCollection) response;
-    }
-
-    @Override
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
-            String responseFormat) {
-        GetObservationRequest request = new GetObservationRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedures(Arrays.asList(seriesEntity.getProcedure().getDomainId()));
-        request.setObservedProperties(Arrays.asList(seriesEntity.getPhenomenon().getDomainId()));
-        request.setSpatialFilter(createSpatialFilter(seriesEntity.getFeature()));
-        if (temporalFilter != null) {
-            request.setTemporalFilters(Arrays.asList(temporalFilter));
-        }
-        if (responseFormat != null) {
-            request.setResponseFormat(responseFormat);
-        }
-        return (GetObservationResponse) this.getSosResponseFor(request, Sos2Constants.NS_SOS_20,
-                seriesEntity.getService().getUrl());
-    }
-
-    private SpatialFilter createSpatialFilter(FeatureEntity feature) {
-        SpatialFilter spatialFilter = new SpatialFilter();
-        Geometry geometry = feature.getGeometry();
-        if (geometry instanceof Point) {
-            Point point = (Point) geometry;
-            double x = point.getCoordinate().x;
-            double y = point.getCoordinate().y;
-            ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(new Envelope(x, x, y, y), point.getSRID());
-            spatialFilter.setGeometry(referencedEnvelope);
-            spatialFilter.setOperator(FilterConstants.SpatialOperator.Overlaps);
-            return spatialFilter;
-        }
-        return null;
     }
 
 }

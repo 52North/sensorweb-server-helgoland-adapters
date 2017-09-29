@@ -29,7 +29,9 @@
 package org.n52.proxy.db.da;
 
 import java.util.Map;
+
 import org.hibernate.Session;
+
 import org.n52.io.response.dataset.text.TextData;
 import org.n52.io.response.dataset.text.TextValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -52,13 +54,13 @@ public class ProxyTextDataRepository extends org.n52.series.db.da.TextDataReposi
 
     @Override
     public TextValue getFirstValue(TextDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
+        DataEntity<?> firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
         return createSeriesValueFor((TextDataEntity) firstObs, entity, query);
     }
 
     @Override
     public TextValue getLastValue(TextDatasetEntity entity, Session session, DbQuery query) {
-        DataEntity lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
+        DataEntity<?> lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
         return createSeriesValueFor((TextDataEntity) lastObs, entity, query);
     }
 

@@ -28,37 +28,44 @@
  */
 package org.n52.proxy.web;
 
-import java.io.IOException;
 import static org.apache.http.Consts.UTF_8;
+import static org.apache.http.entity.ContentType.create;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.net.ConnectException;
+import java.util.concurrent.TimeUnit;
+
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.ContentType;
-import static org.apache.http.entity.ContentType.create;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import static org.apache.http.params.CoreConnectionPNames.CONNECTION_TIMEOUT;
-import static org.apache.http.params.CoreConnectionPNames.SO_TIMEOUT;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import org.springframework.web.client.HttpClientErrorException;
 
 public class SimpleHttpClient implements HttpClient {
 
     private static final Logger LOGGER = getLogger(SimpleHttpClient.class);
-
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
-
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-
     private static final ContentType CONTENT_TYPE_TEXT_XML = create("text/xml", UTF_8);
-
-    private DefaultHttpClient httpclient;
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
+            .retryOn(ConnectException.class)
+            .withDelay(10, TimeUnit.SECONDS)
+            .withMaxDuration(15, TimeUnit.MINUTES);
+    private CloseableHttpClient httpclient;
+    private int connectionTimeout;
+    private int socketTimeout;
 
     /**
      * Creates an instance with <code>timeout = {@value #DEFAULT_CONNECTION_TIMEOUT}</code> ms.
@@ -80,52 +87,42 @@ public class SimpleHttpClient implements HttpClient {
      * Creates an instance with the given timeouts.
      *
      * @param connectionTimeout the connection timeout in milliseconds.
-     * @param socketTimeout the socket timeout in milliseconds.
+     * @param socketTimeout     the socket timeout in milliseconds.
      */
     public SimpleHttpClient(int connectionTimeout, int socketTimeout) {
-        ClientConnectionManager cm = getConnectionManager();
-        this.httpclient = (cm == null) ? new DefaultHttpClient() : new DefaultHttpClient(cm);
-        this.httpclient.getParams().setParameter(CONNECTION_TIMEOUT, connectionTimeout);
-        this.httpclient.getParams().setParameter(SO_TIMEOUT, socketTimeout);
+        this.socketTimeout = socketTimeout;
+        this.connectionTimeout = connectionTimeout;
+        recreateClient();
     }
 
-    /**
-     * @return null by default
-     */
-    public ClientConnectionManager getConnectionManager() {
-        return null;
+    protected SimpleHttpClient(CloseableHttpClient httpclient) {
+        this.httpclient = httpclient;
     }
 
     @Override
-    public DefaultHttpClient getHttpClientToDecorate() {
-        return httpclient;
-    }
-
-    @Override
-    public HttpResponse executeGet(String uri) throws HttpClientErrorException {
+    public HttpResponse executeGet(String uri) throws IOException {
         LOGGER.debug("executing GET method '{}'", uri);
         return executeMethod(new HttpGet(uri));
     }
 
-    public HttpResponse executePost(String uri, XmlObject payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, XmlObject payloadToSend) throws IOException {
         return executePost(uri, payloadToSend.xmlText(), CONTENT_TYPE_TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, String payloadToSend) throws IOException {
         return executePost(uri, payloadToSend, CONTENT_TYPE_TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType)
-            throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws IOException {
         StringEntity requestEntity = new StringEntity(payloadToSend, contentType);
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
     }
 
     @Override
-    public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws HttpClientErrorException {
+    public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException {
         LOGGER.debug("executing POST method to '{}'.", uri);
         HttpPost post = new HttpPost(uri);
         post.setEntity(payloadToSend);
@@ -133,20 +130,38 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public HttpResponse executeMethod(HttpRequestBase method) throws HttpClientErrorException {
-        try {
-            return httpclient.execute(method);
-        } catch (IOException e) {
-            throw new HttpClientErrorException(INTERNAL_SERVER_ERROR, e.toString());
-        }
+    public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
+        return Failsafe.with(RETRY_POLICY)
+                .onFailedAttempt((ex) -> LOGGER.warn("Could not connect to host; retrying", ex))
+                .get(() -> httpclient.execute(method));
     }
 
     public void setConnectionTimout(int timeout) {
-        httpclient.getParams().setParameter(CONNECTION_TIMEOUT, timeout);
+        this.connectionTimeout = timeout;
+        recreateClient();
     }
 
     public void setSocketTimout(int timeout) {
-        httpclient.getParams().setParameter(SO_TIMEOUT, timeout);
+        this.socketTimeout = timeout;
+        recreateClient();
+    }
+
+    private void recreateClient() {
+        if (this.httpclient != null) {
+            try {
+                this.httpclient.close();
+            } catch (IOException ex) {
+                LOGGER.warn("Error closing client", ex);
+            }
+            this.httpclient = null;
+        }
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(this.connectionTimeout).build();
+        SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(this.socketTimeout).build();
+        this.httpclient = HttpClientBuilder.create()
+                .useSystemProperties()
+                .setDefaultSocketConfig(socketConfig)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
     }
 
 }

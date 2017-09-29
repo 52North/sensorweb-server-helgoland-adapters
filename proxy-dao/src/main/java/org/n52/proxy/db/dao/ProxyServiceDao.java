@@ -28,22 +28,22 @@
  */
 package org.n52.proxy.db.dao;
 
-import static org.hibernate.criterion.Restrictions.eq;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.List;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.dao.ServiceDao;
-import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServiceEntity> {
 
-    private static final Logger LOGGER = getLogger(ProxyServiceDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyServiceDao.class);
 
     private static final String COLUMN_TYPE = "type";
     private static final String COLUMN_URL = "url";
@@ -56,25 +56,25 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
     @Override
     public ProxyServiceEntity getOrInsertInstance(ProxyServiceEntity service) {
         ProxyServiceEntity instance = getInstance(service);
-        if (instance == null) {
-            this.session.save(service);
-            LOGGER.info("Save service: " + service);
-            instance = service;
+        if (instance != null) {
+            return instance;
         }
-        return instance;
+        this.session.save(service);
+        LOGGER.info("Save service: " + service);
+        return service;
     }
 
     private ProxyServiceEntity getInstance(ProxyServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(eq(COLUMN_TYPE, service.getType()))
-                .add(eq(COLUMN_URL, service.getUrl()))
-                .add(eq(COLUMN_NAME, service.getName()));
+                .add(Restrictions.eq(COLUMN_TYPE, service.getType()))
+                .add(Restrictions.eq(COLUMN_URL, service.getUrl()))
+                .add(Restrictions.eq(COLUMN_NAME, service.getName()));
         return (ProxyServiceEntity) criteria.uniqueResult();
     }
 
+    @SuppressWarnings("unchecked")
     public List<ProxyServiceEntity> getAllServices() {
-        Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults());
-        return criteria.list();
+        return getDefaultCriteria(ProxyDbQuery.createDefaults()).list();
     }
 
     public void deleteInstance(ProxyServiceEntity service) {

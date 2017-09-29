@@ -28,23 +28,23 @@
  */
 package org.n52.proxy.web;
 
+import java.io.IOException;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.springframework.web.client.HttpClientErrorException;
 
 public interface HttpClient {
 
-    DefaultHttpClient getHttpClientToDecorate();
-
-    HttpResponse executeGet(String uri) throws HttpClientErrorException;
+    HttpResponse executeGet(String uri) throws IOException;
 
     /**
-     * @param baseUri the target to send the GET request to.
+     * @param baseUri    the target to send the GET request to.
      * @param parameters the request/query parameters.
+     *
      * @return the HTTP response returned by the target.
+     *
      * @throws HttpClientException if sending the request fails.
      */
     //public HttpResponse executeGet(String baseUri, RequestParameters parameters) throws HttpClientErrorException;
@@ -53,41 +53,49 @@ public interface HttpClient {
      * <strong>Callees are responsible for ensuring that the contents are actually encoded as UTF-8</strong>. If not
      * UTF-8, use {@link #executePost(String, String, ContentType)} instead.
      *
-     * @param uri the target to send the POST request to.
+     * @param uri           the target to send the POST request to.
      * @param payloadToSend the POST payload as XML encoded as UTF-8.
+     *
      * @return the HTTP response returned by the target.
-     * @throws HttpClientErrorException if sending the request fails.
+     *
+     * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, String payloadToSend) throws HttpClientErrorException;
+    HttpResponse executePost(String uri, String payloadToSend) throws IOException;
 
     /**
      * Sends the given payload (marked to be of a specific content-type) to the determined URI.
      *
-     * @param uri the target to send the POST request to.
+     * @param uri           the target to send the POST request to.
      * @param payloadToSend the POST payload as XML.
-     * @param contentType the content-type of the payload.
+     * @param contentType   the content-type of the payload.
+     *
      * @return the HTTP response returned by the target.
-     * @throws HttpClientErrorException if sending the request fails.
+     *
+     * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws HttpClientErrorException;
+    HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws IOException;
 
     /**
      * Sends the given payload to the determined URI. Refer to the <a
      * href="http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/index.html">HTTP components docs</a>
      * to get more information which entity types are possible.
      *
-     * @param uri the target to send the POST request to.
+     * @param uri           the target to send the POST request to.
      * @param payloadToSend a more generic way to send arbitrary content.
+     *
      * @return the HTTP response returned by the target.
-     * @throws HttpClientErrorException if sending the request fails.
+     *
+     * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, HttpEntity payloadToSend) throws HttpClientErrorException;
+    HttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException;
 
     /**
      * @param method the HTTP method to execute.
+     *
      * @return the HTTP response returned by the target.
-     * @throws HttpClientErrorException if sending the request fails
+     *
+     * @throws IOException if sending the request fails
      */
-    HttpResponse executeMethod(HttpRequestBase method) throws HttpClientErrorException;
+    HttpResponse executeMethod(HttpRequestBase method) throws IOException;
 
 }

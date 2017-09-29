@@ -29,48 +29,49 @@
 package org.n52.proxy.decode;
 
 import static com.google.common.collect.Lists.newArrayList;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import java.util.ArrayList;
 import static java.util.Collections.unmodifiableSet;
-import java.util.List;
-import java.util.Set;
-import net.opengis.gml.x32.FeaturePropertyType;
-import net.opengis.gml.x32.ReferenceType;
-import net.opengis.sampling.x20.SFSamplingFeatureDocument;
 import static net.opengis.sampling.x20.SFSamplingFeatureDocument.Factory.newInstance;
-import net.opengis.sampling.x20.SFSamplingFeatureType;
-import net.opengis.samplingSpatial.x20.ShapeDocument;
-import org.apache.xmlbeans.XmlException;
-import org.apache.xmlbeans.XmlObject;
 import static org.apache.xmlbeans.XmlObject.Factory.parse;
 import static org.n52.shetland.ogc.OGCConstants.UNKNOWN;
-import org.n52.shetland.ogc.gml.AbstractFeature;
-import org.n52.shetland.ogc.gml.CodeType;
-import org.n52.shetland.ogc.gml.CodeWithAuthority;
 import static org.n52.shetland.ogc.om.features.SfConstants.NS_SAMS;
 import static org.n52.shetland.ogc.om.features.SfConstants.NS_SF;
 import static org.n52.shetland.ogc.om.features.SfConstants.SAMPLING_FEAT_TYPE_SF_SAMPLING_CURVE;
 import static org.n52.shetland.ogc.om.features.SfConstants.SAMPLING_FEAT_TYPE_SF_SAMPLING_POINT;
 import static org.n52.shetland.ogc.om.features.SfConstants.SAMPLING_FEAT_TYPE_SF_SAMPLING_SURFACE;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import static org.n52.shetland.ogc.sos.Sos2Constants.InsertObservationParams.observation;
+import static org.n52.svalbard.util.CodingHelper.decoderKeysForElements;
+import static org.n52.svalbard.util.XmlHelper.getNodeFromNodeList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import net.opengis.gml.x32.FeaturePropertyType;
+import net.opengis.gml.x32.ReferenceType;
+import net.opengis.sampling.x20.SFSamplingFeatureDocument;
+import net.opengis.sampling.x20.SFSamplingFeatureType;
+import net.opengis.samplingSpatial.x20.ShapeDocument;
+
+import org.apache.xmlbeans.XmlException;
+import org.apache.xmlbeans.XmlObject;
+
+import org.n52.shetland.ogc.gml.AbstractFeature;
+import org.n52.shetland.ogc.gml.CodeType;
+import org.n52.shetland.ogc.gml.CodeWithAuthority;
+import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.svalbard.decode.AbstractGmlDecoderv321;
 import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.exception.DecodingException;
-import static org.n52.svalbard.util.CodingHelper.decoderKeysForElements;
-import static org.n52.svalbard.util.XmlHelper.getNodeFromNodeList;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * @author Jan Schulte
  */
 public class SamplingFeatureDecoder extends AbstractGmlDecoderv321<XmlObject, AbstractFeature> {
-
-    private static final Logger LOGGER = getLogger(SamplingFeatureDecoder.class);
 
     private static final Set<DecoderKey> DECODER_KEYS = decoderKeysForElements(NS_SF, SFSamplingFeatureDocument.class,
             SFSamplingFeatureType.class);
