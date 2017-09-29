@@ -37,14 +37,16 @@ import java.util.Set;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
-import org.slf4j.Logger;
 
-public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
+public class ProxyDatasetDao<T extends DatasetEntity<?>> extends DatasetDao<T> implements InsertDao<T> {
 
     private static final Logger LOGGER = getLogger(ProxyDatasetDao.class);
 
@@ -65,11 +67,12 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T getOrInsertInstance(T dataset) {
         if (dataset.getUnit() != null) {
             dataset.setUnit(getOrInsertUnit(dataset.getUnit()));
         }
-        DatasetEntity instance = getInstance(dataset);
+        T instance = getInstance(dataset);
         if (instance == null) {
             session.save(dataset);
             LOGGER.info("Save dataset: " + dataset);
@@ -77,7 +80,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
             session.refresh(dataset);
             return dataset;
         }
-        return (T) instance;
+        return instance;
     }
 
     public UnitEntity getOrInsertUnit(UnitEntity unit) {
@@ -90,13 +93,7 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     public Set<Long> getIdsForService(ProxyServiceEntity service) {
-        List<T> datasets = getDatasetsForService(service);
-        return datasets
-                .stream()
-                .map((dataset) -> {
-                    return dataset.getPkid();
-                })
-                .collect(toSet());
+        return getDatasetsForService(service).stream().map(DescribableEntity::getPkid).collect(toSet());
     }
 
     public void removeDatasets(Set<Long> datasetIds) {
@@ -106,15 +103,16 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         session.flush();
     }
 
+    @SuppressWarnings("unchecked")
     public void removeAllOfService(ProxyServiceEntity service) {
         getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
-                .forEach((dataset) -> session.delete(dataset));
+                .forEach(session::delete);
         session.createCriteria(UnitEntity.class)
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
-                .forEach((unit) -> session.delete(unit));
+                .forEach(session::delete);
         session.flush();
     }
 
@@ -125,7 +123,8 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         return (UnitEntity) criteria.uniqueResult();
     }
 
-    private DatasetEntity getInstance(DatasetEntity dataset) {
+    @SuppressWarnings("unchecked")
+    private T getInstance(T dataset) {
         Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_VALUETYPE, dataset.getValueType()))
                 .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
@@ -137,10 +136,10 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
         return (T) criteria.uniqueResult();
     }
 
+    @SuppressWarnings("unchecked")
     private List<T> getDatasetsForService(ServiceEntity service) {
         Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
-
 }

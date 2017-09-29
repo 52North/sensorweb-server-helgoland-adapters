@@ -1,7 +1,8 @@
 package org.n52.sensorthings;
 
+import java.util.List;
+
 import com.google.gson.annotations.SerializedName;
-import java.util.ArrayList;
 
 /**
  * @author Jan Schulte
@@ -9,11 +10,53 @@ import java.util.ArrayList;
 public class SensorThingsCollection<T> {
 
     @SerializedName("@iot.count")
-    public int observations;
+    private int observations;
 
     @SerializedName("@iot.nextLink")
-    public String nextLink;
+    private String nextLink;
 
-    public ArrayList<T> value;
+    private List<T> value;
+
+    /**
+     * @return the observations
+     */
+    public int getObservations() {
+        return observations;
+    }
+
+    /**
+     * @param observations the observations to set
+     */
+    public void setObservations(int observations) {
+        this.observations = observations;
+    }
+
+    /**
+     * @return the nextLink
+     */
+    public String getNextLink() {
+        return nextLink;
+    }
+
+    /**
+     * @param nextLink the nextLink to set
+     */
+    public void setNextLink(String nextLink) {
+        this.nextLink = nextLink;
+    }
+
+    /**
+     * @return the value
+     */
+    public List<T> getValue() {
+        return value;
+    }
+
+    /**
+     * @param value the value to set
+     */
+    public void setValue(List<T> value) {
+        this.value = value;
+    }
 
 }

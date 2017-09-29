@@ -28,19 +28,14 @@
  */
 package org.n52.proxy.db.dao;
 
-import static org.hibernate.criterion.Restrictions.eq;
-import static org.hibernate.criterion.Restrictions.in;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
+
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
 import org.n52.series.db.dao.QueryUtils;
-import org.slf4j.Logger;
 
 public class ProxyDbQuery extends DbQuery {
-
-    private static final Logger LOGGER = getLogger(ProxyDbQuery.class);
 
     private static final String SERVICE_PKID = "service.pkid";
 
@@ -48,14 +43,6 @@ public class ProxyDbQuery extends DbQuery {
 
     public ProxyDbQuery(IoParameters parameters) {
         super(parameters);
-    }
-
-    public static ProxyDbQuery createDefaults() {
-        return createFrom(IoParameters.createDefaults());
-    }
-
-    public static ProxyDbQuery createFrom(IoParameters parameters) {
-        return new ProxyDbQuery(parameters);
     }
 
     public String getServiceId() {
@@ -74,13 +61,21 @@ public class ProxyDbQuery extends DbQuery {
 
     public Criteria addServiceFilter(String parameter, Criteria criteria) {
         if (serviceId != null && !serviceId.isEmpty()) {
-            criteria.add(eq(SERVICE_PKID, QueryUtils.parseToId(serviceId)));
+            criteria.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(serviceId)));
         } else if (getParameters().getService() != null) {
-            criteria.add(eq(SERVICE_PKID, QueryUtils.parseToId(getParameters().getService())));
+            criteria.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(getParameters().getService())));
         } else if (getParameters().getServices() != null && !getParameters().getServices().isEmpty()) {
-            criteria.add(in(SERVICE_PKID, QueryUtils.parseToIds(getParameters().getServices())));
+            criteria.add(Restrictions.in(SERVICE_PKID, QueryUtils.parseToIds(getParameters().getServices())));
         }
         return criteria;
+    }
+
+    public static ProxyDbQuery createDefaults() {
+        return createFrom(IoParameters.createDefaults());
+    }
+
+    public static ProxyDbQuery createFrom(IoParameters parameters) {
+        return new ProxyDbQuery(parameters);
     }
 
 }

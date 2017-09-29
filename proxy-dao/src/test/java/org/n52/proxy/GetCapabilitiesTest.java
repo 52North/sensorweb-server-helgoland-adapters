@@ -28,20 +28,30 @@ package org.n52.proxy;
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.inject.Inject;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesRequest;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.svalbard.decode.Decoder;
 import org.n52.svalbard.decode.DecoderKey;
@@ -51,12 +61,6 @@ import org.n52.svalbard.encode.Encoder;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @Ignore
 @RunWith(SpringJUnit4ClassRunner.class)

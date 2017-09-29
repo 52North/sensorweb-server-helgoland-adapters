@@ -28,35 +28,33 @@
  */
 package org.n52.proxy.harvest;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import static java.util.stream.Collectors.toSet;
-import org.n52.io.task.ScheduledJob;
-import org.n52.proxy.config.ConfigurationReader;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.db.da.InsertRepository;
+
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import static org.quartz.TriggerBuilder.newTrigger;
+import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.n52.io.task.ScheduledJob;
+import org.n52.proxy.config.ConfigurationReader;
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.db.da.InsertRepository;
 
 public class DataSourceHarvesterScheduler {
 
-    private static final Logger LOGGER = getLogger(DataSourceHarvesterScheduler.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterScheduler.class);
     private ConfigurationReader configurationProvider;
-
     private List<ScheduledJob> scheduledJobs = new ArrayList<>();
-
     private int startupDelayInSeconds = 5;
-
     private Scheduler scheduler;
-
     private boolean enabled = true;
 
     @Autowired
@@ -64,24 +62,24 @@ public class DataSourceHarvesterScheduler {
 
     public void init() {
         if (!enabled) {
-            LOGGER.info(
-                    "Job schedular disabled. No jobs will be triggered."
-                    + " This is also true for particularly enabled jobs.");
+            LOGGER.info("Job schedular disabled. No jobs will be triggered." +
+                        " This is also true for particularly enabled jobs.");
             return;
         }
 
         Set<DataSourceConfiguration> configuredServices = configurationProvider.getDataSource()
                 .stream()
-                .filter((t) ->  t.getJob().isEnabled())
+                .filter(t -> t.getJob().isEnabled())
                 .collect(toSet());
         insertRepository.removeNonMatchingServices(configuredServices);
 
-        for (DataSourceConfiguration dataSourceConfig : configurationProvider.getDataSource()) {
-            LOGGER.info(dataSourceConfig.getItemName() + " " + dataSourceConfig.getUrl());
-            DataSourceHarvesterJob dataSourceJob = new DataSourceHarvesterJob();
-            dataSourceJob.init(dataSourceConfig);
-            scheduleJob(dataSourceJob);
-        }
+        configurationProvider.getDataSource().stream()
+                .peek(config -> LOGGER.info("{} {}", config.getItemName(), config.getUrl()))
+                .map(config -> {
+                    DataSourceHarvesterJob job = new DataSourceHarvesterJob();
+                    job.init(config);
+                    return job;
+                }).forEach(this::scheduleJob);
 
         try {
             scheduler.startDelayed(startupDelayInSeconds);
@@ -99,7 +97,7 @@ public class DataSourceHarvesterScheduler {
                 scheduler.scheduleJob(details, trigger);
                 if (taskToSchedule.isTriggerAtStartup()) {
                     LOGGER.debug("Schedule job '{}' to run once at startup.", details.getKey());
-                    Trigger onceAtStartup = newTrigger()
+                    Trigger onceAtStartup = TriggerBuilder.newTrigger()
                             .withIdentity(details.getKey() + "_onceAtStartup")
                             .forJob(details.getKey()).build();
                     scheduler.scheduleJob(onceAtStartup);

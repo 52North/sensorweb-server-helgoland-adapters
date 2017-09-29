@@ -28,18 +28,37 @@
  */
 package org.n52.proxy.harvest;
 
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.quartz.JobBuilder.newJob;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.JobKey;
+import org.quartz.PersistJobDataAfterExecution;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.n52.io.task.ScheduledJob;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.config.DataSourceJobConfiguration;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.ConnectorRequestFailedException;
 import org.n52.proxy.connector.SensorThingsConnector;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -47,6 +66,7 @@ import org.n52.proxy.db.da.InsertRepository;
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
@@ -54,18 +74,6 @@ import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import static org.quartz.JobBuilder.newJob;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.PersistJobDataAfterExecution;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -86,15 +94,15 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     @Autowired
     private Set<AbstractConnector> connectors;
 
+    public DataSourceHarvesterJob() {
+    }
+
     public DataSourceConfiguration getConfig() {
         return config;
     }
 
     public void setConfig(DataSourceConfiguration config) {
         this.config = config;
-    }
-
-    public DataSourceHarvesterJob() {
     }
 
     @Override
@@ -108,46 +116,55 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
-        DataSourceConfiguration createdConfig = (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
-        return createdConfig;
+        return (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
     }
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        LOGGER.info(context.getJobDetail().getKey() + " execution starts.");
+        JobKey key = context.getJobDetail().getKey();
+        LOGGER.info("{} execution starts.", key);
 
         DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
 
-        ServiceConstellation constellation = determineConstellation(dataSource);
+        ServiceConstellation constellation;
+        try {
+            constellation = determineConstellation(dataSource);
+            if (constellation == null) {
+                LOGGER.warn("No connector found for {}", dataSource);
+            } else {
+                saveConstellation(constellation);
+            }
 
-        if (constellation == null) {
-            LOGGER.warn("No connector found for " + dataSource);
-        } else {
-            saveConstellation(constellation);
+            LOGGER.info("{} execution ends.", key);
+        } catch (IOException | DecodingException | ConnectorRequestFailedException ex) {
+            throw new JobExecutionException(ex);
         }
 
-        LOGGER.info(context.getJobDetail().getKey() + " execution ends.");
     }
 
-    private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
-        ServiceConstellation constellation = null;
+    private ServiceConstellation determineConstellation(DataSourceConfiguration dataSource)
+            throws IOException, DecodingException {
+        if (dataSource.getType() == null) {
+            return null;
+        }
         if (dataSource.getType().equals("SOS")) {
             GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
-            constellation = determineSOSConstellation(dataSource, capabilities);
+            return determineSOSConstellation(dataSource, capabilities);
         }
         if (dataSource.getType().equals("SensorThings")) {
-            constellation = determineSensorThingsConstellation(dataSource);
+            return determineSensorThingsConstellation(dataSource);
         }
-        return constellation;
+        return null;
     }
 
     private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
-            GetCapabilitiesResponse capabilities) {
+                                                           GetCapabilitiesResponse capabilities)
+            throws IOException, DecodingException {
         for (AbstractConnector connector : connectors) {
             if (connector instanceof AbstractSosConnector) {
                 AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
                 if (sosConnector.matches(dataSource, capabilities)) {
-                    LOGGER.info(connector.toString() + " create a constellation for " + dataSource);
+                    LOGGER.info("{} create a constellation for {}", connector.toString(), dataSource);
                     return sosConnector.getConstellation(dataSource, capabilities);
                 }
             }
@@ -183,31 +200,32 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
         // save all constellations
         constellation.getDatasets().forEach((dataset) -> {
-            final ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
-            final CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
-            final FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
-            final OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
-            final PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
-            if (procedure != null && category != null && feature != null && offering != null && phenomenon != null) {
-                procedure.setService(service);
-                category.setService(service);
-                feature.setService(service);
-                offering.setService(service);
-                phenomenon.setService(service);
-                DatasetEntity entity = dataset.createDatasetEntity(procedure, category, feature, offering, phenomenon,
-                        service);
-                DatasetEntity inserted = insertRepository.insertDataset(entity);
-                datasetIds.remove(inserted.getPkid());
-                LOGGER.info("Add dataset constellation: " + dataset);
+            ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
+            CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
+            FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
+            OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
+            PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
+
+            List<DescribableEntity> entities = Arrays.asList(procedure, category, feature, offering, phenomenon);
+            if (entities.stream().allMatch(Objects::nonNull)) {
+                entities.stream().forEach(x -> x.setService(service));
+                DatasetEntity<?> ds = insertRepository.insertDataset(dataset
+                        .createDatasetEntity(procedure, category, feature, offering, phenomenon, service));
+                datasetIds.remove(ds.getPkid());
+
+                dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
+                dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
+
+                LOGGER.info("Add dataset constellation: {}", dataset);
             } else {
-                LOGGER.warn("Can't add dataset: " + dataset);
+                LOGGER.warn("Can't add dataset: {}", dataset);
             }
         });
 
         insertRepository.cleanUp(service, datasetIds);
     }
 
-    private GetCapabilitiesResponse getCapabilities(String serviceUrl) {
+    private GetCapabilitiesResponse getCapabilities(String serviceUrl) throws IOException, DecodingException {
         try {
             SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
             String url = serviceUrl;
@@ -221,10 +239,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             return (GetCapabilitiesResponse) decoderRepository
                     .getDecoder(getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
-        } catch (IOException | XmlException | DecodingException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
+        } catch (XmlException ex) {
+            throw new DecodingException(ex);
         }
-        return null;
     }
 
 }

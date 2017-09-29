@@ -10,7 +10,7 @@
         </id>
         <property column="identifier" name="domainId" type="string"/>
         <property column="name" name="name" type="string"/>
-        <property column="name" insert="false" name="description" type="string" update="false"/>
+        <property column="description"  name="description" type="string"/>
         <set name="children" table="offeringrelation" inverse="false" fetch="select">
             <key column="parentofferingid" not-null="true" />
             <many-to-many class="OfferingEntity" column="childofferingid" />

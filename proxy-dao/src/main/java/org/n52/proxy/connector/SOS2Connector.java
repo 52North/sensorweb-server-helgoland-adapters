@@ -28,98 +28,57 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.ArrayList;
-import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Configurable;
+
+import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addProcedure;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addService;
-import static org.n52.proxy.connector.utils.ConnectorHelper.createFirstTimefilter;
-import static org.n52.proxy.connector.utils.ConnectorHelper.createLatestTimefilter;
-import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilter;
-import static org.n52.proxy.connector.utils.DataEntityBuilder.createCountDataEntity;
-import static org.n52.proxy.connector.utils.DataEntityBuilder.createQuantityDataEntity;
-import static org.n52.proxy.connector.utils.DataEntityBuilder.createTextDataEntity;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.QuantityDatasetEntity;
-import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
-import org.n52.shetland.ogc.filter.TemporalFilter;
-import org.n52.shetland.ogc.gml.AbstractFeature;
-import org.n52.shetland.ogc.om.ObservationStream;
-import org.n52.shetland.ogc.om.OmObservation;
-import org.n52.shetland.ogc.om.features.FeatureCollection;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
-import org.n52.shetland.ogc.ows.OwsOperation;
-import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
-import static org.n52.shetland.ogc.sos.Sos2Constants.SERVICEVERSION;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
-import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityRequest;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
-import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
-import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
-import org.n52.shetland.ogc.sos.request.GetObservationRequest;
-import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
-import org.n52.shetland.ogc.swes.SwesConstants;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Configurable;
 
 @Configurable
 public class SOS2Connector extends AbstractSosConnector {
 
-    private static final Logger LOGGER = getLogger(SOS2Connector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SOS2Connector.class);
 
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
+     *
+     * @param config       the config
+     * @param response the cababilities
      */
     @Override
-    protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
-        OwsCapabilities owsCaps = capabilities.getCapabilities();
-        if (owsCaps.getVersion().equals(SERVICEVERSION) && owsCaps.getServiceProvider().isPresent()) {
-            return supportsGDA(owsCaps);
-        }
-        return false;
-    }
-
-    protected boolean supportsGDA(OwsCapabilities owsCaps) {
-        boolean handle;
-        handle = owsCaps.getOperationsMetadata().map((metadata) -> {
-            for (OwsOperation operation : metadata.getOperations()) {
-                if (operation.getName().equals("GetDataAvailability")) {
-                    return true;
-                }
-            }
-            return false;
-        }).get();
-        return handle;
+    protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse response) {
+        OwsCapabilities capabilities = response.getCapabilities();
+        return capabilities.getVersion().equals(Sos2Constants.SERVICEVERSION) &&
+               capabilities.getServiceProvider().isPresent() &&
+               supportsGDA(capabilities);
     }
 
     @Override
     public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
-        config.setVersion(SERVICEVERSION);
+        config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation);
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
@@ -129,167 +88,69 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
-                query));
-        List<DataEntity> data = new ArrayList<>();
-        try {
-            obsResp.getObservationCollection().forEachRemaining((observation) -> {
-                data.add(createDataEntity(observation, seriesEntity));
-            });
-        } catch (OwsExceptionReport e) {
-            LOGGER.error("Error while querying and processing observations!", e);
-        }
-        LOGGER.info("Found " + data.size() + " Entries");
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
+                .getObservationCollection().toStream()
+                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
+                .collect(toList());
+        LOGGER.info("Found {} Entries", data.size());
         return data;
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
-        ObservationStream os = createObservationResponse(entity, createFirstTimefilter())
-                .getObservationCollection();
-        try {
-            if (os.hasNext()) {
-                return Optional.of(createDataEntity(os.next(), entity));
-            }
-        } catch (NoSuchElementException | OwsExceptionReport e) {
-            LOGGER.error("Error while querying and processing first observation!", e);
-        }
-        return Optional.empty();
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+        return getObservation(entity, createFirstTimefilter())
+                .getObservationCollection().toStream().findFirst()
+                .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
-        ObservationStream os = createObservationResponse(entity, createLatestTimefilter())
-                .getObservationCollection();
-        try {
-            if (os.hasNext()) {
-                return Optional.of(createDataEntity(os.next(), entity));
-            }
-        } catch (NoSuchElementException | OwsExceptionReport e) {
-            LOGGER.error("Error while querying and processing last observation!", e);
-        }
-        return Optional.empty();
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+        return getObservation(entity, createLatestTimefilter())
+                .getObservationCollection().toStream().findFirst()
+                .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
-        GetObservationResponse response = createObservationResponse(seriesEntity,
-                createFirstTimefilter());
-        try {
-            if (response.getObservationCollection().hasNext()) {
-                String unit = response.getObservationCollection().next().getValue().getValue().getUnit();
-                return createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService());
-            }
-        } catch (NoSuchElementException | OwsExceptionReport e) {
-            LOGGER.error("Error while querying unit from observation!", e);
-        }
-        return null;
-    }
-
-    protected DataEntity createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
-        DataEntity dataEntity = null;
-        if (seriesEntity instanceof QuantityDatasetEntity) {
-            dataEntity = createQuantityDataEntity(observation);
-        } else if (seriesEntity instanceof CountDatasetEntity) {
-            dataEntity = createCountDataEntity(observation);
-        } else if (seriesEntity instanceof TextDatasetEntity) {
-            dataEntity = createTextDataEntity(observation);
-        } else {
-            LOGGER.error("No supported datasetEntity for ", seriesEntity);
-        }
-        return dataEntity;
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+        GetObservationResponse response = getObservation(seriesEntity,
+                                                                    createFirstTimefilter());
+        return response.getObservationCollection().toStream()
+                .findFirst().map(o -> o.getValue().getValue().getUnit())
+                .map(unit -> EntityBuilder.createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
+                .orElse(null);
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-            DataSourceConfiguration config) {
-        sosCaps.getContents().ifPresent((sosObsOfferings) -> {
-            sosObsOfferings.forEach((sosObsOff) -> {
-                doForOffering(sosObsOff, serviceConstellation, config);
-            });
-        });
+                               DataSourceConfiguration config) {
+        sosCaps.getContents().ifPresent(contents -> contents
+                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
-            DataSourceConfiguration config) {
+                                 DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
         offering.getProcedures().forEach((procedureId) -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
-            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByProcedure(procedureId,
-                    config.getUrl());
-            addAbstractFeature(foiResponse.getAbstractFeature(), serviceConstellation);
+            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
+                                                                                               config.getUrl());
+            addFeature(foiResponse.getAbstractFeature(), serviceConstellation);
 
-            GetDataAvailabilityResponse gdaResponse = getDataAvailabilityResponse(procedureId, config.getUrl());
+            GetDataAvailabilityResponse gdaResponse = getDataAvailabilityByProcedure(procedureId, config.getUrl());
             if (gdaResponse != null) {
-                gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
+                gdaResponse.getDataAvailabilities().forEach(dataAval -> {
                     String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
                     String categoryId = addCategory(dataAval, serviceConstellation);
                     String featureId = dataAval.getFeatureOfInterest().getHref();
                     // TODO maybe not only QuantityDatasetConstellation
                     serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                            phenomenonId,
-                            featureId));
+                                                                              phenomenonId,
+                                                                              featureId));
                 });
             }
             LOGGER.info(foiResponse.toString());
         });
     }
-
-    protected void addAbstractFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
-        if (feature instanceof SamplingFeature) {
-            addFeature((SamplingFeature) feature, serviceConstellation);
-        } else if (feature instanceof FeatureCollection) {
-            ((FeatureCollection) feature).forEach((AbstractFeature featureEntry) -> addAbstractFeature(featureEntry,
-                    serviceConstellation));
-        }
-    }
-
-    protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByProcedure(String procedureId, String serviceUri) {
-        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
-        request.setProcedures(asList(procedureId));
-        return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
-    }
-
-    protected GetFeatureOfInterestResponse getFeatureOfInterestResponseByFeature(String featureId, String serviceUri) {
-        GetFeatureOfInterestRequest request = new GetFeatureOfInterestRequest(SOS, SERVICEVERSION);
-        request.setFeatureIdentifiers(asList(featureId));
-        return (GetFeatureOfInterestResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
-    }
-
-    protected DescribeSensorResponse getDescribeSensorResponse(String procedureId, String url, String format) {
-        DescribeSensorRequest request = new DescribeSensorRequest(SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedure(procedureId);
-        request.setProcedureDescriptionFormat(format);
-        return (DescribeSensorResponse) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
-    }
-
-    private GetDataAvailabilityResponse getDataAvailabilityResponse(String procedureId, String serviceUri) {
-        GetDataAvailabilityRequest request = new GetDataAvailabilityRequest(SOS, SERVICEVERSION);
-        request.setProcedures(asList(procedureId));
-        return (GetDataAvailabilityResponse) getSosResponseFor(request, NS_SOS_20, serviceUri);
-    }
-
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
-            TemporalFilter temporalFilter) {
-        return createObservationResponse(seriesEntity, temporalFilter, null);
-    }
-
-    protected GetObservationResponse createObservationResponse(DatasetEntity seriesEntity, TemporalFilter temporalFilter,
-            String responseFormat) {
-        GetObservationRequest request = new GetObservationRequest(SOS, SERVICEVERSION);
-        request.setProcedures(asList(seriesEntity.getProcedure().getDomainId()));
-        request.setObservedProperties(asList(seriesEntity.getPhenomenon().getDomainId()));
-        request.setFeatureIdentifiers(asList(seriesEntity.getFeature().getDomainId()));
-        if (temporalFilter != null) {
-            request.setTemporalFilters(asList(temporalFilter));
-        }
-        if (responseFormat != null) {
-            request.setResponseFormat(responseFormat);
-        }
-        return (GetObservationResponse) this.getSosResponseFor(request, NS_SOS_20,
-                seriesEntity.getService().getUrl());
-    }
-
 }

@@ -28,26 +28,9 @@
  */
 package org.n52.proxy.connector.utils;
 
-import org.joda.time.DateTime;
-import org.n52.proxy.config.DataSourceConfiguration;
-import static org.n52.proxy.connector.utils.EntityBuilder.createService;
-import org.n52.series.db.dao.DbQuery;
-import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_During;
-import static org.n52.shetland.ogc.filter.FilterConstants.TimeOperator.TM_Equals;
-import org.n52.shetland.ogc.filter.TemporalFilter;
-import org.n52.shetland.ogc.gml.CodeType;
-import org.n52.shetland.ogc.gml.ReferenceType;
-import org.n52.shetland.ogc.gml.time.Time;
-import org.n52.shetland.ogc.gml.time.TimeInstant;
-import org.n52.shetland.ogc.gml.time.TimePeriod;
-import static org.n52.shetland.ogc.om.OmConstants.PHENOMENON_TIME_NAME;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
-import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.FIRST;
-import static org.n52.shetland.ogc.sos.ExtendedIndeterminateTime.LATEST;
-import org.n52.shetland.ogc.sos.SosObservationOffering;
-import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
-import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
+
+import org.slf4j.Logger;
 
 /**
  * @author Jan Schulte
@@ -59,123 +42,6 @@ public class ConnectorHelper {
     private ConnectorHelper() {
     }
 
-    public static void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation) {
-        serviceConstellation.setService(createService(config.getItemName(), "here goes description",
-                config.getConnector(), config.getUrl(), config.getVersion()));
-    }
 
-    public static String addOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation) {
-        String offeringId = offering.getIdentifier();
-        CodeType name = offering.getFirstName();
-        if (name != null) {
-            serviceConstellation.putOffering(offeringId, name.getValue());
-        } else {
-            serviceConstellation.putOffering(offeringId, offeringId);
-        }
-        return offeringId;
-    }
-
-    public static String addOffering(ReferenceType offering, ServiceConstellation serviceConstellation) {
-        String offeringId = offering.getHref();
-        String offeringName = offering.getTitle();
-        serviceConstellation.putOffering(offeringId, offeringName);
-        return offeringId;
-    }
-
-    public static String addOffering(String offeringId, String offeringName, ServiceConstellation serviceConstellation) {
-        serviceConstellation.putOffering(offeringId, offeringName);
-        return offeringId;
-    }
-
-    public static String addProcedure(String procedureId, boolean insitu, boolean mobile,
-            ServiceConstellation serviceConstellation) {
-        serviceConstellation.putProcedure(procedureId, procedureId, insitu, mobile);
-        return procedureId;
-    }
-
-    public static String addProcedure(DataAvailability dataAval, boolean insitu, boolean mobile,
-            ServiceConstellation serviceConstellation) {
-        String procedureId = dataAval.getProcedure().getHref();
-        String procedureName = dataAval.getProcedure().getTitle();
-        serviceConstellation.putProcedure(procedureId, procedureName, insitu, mobile);
-        return procedureId;
-    }
-
-    public static String addProcedure(String procedureId, String procedureName, boolean insitu, boolean mobile,
-            ServiceConstellation serviceConstellation) {
-        serviceConstellation.putProcedure(procedureId, procedureName, insitu, mobile);
-        return procedureId;
-    }
-
-    public static String addPhenomenon(String phenomenonId, ServiceConstellation serviceConstellation) {
-        serviceConstellation.putPhenomenon(phenomenonId, phenomenonId);
-        return phenomenonId;
-    }
-
-    public static String addPhenomenon(String phenomenonId, String phenomenonName,
-            ServiceConstellation serviceConstellation) {
-        serviceConstellation.putPhenomenon(phenomenonId, phenomenonName);
-        return phenomenonId;
-    }
-
-    public static String addPhenomenon(DataAvailability dataAval, ServiceConstellation serviceConstellation) {
-        String phenomenonId = dataAval.getObservedProperty().getHref();
-        String phenomenonName = dataAval.getObservedProperty().getTitle();
-        serviceConstellation.putPhenomenon(phenomenonId, phenomenonName);
-        return phenomenonId;
-    }
-
-    public static String addCategory(String categoryId, ServiceConstellation serviceConstellation) {
-        serviceConstellation.putCategory(categoryId, categoryId);
-        return categoryId;
-    }
-
-    public static String addCategory(DataAvailability dataAval, ServiceConstellation serviceConstellation) {
-        String categoryId = dataAval.getObservedProperty().getHref();
-        String categoryName = dataAval.getObservedProperty().getTitle();
-        serviceConstellation.putCategory(categoryId, categoryName);
-        return categoryId;
-    }
-
-    public static String addCategory(String categoryId, String categoryName, ServiceConstellation serviceConstellation) {
-        serviceConstellation.putCategory(categoryId, categoryName);
-        return categoryId;
-    }
-
-    public static String addFeature(SamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
-        String featureId = samplingfeature.getIdentifier();
-        String featureDescription = samplingfeature.getDescription();
-        String featureName = samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
-        if (samplingfeature.getGeometry() != null) {
-            double lat = samplingfeature.getGeometry().getCoordinate().x;
-            double lng = samplingfeature.getGeometry().getCoordinate().y;
-            int srid = samplingfeature.getGeometry().getSRID();
-            serviceConstellation.putFeature(featureId, featureName, featureDescription, lat, lng, srid);
-        } else {
-            LOGGER.warn("No geometry found");
-        }
-        return featureId;
-    }
-
-    public static TemporalFilter createFirstTimefilter() {
-        Time time = new TimeInstant(FIRST);
-        return new TemporalFilter(TM_Equals, time, PHENOMENON_TIME_NAME);
-    }
-
-    public static TemporalFilter createLatestTimefilter() {
-        Time time = new TimeInstant(LATEST);
-        return new TemporalFilter(TM_Equals, time, PHENOMENON_TIME_NAME);
-    }
-
-    public static TemporalFilter createTimePeriodFilter(DbQuery query) {
-        Time time = new TimePeriod(query.getTimespan().getStart(), query.getTimespan().getEnd());
-        return new TemporalFilter(TM_During, time, PHENOMENON_TIME_NAME);
-    }
-
-    public static TemporalFilter createTimeInstantFilter(DateTime dateTime) {
-        return new TemporalFilter(
-                TM_Equals,
-                new TimeInstant(dateTime), PHENOMENON_TIME_NAME);
-    }
 
 }

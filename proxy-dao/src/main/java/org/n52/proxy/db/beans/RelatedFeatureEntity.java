@@ -30,6 +30,7 @@ package org.n52.proxy.db.beans;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;

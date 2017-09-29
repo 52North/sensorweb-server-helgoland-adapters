@@ -28,19 +28,19 @@
  */
 package org.n52.proxy.connector;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.Optional;
-import static java.util.Optional.empty;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.n52.janmayen.function.Functions;
+import org.n52.janmayen.function.Predicates;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addCategory;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addFeature;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addOffering;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addPhenomenon;
-import static org.n52.proxy.connector.utils.ConnectorHelper.addProcedure;
-import static org.n52.proxy.connector.utils.ConnectorHelper.createTimePeriodFilter;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -51,24 +51,20 @@ import org.n52.series.db.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
-import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
-import org.n52.shetland.ogc.sos.response.GetObservationResponse;
-import static org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants.RELATED_OFFERINGS;
+import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
-import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author Jan Schulte
  */
 public class NestedOfferingsSOSConnector extends SOS2Connector {
 
-    private static final Logger LOGGER = getLogger(NestedOfferingsSOSConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NestedOfferingsSOSConnector.class);
 
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
@@ -77,23 +73,21 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
-        obsOff.getExtension(RELATED_OFFERINGS).ifPresent((extension) -> {
-            if (extension instanceof RelatedOfferings) {
-                addNestedOfferings((RelatedOfferings) extension, serviceConstellation, config.getUrl());
-            }
-        });
+        obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS)
+                .filter(Predicates.instanceOf(RelatedOfferings.class))
+                .ifPresent(e -> addNestedOfferings((RelatedOfferings) e, serviceConstellation, config.getUrl()));
     }
 
     @Override
-    public Optional<DataEntity> getFirstObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
         // TODO implement
-        return empty();
+        return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity> getLastObservation(DatasetEntity entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
         // TODO implement
-        return empty();
+        return Optional.empty();
     }
 
 //    @Override
@@ -110,25 +104,19 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //        return data;
 //    }
     @Override
-    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        GetObservationResponse obsResp = createObservationResponse(seriesEntity, createTimePeriodFilter(
-                query));
-        List<DataEntity> data = new ArrayList<>();
-        try {
-            obsResp.getObservationCollection().forEachRemaining((observation) -> {
-                data.add(createDataEntity(observation, seriesEntity));
-            });
-        } catch (OwsExceptionReport e) {
-            LOGGER.error("Error while querying and processing observations!", e);
-        }
-        LOGGER.info("Found " + data.size() + " Entries");
+    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
+                .getObservationCollection().toStream()
+                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
+                .collect(toList());
+        LOGGER.info("Found {} Entries", data.size());
         return data;
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
+    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
         // TODO implement
-        return createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
+        return EntityBuilder.createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
@@ -136,7 +124,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         relatedOfferings.getValue().forEach((context) -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
-                LOGGER.info("Fetch nested offerings for " + relatedOffering.getTitle());
+                LOGGER.info("Fetch nested offerings for {}", relatedOffering.getTitle());
                 if (relatedOffering.getTitle().equalsIgnoreCase(
                         "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
                     GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
@@ -147,8 +135,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         String offeringId = addOffering(dataAvail.getOffering(), serviceConstellation);
                         String featureId = dataAvail.getFeatureOfInterest().getHref();
                         if (!serviceConstellation.hasFeature(featureId)) {
-                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestResponseByFeature(featureId,
-                                    serviceUri);
+                            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(featureId, serviceUri);
                             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
                             if (abstractFeature instanceof SamplingFeature) {
                                 addFeature((SamplingFeature) abstractFeature, serviceConstellation);
