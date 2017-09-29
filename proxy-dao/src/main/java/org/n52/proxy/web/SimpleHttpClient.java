@@ -33,6 +33,11 @@ import static org.apache.http.entity.ContentType.create;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.util.concurrent.TimeUnit;
+
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -51,13 +56,13 @@ import org.slf4j.Logger;
 public class SimpleHttpClient implements HttpClient {
 
     private static final Logger LOGGER = getLogger(SimpleHttpClient.class);
-
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
-
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-
     private static final ContentType CONTENT_TYPE_TEXT_XML = create("text/xml", UTF_8);
-
+    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
+            .retryOn(ConnectException.class)
+            .withDelay(10, TimeUnit.SECONDS)
+            .withMaxDuration(15, TimeUnit.MINUTES);
     private CloseableHttpClient httpclient;
     private int connectionTimeout;
     private int socketTimeout;
@@ -126,7 +131,9 @@ public class SimpleHttpClient implements HttpClient {
 
     @Override
     public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
-        return httpclient.execute(method);
+        return Failsafe.with(RETRY_POLICY)
+                .onFailedAttempt((ex) -> LOGGER.warn("Could not connect to host; retrying", ex))
+                .get(() -> httpclient.execute(method));
     }
 
     public void setConnectionTimout(int timeout) {

@@ -263,8 +263,11 @@
             <artifactId>52n-xml-gml-v321</artifactId>
             <version>2.3.0</version>
         </dependency>
-            
-        
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>failsafe</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
     
 </project>
