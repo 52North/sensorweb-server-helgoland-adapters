@@ -32,12 +32,12 @@ import java.util.Map;
 
 import org.n52.io.response.dataset.AbstractValue;
 import org.n52.proxy.connector.AbstractConnector;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.da.DataRepository;
 
-public interface ProxyDataRepository<D extends DatasetEntity<?>, V extends AbstractValue<?>>
-        extends DataRepository<D, V> {
+public interface ProxyDataRepository<S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T>
+        extends DataRepository<S, E, V, T> {
 
     void setConnectorMap(Map<String, AbstractConnector> connectorMap);
-
 }

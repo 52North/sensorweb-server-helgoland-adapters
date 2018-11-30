@@ -1,5 +1,6 @@
 package org.n52.proxy.connector.utils;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.TextDataEntity;
+import org.n52.series.db.dao.JTSGeometryConverter;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
@@ -28,10 +30,18 @@ public class DataEntityBuilder {
     private DataEntityBuilder() {
     }
 
-    public static DataEntity<Double> createQuantityDataEntity(OmObservation observation) {
+    public static DataEntity<BigDecimal> createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
-        getNumericValue(observation).map(Number::doubleValue).ifPresent(dataEntity::setValue);
+        getNumericValue(observation).map(x -> {
+            if (x instanceof BigDecimal) {
+                return (BigDecimal) x;
+            } else {
+                return BigDecimal.valueOf(x.doubleValue());
+            }
+        }).ifPresent(dataEntity::setValue);
+
         return setCommonValues(observation, dataEntity);
+
     }
 
     public static DataEntity<Integer> createCountDataEntity(OmObservation observation) {
@@ -121,6 +131,7 @@ public class DataEntityBuilder {
                 .map(NamedValue::getValue)
                 .filter(Value::isSetValue)
                 .map(Value::getValue)
+                .map(JTSGeometryConverter::convert)
                 .map(GeometryEntity::new)
                 .ifPresent(dataEntity::setGeometryEntity);
     }

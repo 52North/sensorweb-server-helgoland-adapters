@@ -39,6 +39,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+
 import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
@@ -47,11 +50,9 @@ import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.dao.JTSGeometryConverter;
 import org.n52.shetland.util.JTSHelper;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 public class ServiceConstellation {
 
@@ -185,14 +186,15 @@ public class ServiceConstellation {
     }
 
     protected GeometryEntity createGeometryEntitity(Geometry geometry) {
+        com.vividsolutions.jts.geom.Geometry geom = JTSGeometryConverter.convert(geometry);
         GeometryEntity geometryEntity = new GeometryEntity();
-        geometryEntity.setGeometry(geometry);
+        geometryEntity.setGeometry(geom);
         geometryEntity.setSrid(geometry.getSRID());
-        geometryEntity.setGeometryFactory(geometry.getFactory());
+        geometryEntity.setGeometryFactory(geom.getFactory());
         return geometryEntity;
     }
 
-    protected static Point createGeometry(int srid, double longitude, double latitude) {
+    protected static Geometry createGeometry(int srid, double longitude, double latitude) {
         return JTSHelper.getGeometryFactoryForSRID(srid).createPoint(new Coordinate(longitude, latitude));
     }
 

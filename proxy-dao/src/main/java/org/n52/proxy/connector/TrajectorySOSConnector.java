@@ -30,6 +30,7 @@ package org.n52.proxy.connector;
 
 import static java.util.stream.Collectors.toList;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -91,7 +92,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         Stopwatch stopwatch = new Stopwatch().start();
         LOGGER.info("Start GetObs request");
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, null);
@@ -107,7 +108,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetDataAvailabilityResponse availabilityResponse = getDataAvailability(seriesEntity);
         if (availabilityResponse.getDataAvailabilities().size() == 1) {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
@@ -125,22 +126,22 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // currently only return default first observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
         quantityDataEntity.setTimeend(new Date());
-        quantityDataEntity.setValue(0.0);
+        quantityDataEntity.setValue(BigDecimal.ZERO);
         return Optional.of(quantityDataEntity);
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // currently only return default last observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
         quantityDataEntity.setTimeend(new Date());
-        quantityDataEntity.setValue(0.0);
+        quantityDataEntity.setValue(BigDecimal.ZERO);
         return Optional.of(quantityDataEntity);
     }
 
@@ -191,7 +192,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         return featureId;
     }
 
-    private GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
+    private GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
                                                              TemporalFilter temporalFilter) {
         String responseFormat = null;
         // TODO use inspire omso 3.0 format later, when trajectory encoder/decoder are available

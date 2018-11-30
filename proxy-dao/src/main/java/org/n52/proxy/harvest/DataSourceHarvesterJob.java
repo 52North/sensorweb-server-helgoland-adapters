@@ -209,7 +209,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             List<DescribableEntity> entities = Arrays.asList(procedure, category, feature, offering, phenomenon);
             if (entities.stream().allMatch(Objects::nonNull)) {
                 entities.stream().forEach(x -> x.setService(service));
-                DatasetEntity<?> ds = insertRepository.insertDataset(dataset
+                DatasetEntity ds = insertRepository.insertDataset(dataset
                         .createDatasetEntity(procedure, category, feature, offering, phenomenon, service));
                 datasetIds.remove(ds.getPkid());
 

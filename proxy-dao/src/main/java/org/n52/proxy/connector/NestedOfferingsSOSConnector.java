@@ -79,13 +79,13 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }
@@ -104,7 +104,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 //        return data;
 //    }
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))
@@ -114,7 +114,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         // TODO implement
         return EntityBuilder.createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
     }

@@ -35,18 +35,20 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.n52.io.ConfigTypedFactory;
+import org.n52.io.handler.ConfigTypedFactory;
 import org.n52.io.response.dataset.AbstractValue;
 import org.n52.proxy.connector.AbstractConnector;
+import org.n52.series.db.DataRepositoryTypeFactory;
 import org.n52.series.db.HibernateSessionStore;
+import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.da.IDataRepositoryFactory;
+import org.n52.series.db.da.DataRepository;
 import org.n52.series.db.da.SessionAwareRepository;
 import org.n52.series.db.dao.DbQueryFactory;
 
-public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends AbstractValue<?>>
-        extends ConfigTypedFactory<ProxyDataRepository<D, V>>
-        implements IDataRepositoryFactory {
+public class DataRepositoryFactory<S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T>
+        extends ConfigTypedFactory<ProxyDataRepository<S, E, V, T>>
+        implements DataRepositoryTypeFactory {
 
     private static final String DEFAULT_CONFIG_FILE = "dataset-repository-factory-proxy.properties";
 
@@ -71,14 +73,11 @@ public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends Abstrac
     }
 
     @Override
-    protected ProxyDataRepository<D, V> initInstance(ProxyDataRepository<D, V> instance) {
-        instance.setSessionStore(sessionStore);
+    protected ProxyDataRepository<S, E, V, T> initInstance(ProxyDataRepository<S, E, V, T> instance) {
         instance.setConnectorMap(connectorMap);
         if (instance instanceof SessionAwareRepository) {
-
             SessionAwareRepository sessionAwareRepository = (SessionAwareRepository) instance;
-            sessionAwareRepository.setDbQueryFactory(dbQueryFactory);
-
+            sessionAwareRepository.setSessionStore(sessionStore);
         }
         return instance;
     }
@@ -93,4 +92,17 @@ public class DataRepositoryFactory<D extends DatasetEntity<?>, V extends Abstrac
         return ProxyDataRepository.class;
     }
 
+    @Override
+    public <S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T> DataRepository<S, E, V, T> create(
+                                                                                                                               String valueType,
+                                                                                                                               Class<S> entityType) {
+        /* TODO implement org.n52.proxy.db.da.DataRepositoryFactory.create() */
+        throw new UnsupportedOperationException("org.n52.proxy.db.da.DataRepositoryFactory.create() not yet implemented");
+    }
+
+    @Override
+    public Class<? extends DatasetEntity> getDatasetEntityType(String valueType) {
+        /* TODO implement org.n52.proxy.db.da.DataRepositoryFactory.getDatasetEntityType() */
+        throw new UnsupportedOperationException("org.n52.proxy.db.da.DataRepositoryFactory.getDatasetEntityType() not yet implemented");
+    }
 }

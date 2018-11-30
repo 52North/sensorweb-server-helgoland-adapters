@@ -38,7 +38,7 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.n52.io.response.dataset.Data;
+import org.n52.io.response.dataset.AbstractValue;
 import org.n52.io.response.dataset.DatasetOutput;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -48,7 +48,7 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.da.DatasetRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyDatasetRepository<T extends Data<?>> extends DatasetRepository<T> {
+public class ProxyDatasetRepository<V extends AbstractValue< ?>> extends DatasetRepository<V> {
 
     private Map<String, AbstractConnector> connectorMap = new HashMap<>();
 

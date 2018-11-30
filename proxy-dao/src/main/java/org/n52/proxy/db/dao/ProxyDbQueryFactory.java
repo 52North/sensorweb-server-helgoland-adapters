@@ -30,25 +30,14 @@ package org.n52.proxy.db.dao;
 
 import org.n52.io.request.IoParameters;
 import org.n52.series.db.dao.DbQuery;
-import org.n52.series.db.dao.DbQueryFactory;
+import org.n52.series.db.dao.DefaultDbQueryFactory;
 
-public class ProxyDbQueryFactory implements DbQueryFactory {
-
-    private String databaseSrid = "EPSG:4326";
+public class ProxyDbQueryFactory extends DefaultDbQueryFactory {
 
     @Override
     public DbQuery createFrom(IoParameters parameters) {
-        return ProxyDbQuery.createFrom(parameters);
+        ProxyDbQuery query = new ProxyDbQuery(parameters);
+        query.setDatabaseSridCode(getDatabaseSrid());
+        return query;
     }
-
-    @Override
-    public String getDatabaseSrid() {
-        return databaseSrid;
-    }
-
-    @Override
-    public void setDatabaseSrid(String databaseSrid) {
-        this.databaseSrid = databaseSrid;
-    }
-
 }

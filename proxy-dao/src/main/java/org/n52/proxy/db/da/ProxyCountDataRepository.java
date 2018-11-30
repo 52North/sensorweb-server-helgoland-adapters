@@ -32,7 +32,7 @@ import java.util.Map;
 
 import org.hibernate.Session;
 
-import org.n52.io.response.dataset.count.CountData;
+import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.count.CountValue;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -40,10 +40,11 @@ import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
+import org.n52.series.db.da.CountDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepository
-        implements ProxyDataRepository<CountDatasetEntity, CountValue> {
+public class ProxyCountDataRepository extends CountDataRepository
+        implements ProxyDataRepository<CountDatasetEntity, CountDataEntity, CountValue, Integer> {
 
     private Map<String, AbstractConnector> connectorMap;
 
@@ -55,21 +56,21 @@ public class ProxyCountDataRepository extends org.n52.series.db.da.CountDataRepo
     @Override
     public CountValue getFirstValue(CountDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> firstObs = getConnector(entity).getFirstObservation(entity).orElse(null);
-        return createSeriesValueFor((CountDataEntity) firstObs, entity, query);
+        return assembleDataValue((CountDataEntity) firstObs, entity, query);
     }
 
     @Override
     public CountValue getLastValue(CountDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> lastObs = getConnector(entity).getLastObservation(entity).orElse(null);
-        return createSeriesValueFor((CountDataEntity) lastObs, entity, query);
+        return assembleDataValue((CountDataEntity) lastObs, entity, query);
     }
 
     @Override
-    protected CountData assembleData(CountDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
-        CountData result = new CountData();
+    protected Data<CountValue> assembleData(CountDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+        Data<CountValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> createSeriesValueFor((CountDataEntity) entry, seriesEntity, query))
+                .map((entry) -> assembleDataValue((CountDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }
