@@ -75,7 +75,7 @@ public class HydroSOSConnector extends SOS2Connector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))

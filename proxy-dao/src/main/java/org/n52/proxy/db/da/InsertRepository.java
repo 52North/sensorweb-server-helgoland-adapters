@@ -166,7 +166,7 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
 
-    public synchronized DatasetEntity<?> insertDataset(DatasetEntity<?> dataset) {
+    public synchronized DatasetEntity insertDataset(DatasetEntity dataset) {
         Session session = getSession();
         Transaction transaction = null;
         try {
@@ -178,7 +178,7 @@ public class InsertRepository extends SessionAwareRepository {
             FeatureEntity feature = insertFeature(dataset.getFeature(), session);
             PhenomenonEntity phenomenon = insertPhenomenon(dataset.getPhenomenon(), session);
 
-            DatasetEntity<?> inserted
+            DatasetEntity inserted
                     = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
 
             session.flush();
@@ -195,7 +195,7 @@ public class InsertRepository extends SessionAwareRepository {
         return null;
     }
 
-    private DatasetEntity<?> insertDataset(DatasetEntity<?> dataset, CategoryEntity category, ProcedureEntity procedure,
+    private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
                                            OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon,
                                            Session session) {
         dataset.setCategory(category);
@@ -267,7 +267,7 @@ public class InsertRepository extends SessionAwareRepository {
                configuration.getItemName().equals(service.getName());
     }
 
-    public void insertData(DatasetEntity<?> dataset, DataEntity<?> data) {
+    public void insertData(DatasetEntity dataset, DataEntity<?> data) {
         data.setSeriesPkid(data.getPkid());
         Session session = getSession();
         Transaction transaction = null;

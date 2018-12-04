@@ -48,22 +48,22 @@ public class SensorThingsConnector extends AbstractConnector {
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         return createObservations(seriesEntity, query.getTimespan().getStart(), query.getTimespan().getEnd());
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         return seriesEntity.getUnit();
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         return Optional.of(createObservationBounds(entity, "asc"));
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         return Optional.of(createObservationBounds(entity, "desc"));
     }
 
@@ -131,7 +131,7 @@ public class SensorThingsConnector extends AbstractConnector {
         return (Datastreams) doGetRequest(url, "Datastreams?$expand=Sensor,Thing,ObservedProperty", Datastreams.class);
     }
 
-    private List<DataEntity<?>> createObservations(DatasetEntity<?> seriesEntity, DateTime start, DateTime end) {
+    private List<DataEntity<?>> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
         Observations observations = (Observations) doGetRequest(
                 seriesEntity.getService().getUrl(),
                 "Datastreams(" + seriesEntity.getDomainId() + ")/Observations?$filter=phenomenonTime%20gt%20'" + start.toString(
@@ -151,7 +151,7 @@ public class SensorThingsConnector extends AbstractConnector {
         observations.getValue().stream().map(this::createObservation).forEach(list::add);
     }
 
-    private DataEntity<?> createObservationBounds(DatasetEntity<?> entity, String order) {
+    private DataEntity<?> createObservationBounds(DatasetEntity entity, String order) {
         Observations observations = (Observations) doGetRequest(entity.getService().getUrl(),
                 "Datastreams(" + entity.getDomainId() + ")/Observations?$orderby=phenomenonTime%20" + order + "&$top=1",
                 Observations.class);

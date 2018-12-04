@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.n52.shetland.ogc.sos.SosConstants.SOS;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -97,7 +98,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         GetObservationResponse observationResponse = getObservation(
                 seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
         return observationResponse.getObservationCollection().toStream()
@@ -106,7 +107,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetObservationResponse observationResponse = getObservation(
                 seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
         List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
@@ -128,7 +129,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         return null;
     }
 
-    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
+    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         ProfileDataEntity dataEntity = new ProfileDataEntity();
         ObservationValue<? extends Value<?>> obsValue = observation.getValue();
         Date timestamp = ((TimeInstant) obsValue.getPhenomenonTime()).getValue().toDate();
@@ -150,8 +151,8 @@ public class OceanotronSosConnector extends SOS2Connector {
 
                     return dataArray.getValues().stream()
                             .map(valueEntry -> {
-                                double measurement = Double.valueOf(valueEntry.get(1));
-                                double verticalValue = Double.valueOf(valueEntry.get(0));
+                                BigDecimal measurement = new BigDecimal(valueEntry.get(1));
+                                BigDecimal verticalValue = new BigDecimal(valueEntry.get(0));
                                 LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
                                 return createVerticalEntry(measurement, timestamp, verticalUnit, verticalValue);
                             })
@@ -172,8 +173,8 @@ public class OceanotronSosConnector extends SOS2Connector {
         return EntityBuilder.createUnit(uom, description, service);
     }
 
-    private QuantityDataEntity createVerticalEntry(double measurement, Date timestamp, UnitEntity verticalUnit,
-                                                   double verticalValue) {
+    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp, UnitEntity verticalUnit,
+                                                   BigDecimal verticalValue) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setValue(measurement);
         quantityDataEntity.setTimestart(timestamp);
@@ -182,20 +183,20 @@ public class OceanotronSosConnector extends SOS2Connector {
         ParameterQuantity parameterQuantity = new ParameterQuantity();
         parameterQuantity.setUnit(verticalUnit);
         parameterQuantity.setName("depth");
-        parameterQuantity.setValue(verticalValue);
+        parameterQuantity.setValue(verticalValue.doubleValue());
         parameters.add(parameterQuantity);
         quantityDataEntity.setParameters(parameters);
         return quantityDataEntity;
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }

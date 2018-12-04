@@ -46,7 +46,7 @@ import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DatasetDao;
 
-public class ProxyDatasetDao<T extends DatasetEntity<?>> extends DatasetDao<T> implements InsertDao<T> {
+public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
 
     private static final Logger LOGGER = getLogger(ProxyDatasetDao.class);
 

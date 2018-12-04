@@ -28,11 +28,12 @@
  */
 package org.n52.proxy.db.da;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import org.hibernate.Session;
 
-import org.n52.io.response.dataset.quantity.QuantityData;
+import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.quantity.QuantityValue;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -44,7 +45,7 @@ import org.n52.series.db.da.QuantityDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
 public class ProxyQuantityDataRepository extends QuantityDataRepository
-        implements ProxyDataRepository<QuantityDatasetEntity, QuantityValue> {
+        implements ProxyDataRepository<QuantityDatasetEntity, QuantityDataEntity, QuantityValue, BigDecimal> {
 
     private Map<String, AbstractConnector> connectorMap;
 
@@ -61,28 +62,22 @@ public class ProxyQuantityDataRepository extends QuantityDataRepository
     @Override
     public QuantityValue getFirstValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> firstObservation = this.getConnector(entity).getFirstObservation(entity).orElse(null);
-        return createSeriesValueFor((QuantityDataEntity) firstObservation, entity, query);
+        return assembleDataValue((QuantityDataEntity) firstObservation, entity, query);
     }
 
     @Override
     public QuantityValue getLastValue(QuantityDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> lastObservation = this.getConnector(entity).getLastObservation(entity).orElse(null);
-        return createSeriesValueFor((QuantityDataEntity) lastObservation, entity, query);
+        return assembleDataValue((QuantityDataEntity) lastObservation, entity, query);
     }
 
     @Override
-    protected QuantityData assembleDataWithReferenceValues(QuantityDatasetEntity datasetEntity, DbQuery dbQuery,
-            Session session) throws DataAccessException {
-        return assembleData(datasetEntity, dbQuery, session);
-    }
-
-    @Override
-    protected QuantityData assembleData(QuantityDatasetEntity seriesEntity, DbQuery query, Session session)
+    protected Data<QuantityValue> assembleData(QuantityDatasetEntity seriesEntity, DbQuery query, Session session)
             throws DataAccessException {
-        QuantityData result = new QuantityData();
+        Data<QuantityValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> createSeriesValueFor((QuantityDataEntity) entry, seriesEntity, query))
+                .map((entry) -> assembleDataValue((QuantityDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

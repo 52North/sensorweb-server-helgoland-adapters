@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:ctx="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="
+    xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:ctx="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
         http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
         http://www.springframework.org/schema/mvc
@@ -12,16 +12,15 @@
     <mvc:annotation-driven />
     <ctx:annotation-config />
 
-    <bean id="insertRepository" class="org.n52.proxy.db.da.InsertRepository"/>
     <bean name="serviceRepository" class="org.n52.series.db.da.ServiceRepository" />
     <bean name="categoryRepository" class="org.n52.series.db.da.CategoryRepository" />
     <bean name="featureRepository" class="org.n52.series.db.da.FeatureRepository" />
     <bean name="phenomenonRepository" class="org.n52.series.db.da.PhenomenonRepository" />
-    <bean name="offeringRepository" class="org.n52.series.db.da.OfferingRepository" />
     <bean name="procedureRepository" class="org.n52.series.db.da.ProcedureRepository" />
+    <bean name="offeringRepository" class="org.n52.series.db.da.OfferingRepository" />
     <bean name="platformRepository" class="org.n52.series.db.da.PlatformRepository" />
-    <bean name="datasetRepository" class="org.n52.proxy.db.da.ProxyDatasetRepository" />
-    <bean name="geometriesRepository" class="org.n52.series.db.da.GeometriesRepository"/>
+    <!--<bean name="datasetRepository" class="org.n52.series.db.da.DatasetRepository" />-->
+    <bean name="geometriesRepository" class="org.n52.series.db.da.GeometriesRepository" />
 
     <bean id="serviceParameterService" class="org.n52.series.srv.AccessService">
         <constructor-arg index="0" ref="serviceRepository" />
@@ -49,5 +48,32 @@
     </bean>
     <bean id="phenomenonParameterService" class="org.n52.series.srv.AccessService">
         <constructor-arg index="0" ref="phenomenonRepository" />
+    </bean>
+
+    <bean id="resultTimeService" class="org.n52.io.extension.resulttime.ResultTimeService">
+        <constructor-arg index="0">
+            <bean class="org.n52.io.extension.resulttime.ResultTimeRepository" />
+        </constructor-arg>
+    </bean>
+    <bean id="hierarchicalParameterService" class="org.n52.io.extension.parents.HierarchicalParameterService">
+        <constructor-arg index="0">
+            <bean class="org.n52.io.extension.parents.HierarchicalParameterRepository" />
+        </constructor-arg>
+    </bean>
+
+
+    <!-- ########################################################## -->
+    <!-- ################# LEGACY BEAN INJECTIONS ################# -->
+    <!-- ########################################################## -->
+
+    <!--<bean id="timeseriesRepository" class="org.n52.series.db.da.TimeseriesRepository" />-->
+    <bean id="timeseriesRepository" class="org.n52.proxy.db.da.ProxyTimeseriesRepository" />
+    <bean id="stationRepository" class="org.n52.series.db.da.StationRepository" />
+
+    <bean id="stationParameterService" class="org.n52.series.srv.AccessService">
+        <constructor-arg index="0" ref="stationRepository" />
+    </bean>
+    <bean id="timeseriesService" class="org.n52.series.srv.TimeseriesAccessService">
+        <constructor-arg index="0" ref="timeseriesRepository" />
     </bean>
 </beans>

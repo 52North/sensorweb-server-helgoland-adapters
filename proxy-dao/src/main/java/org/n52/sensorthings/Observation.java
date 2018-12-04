@@ -1,5 +1,6 @@
 package org.n52.sensorthings;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import com.google.gson.annotations.SerializedName;
@@ -11,7 +12,7 @@ public class Observation extends SensorThingsElement {
 
     private Date phenomenonTime;
 
-    private double result;
+    private BigDecimal result;
 
     private String resultTime;
 
@@ -38,14 +39,14 @@ public class Observation extends SensorThingsElement {
     /**
      * @return the result
      */
-    public double getResult() {
+    public BigDecimal getResult() {
         return result;
     }
 
     /**
      * @param result the result to set
      */
-    public void setResult(double result) {
+    public void setResult(BigDecimal result) {
         this.result = result;
     }
 

@@ -51,7 +51,7 @@ public class ProxyDataDao<T extends DataEntity<?>> extends DataDao<T> implements
         super(session, clazz);
     }
 
-    public Long getObservationCount(DatasetEntity<?> entity) {
+    public Long getObservationCount(DatasetEntity entity) {
         return (Long) getDefaultCriteria(ProxyDbQuery.createDefaults())
                 .add(Restrictions.eq(DataEntity.PROPERTY_SERIES_PKID, entity.getPkid()))
                 .setProjection(Projections.rowCount())

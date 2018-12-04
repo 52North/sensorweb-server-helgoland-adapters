@@ -19,6 +19,33 @@
                 <targetPath>hbm</targetPath>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>create-apidocs-directory</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target xmlns:if="ant:if">
+                                <property name="file" value="${project.build.directory}/apidocs/package-list" />
+                                <condition property="createEmptyApidocsDirectory">
+                                    <not>
+                                        <available file="${file}" />
+                                    </not>
+                                </condition>
+                                <touch if:set="createEmptyApidocsDirectory" mkdirs="true" file="${file}" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>
 
