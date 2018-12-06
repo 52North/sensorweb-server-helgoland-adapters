@@ -40,8 +40,8 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/52North/series-sos-proxy.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/52North/series-sos-proxy.git</developerConnection>
+        <connection>scm:git:https://github.com/52North/series-sos-proxy.git</connection>
+        <developerConnection>scm:git:https://github.com/52North/series-sos-proxy.git</developerConnection>
         <url>https://github.com/52North/series-sos-proxy</url>
         <tag>HEAD</tag>
     </scm>
