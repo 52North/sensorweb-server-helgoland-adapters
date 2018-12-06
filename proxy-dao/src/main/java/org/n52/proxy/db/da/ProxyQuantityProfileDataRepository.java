@@ -28,7 +28,9 @@ import org.n52.series.db.dao.DbQuery;
  */
 public class ProxyQuantityProfileDataRepository
         extends QuantityProfileDataRepository
-        implements ProxyDataRepository<QuantityProfileDatasetEntity, ProfileDataEntity, ProfileValue<BigDecimal>, Set<DataEntity<?>>> {
+        implements
+        ProxyDataRepository<QuantityProfileDatasetEntity, ProfileDataEntity,
+                ProfileValue<BigDecimal>, Set<DataEntity<?>>> {
 
     private Map<String, AbstractConnector> connectorMap;
 
@@ -43,8 +45,10 @@ public class ProxyQuantityProfileDataRepository
     }
 
     @Override
-    public ProfileValue<BigDecimal> getFirstValue(QuantityProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
-        DataEntity<?> firstObs = getConnector(profileDatasetEntity).getFirstObservation(profileDatasetEntity).orElse(null);
+    public ProfileValue<BigDecimal> getFirstValue(QuantityProfileDatasetEntity profileDatasetEntity, Session session,
+                                                  DbQuery query) {
+        DataEntity<?> firstObs = getConnector(profileDatasetEntity).getFirstObservation(profileDatasetEntity)
+                .orElse(null);
         if (firstObs == null) {
             return null;
         }
@@ -52,21 +56,24 @@ public class ProxyQuantityProfileDataRepository
     }
 
     @Override
-    public ProfileValue<BigDecimal> getLastValue(QuantityProfileDatasetEntity profileDatasetEntity, Session session, DbQuery query) {
-        DataEntity<?> lastObs = getConnector(profileDatasetEntity).getLastObservation(profileDatasetEntity).orElse(null);
+    public ProfileValue<BigDecimal> getLastValue(QuantityProfileDatasetEntity profileDatasetEntity, Session session,
+                                                 DbQuery query) {
+        DataEntity<?> lastObs = getConnector(profileDatasetEntity)
+                .getLastObservation(profileDatasetEntity).orElse(null);
         if (lastObs == null) {
             return null;
         }
-        return assembleDataValue((ProfileDataEntity)lastObs, profileDatasetEntity, query);
+        return assembleDataValue((ProfileDataEntity) lastObs, profileDatasetEntity, query);
     }
 
     @Override
-    protected Data<ProfileValue<BigDecimal>> assembleData(QuantityProfileDatasetEntity profileDatasetEntity, DbQuery query, Session session) throws DataAccessException {
+    protected Data<ProfileValue<BigDecimal>> assembleData(QuantityProfileDatasetEntity profileDatasetEntity,
+                                                          DbQuery query, Session session) throws DataAccessException {
         Data<ProfileValue<BigDecimal>> result = new Data<>();
         this.getConnector(profileDatasetEntity)
                 .getObservations(profileDatasetEntity, query)
                 .stream()
-                .map((entry) -> assembleDataValue((ProfileDataEntity) entry, profileDatasetEntity, query))
+                .map(entry -> assembleDataValue((ProfileDataEntity) entry, profileDatasetEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

@@ -77,7 +77,7 @@ public class ProxyQuantityDataRepository extends QuantityDataRepository
         Data<QuantityValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> assembleDataValue((QuantityDataEntity) entry, seriesEntity, query))
+                .map(entry -> assembleDataValue((QuantityDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

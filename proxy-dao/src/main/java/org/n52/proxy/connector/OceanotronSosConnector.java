@@ -30,8 +30,6 @@ package org.n52.proxy.connector;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -41,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -72,6 +71,7 @@ import org.n52.shetland.ogc.sensorML.System;
 import org.n52.shetland.ogc.sensorML.elements.SmlComponent;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
+import org.n52.shetland.ogc.sos.SosConstants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
@@ -85,7 +85,8 @@ import org.n52.shetland.ogc.swes.SwesConstants;
 
 public class OceanotronSosConnector extends SOS2Connector {
 
-    private static final Logger LOGGER = getLogger(OceanotronSosConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OceanotronSosConnector.class);
+    private static final String OM_2_MIMETYPE = "text/xml;subtype=\"http://www.opengis.net/om/2.0\"";
 
     /**
      * Matches when the provider name is equal "Geomatys"
@@ -99,8 +100,7 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        GetObservationResponse observationResponse = getObservation(
-                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+        GetObservationResponse observationResponse = getObservation(seriesEntity, null, OM_2_MIMETYPE);
         return observationResponse.getObservationCollection().toStream()
                 .map(observation -> createProfileDataEntity(observation, seriesEntity))
                 .collect(toList());
@@ -108,8 +108,7 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
-        GetObservationResponse observationResponse = getObservation(
-                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+        GetObservationResponse observationResponse = getObservation(seriesEntity, null, OM_2_MIMETYPE);
         List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
         if (omColl.size() == 1) {
             OmObservation observation = omColl.get(0);
@@ -205,13 +204,11 @@ public class OceanotronSosConnector extends SOS2Connector {
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
                                DataSourceConfiguration config) {
         if (sosCaps != null) {
-            sosCaps.getContents().ifPresent((obsOffs) -> {
-                obsOffs.forEach((SosObservationOffering obsOff) -> {
-                    if (config.getAllowedOfferings() == null ||
-                        config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
-                        addElem(obsOff, serviceConstellation, config.getUrl());
-                    }
-                });
+            sosCaps.getContents().ifPresent(obsOffs -> {
+                obsOffs.stream()
+                        .filter(obsOff -> config.getAllowedOfferings() == null ||
+                                          config.getAllowedOfferings().contains(obsOff.getIdentifier()))
+                        .forEach(obsOff -> addElem(obsOff, serviceConstellation, config.getUrl()));
             });
         }
     }
@@ -294,7 +291,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private SensorML getDescribeSensorResponse(String procedureId, String url) {
-        DescribeSensorRequest request = new DescribeSensorRequest(SOS, Sos2Constants.SERVICEVERSION);
+        DescribeSensorRequest request = new DescribeSensorRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
         request.setProcedure(procedureId);
         request.setProcedureDescriptionFormat("http://www.opengis.net/sensorML/1.0.0");
         return (SensorML) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);

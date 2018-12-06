@@ -23,7 +23,7 @@ import org.n52.shetland.ogc.om.values.Value;
 /**
  * @author Jan Schulte
  */
-public class DataEntityBuilder {
+public final class DataEntityBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataEntityBuilder.class);
 

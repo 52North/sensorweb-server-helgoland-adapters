@@ -70,6 +70,11 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
+     *
+     * @param config   The {@link DataSourceConfiguration}.
+     * @param response The {@link GetCapabilitiesResponse}.
+     *
+     * @return If this {@link TrajectorySOSConnector} can handle the service.
      */
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse response) {
@@ -147,10 +152,10 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
         if (sosCaps != null) {
-            sosCaps.getContents().ifPresent((obsOffs) -> {
-//                obsOffs.forEach((obsOff) -> {
-//                    doForOffering(obsOff, serviceConstellation, serviceUri);
-//                });
+            sosCaps.getContents().ifPresent(obsOffs -> {
+                //obsOffs.forEach((obsOff) -> {
+                //    doForOffering(obsOff, serviceConstellation, serviceUri);
+                //});
                 doForOffering(obsOffs.first(), serviceConstellation, serviceUri);
             });
         }
@@ -159,11 +164,11 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     private void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
                                String serviceUri) {
         String offeringId = addOffering(offering, serviceConstellation);
-//        offering.getProcedures().forEach((procedureId) -> {
-//            offering.getObservableProperties().forEach((obsProp) -> {
-//                doDataAvailability(obsProp, procedureId, offeringId, serviceUri, serviceConstellation);
-//            });
-//        });
+        //offering.getProcedures().forEach((procedureId) -> {
+        //    offering.getObservableProperties().forEach((obsProp) -> {
+        //        doDataAvailability(obsProp, procedureId, offeringId, serviceUri, serviceConstellation);
+        //    });
+        //});
         doDataAvailability(offering.getObservableProperties().first(), offering.getProcedures().first(), offeringId,
                            serviceUri, serviceConstellation);
     }
@@ -172,7 +177,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                                     ServiceConstellation serviceConstellation) {
         GetDataAvailabilityResponse gdaResponse = getDataAvailability(procedureId, offeringId, obsProp, null,
                                                                               serviceUri);
-        gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
+        gdaResponse.getDataAvailabilities().forEach(dataAval -> {
             String featureId = addFeature(dataAval, serviceConstellation);
             addProcedure(dataAval, true, true, serviceConstellation);
             String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
@@ -196,7 +201,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                                                              TemporalFilter temporalFilter) {
         String responseFormat = null;
         // TODO use inspire omso 3.0 format later, when trajectory encoder/decoder are available
-//        request.setResponseFormat("http://inspire.ec.europa.eu/schemas/omso/3.0");
+        // request.setResponseFormat("http://inspire.ec.europa.eu/schemas/omso/3.0");
         return getObservation(seriesEntity, temporalFilter, responseFormat);
     }
 

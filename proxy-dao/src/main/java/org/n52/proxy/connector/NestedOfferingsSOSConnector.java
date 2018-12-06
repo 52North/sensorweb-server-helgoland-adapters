@@ -72,7 +72,9 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     @Override
-    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation, DataSourceConfiguration config) {
+    protected void doForOffering(SosObservationOffering obsOff,
+                                 ServiceConstellation serviceConstellation,
+                                 DataSourceConfiguration config) {
         obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS)
                 .filter(Predicates.instanceOf(RelatedOfferings.class))
                 .ifPresent(e -> addNestedOfferings((RelatedOfferings) e, serviceConstellation, config.getUrl()));
@@ -90,19 +92,6 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
         return Optional.empty();
     }
 
-//    @Override
-//    public List<DataEntity> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-//        List<DataEntity> data = new ArrayList<>();
-//        RecordDataEntity recordEntity = new RecordDataEntity();
-//        Map<String, Object> recordMap = Maps.newHashMap();
-//        recordMap.put("boolean", true);
-//        recordMap.put("double", 1.234d);
-//        recordMap.put("text", "asdf aksdjf öaskdjf öasdkfj");
-//        recordMap.put("number", 123);
-//        recordEntity.setValue(recordMap);
-//        data.add(recordEntity);
-//        return data;
-//    }
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
@@ -120,15 +109,15 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
-            String serviceUri) {
-        relatedOfferings.getValue().forEach((context) -> {
+                                    String serviceUri) {
+        relatedOfferings.getValue().forEach(context -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
                 LOGGER.info("Fetch nested offerings for {}", relatedOffering.getTitle());
                 if (relatedOffering.getTitle().equalsIgnoreCase(
                         "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
                     GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
-                    response.getDataAvailabilities().forEach((dataAvail) -> {
+                    response.getDataAvailabilities().forEach(dataAvail -> {
                         String procedureId = addProcedure(dataAvail, true, false, serviceConstellation);
                         String phenomenonId = addPhenomenon(dataAvail, serviceConstellation);
                         String categoryId = addCategory(dataAvail, serviceConstellation);
@@ -143,8 +132,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         }
                         // TODO maybe not only QuantityDatasetConstellation
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                        phenomenonId,
-                                        featureId));
+                                                                                  phenomenonId,
+                                                                                  featureId));
                     });
                 }
             } catch (ProxyException ex) {

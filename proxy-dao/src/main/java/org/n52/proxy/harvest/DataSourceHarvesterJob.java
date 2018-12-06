@@ -28,11 +28,6 @@
  */
 package org.n52.proxy.harvest;
 
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import static org.quartz.JobBuilder.newJob;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +39,7 @@ import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
+import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -51,6 +47,7 @@ import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.n52.io.task.ScheduledJob;
@@ -74,12 +71,13 @@ import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
+import org.n52.svalbard.util.CodingHelper;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
-    private static final Logger LOGGER = getLogger(DataSourceHarvesterJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
 
     private static final String JOB_CONFIG = "config";
 
@@ -109,7 +107,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     public JobDetail createJobDetails() {
         JobDataMap dataMap = new JobDataMap();
         dataMap.put(JOB_CONFIG, config);
-        return newJob(DataSourceHarvesterJob.class)
+        return JobBuilder.newJob(DataSourceHarvesterJob.class)
                 .withIdentity(getJobName())
                 .usingJobData(dataMap)
                 .build();
@@ -199,7 +197,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         Set<Long> datasetIds = insertRepository.getIdsForService(service);
 
         // save all constellations
-        constellation.getDatasets().forEach((dataset) -> {
+        constellation.getDatasets().forEach(dataset -> {
             ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
             CategoryEntity category = constellation.getCategories().get(dataset.getCategory());
             FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
@@ -235,9 +233,9 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 url += "?";
             }
             HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities");
-            XmlObject xmlResponse = parse(response.getEntity().getContent());
+            XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
             return (GetCapabilitiesResponse) decoderRepository
-                    .getDecoder(getDecoderKey(xmlResponse))
+                    .getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
         } catch (XmlException ex) {
             throw new DecodingException(ex);

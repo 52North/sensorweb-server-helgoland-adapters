@@ -43,7 +43,6 @@ import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.da.TextDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-
 public class ProxyTextDataRepository extends TextDataRepository
         implements ProxyDataRepository<TextDatasetEntity, TextDataEntity, TextValue, String> {
 
@@ -67,11 +66,12 @@ public class ProxyTextDataRepository extends TextDataRepository
     }
 
     @Override
-    protected Data<TextValue> assembleData(TextDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+    protected Data<TextValue> assembleData(TextDatasetEntity seriesEntity, DbQuery query, Session session)
+            throws DataAccessException {
         Data<TextValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> assembleDataValue((TextDataEntity) entry, seriesEntity, query))
+                .map(entry -> assembleDataValue((TextDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

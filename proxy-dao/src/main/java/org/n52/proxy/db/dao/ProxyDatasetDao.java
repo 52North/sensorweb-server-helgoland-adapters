@@ -29,15 +29,15 @@
 package org.n52.proxy.db.dao;
 
 import static java.util.stream.Collectors.toSet;
-import static org.hibernate.criterion.Restrictions.eq;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.List;
 import java.util.Set;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -48,7 +48,7 @@ import org.n52.series.db.dao.DatasetDao;
 
 public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> implements InsertDao<T> {
 
-    private static final Logger LOGGER = getLogger(ProxyDatasetDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProxyDatasetDao.class);
 
     private static final String COLUMN_VALUETYPE = "valueType";
     private static final String COLUMN_SERVICE_PKID = "service.pkid";
@@ -97,20 +97,18 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
     }
 
     public void removeDatasets(Set<Long> datasetIds) {
-        datasetIds.forEach((id) -> {
-            session.delete(session.get(DatasetEntity.class, id));
-        });
+        datasetIds.forEach(id -> session.delete(session.get(DatasetEntity.class, id)));
         session.flush();
     }
 
     @SuppressWarnings("unchecked")
     public void removeAllOfService(ProxyServiceEntity service) {
         getDefaultCriteria(ProxyDbQuery.createDefaults())
-                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach(session::delete);
         session.createCriteria(UnitEntity.class)
-                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
                 .list()
                 .forEach(session::delete);
         session.flush();
@@ -118,28 +116,28 @@ public class ProxyDatasetDao<T extends DatasetEntity> extends DatasetDao<T> impl
 
     private UnitEntity getUnit(UnitEntity unit) {
         Criteria criteria = session.createCriteria(UnitEntity.class)
-                .add(eq("name", unit.getName()))
-                .add(eq(COLUMN_SERVICE_PKID, unit.getService().getPkid()));
+                .add(Restrictions.eq("name", unit.getName()))
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, unit.getService().getPkid()));
         return (UnitEntity) criteria.uniqueResult();
     }
 
     @SuppressWarnings("unchecked")
     private T getInstance(T dataset) {
         Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
-                .add(eq(COLUMN_VALUETYPE, dataset.getValueType()))
-                .add(eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
-                .add(eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
-                .add(eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
-                .add(eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
-                .add(eq(COLUMN_OFFERING_PKID, dataset.getOffering().getPkid()))
-                .add(eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
+                .add(Restrictions.eq(COLUMN_VALUETYPE, dataset.getValueType()))
+                .add(Restrictions.eq(COLUMN_CATEGORY_PKID, dataset.getCategory().getPkid()))
+                .add(Restrictions.eq(COLUMN_FEATURE_PKID, dataset.getFeature().getPkid()))
+                .add(Restrictions.eq(COLUMN_PROCEDURE_PKID, dataset.getProcedure().getPkid()))
+                .add(Restrictions.eq(COLUMN_PHENOMENON_PKID, dataset.getPhenomenon().getPkid()))
+                .add(Restrictions.eq(COLUMN_OFFERING_PKID, dataset.getOffering().getPkid()))
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, dataset.getService().getPkid()));
         return (T) criteria.uniqueResult();
     }
 
     @SuppressWarnings("unchecked")
     private List<T> getDatasetsForService(ServiceEntity service) {
         Criteria criteria = getDefaultCriteria(ProxyDbQuery.createDefaults())
-                .add(eq(COLUMN_SERVICE_PKID, service.getPkid()));
+                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()));
         return criteria.list();
     }
 }

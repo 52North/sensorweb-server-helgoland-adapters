@@ -89,13 +89,14 @@ public class HydroSOSConnector extends SOS2Connector {
                                  DataSourceConfiguration config) {
         String offeringId = addOffering(obsOff, serviceConstellation);
 
-        obsOff.getProcedures().forEach((procedureId) -> {
+        obsOff.getProcedures().forEach(procedureId -> {
             addProcedure(procedureId, true, false, serviceConstellation);
             obsOff.getObservableProperties().forEach(phenomenonId -> {
                 addPhenomenon(phenomenonId, serviceConstellation);
                 String categoryId = addCategory(phenomenonId, serviceConstellation);
 
-                GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId, config.getUrl());
+                GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
+                                                                                           config.getUrl());
                 AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
                 if (abstractFeature instanceof FeatureCollection) {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
@@ -109,6 +110,4 @@ public class HydroSOSConnector extends SOS2Connector {
             });
         });
     }
-
-
 }

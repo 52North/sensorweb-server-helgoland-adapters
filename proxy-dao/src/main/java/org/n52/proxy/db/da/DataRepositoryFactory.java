@@ -44,7 +44,6 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.da.DataRepository;
 import org.n52.series.db.da.SessionAwareRepository;
-import org.n52.series.db.dao.DbQueryFactory;
 
 public class DataRepositoryFactory<S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T>
         extends ConfigTypedFactory<ProxyDataRepository<S, E, V, T>>
@@ -54,8 +53,6 @@ public class DataRepositoryFactory<S extends DatasetEntity, E extends DataEntity
 
     @Autowired
     private HibernateSessionStore sessionStore;
-    @Autowired
-    private DbQueryFactory dbQueryFactory;
 
     private final Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
@@ -93,16 +90,15 @@ public class DataRepositoryFactory<S extends DatasetEntity, E extends DataEntity
     }
 
     @Override
-    public <S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T> DataRepository<S, E, V, T> create(
-                                                                                                                               String valueType,
-                                                                                                                               Class<S> entityType) {
+    public <S extends DatasetEntity, E extends DataEntity<T>, V extends AbstractValue<?>, T> DataRepository<S, E, V, T>
+            create(String valueType, Class<S> entityType) {
         /* TODO implement org.n52.proxy.db.da.DataRepositoryFactory.create() */
-        throw new UnsupportedOperationException("org.n52.proxy.db.da.DataRepositoryFactory.create() not yet implemented");
+        throw new UnsupportedOperationException("create() not yet implemented");
     }
 
     @Override
     public Class<? extends DatasetEntity> getDatasetEntityType(String valueType) {
         /* TODO implement org.n52.proxy.db.da.DataRepositoryFactory.getDatasetEntityType() */
-        throw new UnsupportedOperationException("org.n52.proxy.db.da.DataRepositoryFactory.getDatasetEntityType() not yet implemented");
+        throw new UnsupportedOperationException("getDatasetEntityType() not yet implemented");
     }
 }

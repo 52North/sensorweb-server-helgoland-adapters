@@ -131,7 +131,7 @@ public class SOS2Connector extends AbstractSosConnector {
                                  DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
-        offering.getProcedures().forEach((procedureId) -> {
+        offering.getProcedures().forEach(procedureId -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,

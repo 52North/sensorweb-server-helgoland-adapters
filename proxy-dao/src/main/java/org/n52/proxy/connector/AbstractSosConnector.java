@@ -91,8 +91,9 @@ import org.n52.svalbard.util.CodingHelper;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
+    private static final String COULD_NOT_RETRIEVE_RESPONSE = "Could not retrieve response";
 
-    protected int counter = 0;
+    protected int counter;
 
     private DecoderRepository decoderRepository;
     private EncoderRepository encoderRepository;
@@ -128,7 +129,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         try {
             return decodeResponse(sendGetRequest(uri));
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         }
     }
@@ -148,7 +149,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             XmlObject xmlRequest = encoder.encode(request);
             return decodeResponse(sendPostRequest(xmlRequest, serviceUrl));
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         } catch (EncodingException ex) {
             LOGGER.error("Could not encode request : " + request, ex);
@@ -170,7 +171,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             }
             return decode;
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         } catch (XmlException ex) {
             LOGGER.error("Could not parse response XML", ex);

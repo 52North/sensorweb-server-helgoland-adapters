@@ -28,12 +28,9 @@
  */
 package org.n52.proxy.web;
 
-import static org.apache.http.Consts.UTF_8;
-import static org.apache.http.entity.ContentType.create;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.io.IOException;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import net.jodah.failsafe.Failsafe;
@@ -52,13 +49,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleHttpClient implements HttpClient {
 
-    private static final Logger LOGGER = getLogger(SimpleHttpClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-    private static final ContentType CONTENT_TYPE_TEXT_XML = create("text/xml", UTF_8);
+    private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", StandardCharsets.UTF_8);
     private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
             .retryOn(ConnectException.class)
             .withDelay(10, TimeUnit.SECONDS)
@@ -132,7 +130,7 @@ public class SimpleHttpClient implements HttpClient {
     @Override
     public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
         return Failsafe.with(RETRY_POLICY)
-                .onFailedAttempt((ex) -> LOGGER.warn("Could not connect to host; retrying", ex))
+                .onFailedAttempt(ex -> LOGGER.warn("Could not connect to host; retrying", ex))
                 .get(() -> httpclient.execute(method));
     }
 

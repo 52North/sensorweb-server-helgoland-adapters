@@ -28,7 +28,7 @@
  */
 package org.n52.proxy.connector.utils;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
@@ -39,9 +39,9 @@ import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.UnitEntity;
 
-public class EntityBuilder {
+public final class EntityBuilder {
 
-    private static final org.slf4j.Logger LOGGER = getLogger(EntityBuilder.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(EntityBuilder.class);
 
     private EntityBuilder() {
     }

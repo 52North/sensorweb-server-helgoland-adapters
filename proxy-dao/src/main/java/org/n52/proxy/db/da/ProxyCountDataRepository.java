@@ -66,11 +66,12 @@ public class ProxyCountDataRepository extends CountDataRepository
     }
 
     @Override
-    protected Data<CountValue> assembleData(CountDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
+    protected Data<CountValue> assembleData(CountDatasetEntity seriesEntity, DbQuery query, Session session)
+            throws DataAccessException {
         Data<CountValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> assembleDataValue((CountDataEntity) entry, seriesEntity, query))
+                .map(entry -> assembleDataValue((CountDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

@@ -1,14 +1,17 @@
 package org.n52.proxy.connector;
 
-
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.entity.ContentType;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -99,14 +102,14 @@ public class SensorThingsConnector extends AbstractConnector {
         if (locations != null) {
             String featureId = addFeature(locations.getValue().get(0), serviceConstellation);
             QuantityDatasetConstellation constellation = new QuantityDatasetConstellation(procedureId,
-                    offeringId,
-                    categoryId,
-                    phenomenonId,
-                    featureId);
+                                                                                          offeringId,
+                                                                                          categoryId,
+                                                                                          phenomenonId,
+                                                                                          featureId);
             constellation.setDomainId(Integer.toString(datastream.getIotID()));
-            constellation.setUnit(EntityBuilder.createUnit(datastream.getUnitOfMeasurement().getSymbol(), datastream.getUnitOfMeasurement()
-                    .getDefinition(),
-                    serviceConstellation.getService()));
+            constellation.setUnit(EntityBuilder.createUnit(datastream.getUnitOfMeasurement().getSymbol(),
+                                                           datastream.getUnitOfMeasurement().getDefinition(),
+                                                           serviceConstellation.getService()));
             serviceConstellation.add(constellation);
         }
     }
@@ -114,7 +117,9 @@ public class SensorThingsConnector extends AbstractConnector {
     private Object doGetRequest(String urlString, Class<?> clazz) {
         try {
             HttpResponse response = sendGetRequest(urlString);
-            return gson.fromJson(new InputStreamReader(response.getEntity().getContent()), clazz);
+            try (Reader reader = new InputStreamReader(response.getEntity().getContent(), getEncoding(response))) {
+                return gson.fromJson(reader, clazz);
+            }
         } catch (MalformedURLException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         } catch (JsonSyntaxException | IOException ex) {
@@ -132,12 +137,15 @@ public class SensorThingsConnector extends AbstractConnector {
     }
 
     private List<DataEntity<?>> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
-        Observations observations = (Observations) doGetRequest(
-                seriesEntity.getService().getUrl(),
-                "Datastreams(" + seriesEntity.getDomainId() + ")/Observations?$filter=phenomenonTime%20gt%20'" + start.toString(
-                formatter) + "'%20and%20phenomenonTime%20lt%20'" + end.toString(formatter) + "'",
-                Observations.class
-        );
+        String entity = String.format("Datastreams(%s)/Observations?$filter=" +
+                                      "phenomenonTime%%20gt%%20'%s'" +
+                                      "%%20and%%20" +
+                                      "phenomenonTime%%20lt%%20'%s'",
+                                      seriesEntity.getDomainId(),
+                                      start.toString(formatter),
+                                      end.toString(formatter));
+        Observations observations = (Observations) doGetRequest(seriesEntity.getService().getUrl(),
+                                                                entity, Observations.class);
         List<DataEntity<?>> list = new LinkedList<>();
         addObservationsToList(observations, list);
         while (observations.getNextLink() != null) {
@@ -152,9 +160,9 @@ public class SensorThingsConnector extends AbstractConnector {
     }
 
     private DataEntity<?> createObservationBounds(DatasetEntity entity, String order) {
-        Observations observations = (Observations) doGetRequest(entity.getService().getUrl(),
-                "Datastreams(" + entity.getDomainId() + ")/Observations?$orderby=phenomenonTime%20" + order + "&$top=1",
-                Observations.class);
+        String e = String.format("Datastreams(%s)/Observations?$orderby=phenomenonTime%%20%s&$top=1",
+                                 entity.getDomainId(), order);
+        Observations observations = (Observations) doGetRequest(entity.getService().getUrl(), e, Observations.class);
         if (observations.getValue().size() == 1) {
             return createObservation(observations.getValue().get(0));
         }
@@ -179,8 +187,9 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private String addFeature(Location location, ServiceConstellation serviceConstellation) {
         String featureId = Integer.toString(location.getIotID());
-        serviceConstellation.putFeature(featureId, location.getName(), null, location.getLocation().getCoordinates().get(1),
-                location.getLocation().getCoordinates().get(0), 4326);
+        serviceConstellation.putFeature(featureId, location.getName(), null,
+                                        location.getLocation().getCoordinates().get(1),
+                                        location.getLocation().getCoordinates().get(0), 4326);
         return featureId;
     }
 
@@ -192,4 +201,12 @@ public class SensorThingsConnector extends AbstractConnector {
         return dataEntity;
     }
 
+    private Charset getEncoding(HttpResponse response) {
+        ContentType contentType = ContentType.getLenient(response.getEntity());
+        if (contentType != null && contentType.getCharset() != null) {
+            return contentType.getCharset();
+        } else {
+            return StandardCharsets.UTF_8;
+        }
+    }
 }

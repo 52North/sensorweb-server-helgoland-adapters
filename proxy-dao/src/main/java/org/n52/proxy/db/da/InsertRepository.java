@@ -217,7 +217,7 @@ public class InsertRepository extends SessionAwareRepository {
             session.flush();
             transaction.commit();
         } catch (HibernateException e) {
-            LOGGER.error("Error occured while saving related feature: ", e);
+            LOGGER.error("Error occured while saving related feature", e);
         } finally {
             returnSession(session);
         }
@@ -277,7 +277,7 @@ public class InsertRepository extends SessionAwareRepository {
             session.flush();
             transaction.commit();
         } catch (HibernateException e) {
-            LOGGER.error("Error occured while saving related feature: ", e);
+            LOGGER.error("Error occured while saving data", e);
             if (transaction != null) {
                 transaction.rollback();
             }

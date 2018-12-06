@@ -5,6 +5,8 @@ import java.util.Date;
 
 import com.google.gson.annotations.SerializedName;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * @author Jan Schulte
  */
@@ -25,6 +27,7 @@ public class Observation extends SensorThingsElement {
     /**
      * @return the phenomenonTime
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getPhenomenonTime() {
         return phenomenonTime;
     }
@@ -32,6 +35,7 @@ public class Observation extends SensorThingsElement {
     /**
      * @param phenomenonTime the phenomenonTime to set
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setPhenomenonTime(Date phenomenonTime) {
         this.phenomenonTime = phenomenonTime;
     }
