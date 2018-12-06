@@ -63,8 +63,8 @@
         <hibernate.version>4.3.11.Final</hibernate.version>
         <hibernate.spatial.version>4.3.2-52N</hibernate.spatial.version>
         <arctic-sea.version>5.1.0</arctic-sea.version>
-        <series.api.version>2.0.1-SNAPSHOT</series.api.version>
-        <series.db.version>2.0.0-SNAPSHOT</series.db.version>
+        <series.api.version>2.0.1-alpha.1</series.api.version>
+        <series.db.version>2.0.0-alpha.4</series.db.version>
         <hibernate.spatial.version>4.3.1-52N</hibernate.spatial.version>
         <postgresql.version>9.4.1208.jre7</postgresql.version>
         <postgis.version>2.2.0</postgis.version>
