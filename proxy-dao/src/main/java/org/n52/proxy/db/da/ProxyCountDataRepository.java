@@ -28,9 +28,14 @@
  */
 package org.n52.proxy.db.da;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.count.CountValue;
@@ -43,14 +48,14 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.da.CountDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyCountDataRepository extends CountDataRepository
-        implements ProxyDataRepository<CountDatasetEntity, CountDataEntity, CountValue, Integer> {
+public class ProxyCountDataRepository extends CountDataRepository {
 
     private Map<String, AbstractConnector> connectorMap;
 
-    @Override
-    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
-        this.connectorMap = connectorMap;
+    @Autowired
+    public void setConnectors(List<AbstractConnector> connectors) {
+        this.connectorMap = connectors.stream()
+                .collect(toMap(AbstractConnector::getConnectorName, Function.identity()));
     }
 
     @Override

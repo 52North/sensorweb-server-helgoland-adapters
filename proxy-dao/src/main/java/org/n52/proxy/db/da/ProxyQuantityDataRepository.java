@@ -28,10 +28,14 @@
  */
 package org.n52.proxy.db.da;
 
-import java.math.BigDecimal;
+import static java.util.stream.Collectors.toMap;
+
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.quantity.QuantityValue;
@@ -44,14 +48,14 @@ import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.da.QuantityDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyQuantityDataRepository extends QuantityDataRepository
-        implements ProxyDataRepository<QuantityDatasetEntity, QuantityDataEntity, QuantityValue, BigDecimal> {
+public class ProxyQuantityDataRepository extends QuantityDataRepository {
 
-    private Map<String, AbstractConnector> connectorMap;
+   private Map<String, AbstractConnector> connectorMap;
 
-    @Override
-    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
-        this.connectorMap = connectorMap;
+    @Autowired
+    public void setConnectors(List<AbstractConnector> connectors) {
+        this.connectorMap = connectors.stream()
+                .collect(toMap(AbstractConnector::getConnectorName, Function.identity()));
     }
 
     private AbstractConnector getConnector(QuantityDatasetEntity seriesEntity) {

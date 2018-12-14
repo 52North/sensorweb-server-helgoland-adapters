@@ -28,9 +28,14 @@
  */
 package org.n52.proxy.db.da;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.text.TextValue;
@@ -43,14 +48,14 @@ import org.n52.series.db.beans.TextDatasetEntity;
 import org.n52.series.db.da.TextDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyTextDataRepository extends TextDataRepository
-        implements ProxyDataRepository<TextDatasetEntity, TextDataEntity, TextValue, String> {
+public class ProxyTextDataRepository extends TextDataRepository {
 
     private Map<String, AbstractConnector> connectorMap;
 
-    @Override
-    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
-        this.connectorMap = connectorMap;
+    @Autowired
+    public void setConnectors(List<AbstractConnector> connectors) {
+        this.connectorMap = connectors.stream()
+                .collect(toMap(AbstractConnector::getConnectorName, Function.identity()));
     }
 
     @Override
