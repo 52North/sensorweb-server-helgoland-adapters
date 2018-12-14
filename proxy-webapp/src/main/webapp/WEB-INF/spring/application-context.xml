@@ -37,4 +37,5 @@
     <!-- For SOS Bundles (instead of extra database config) -->
     <!--<bean class="org.n52.series.db.da.sos.SOSHibernateSessionHolder" destroy-method="shutdown" />-->
     <import resource="series-database-config.xml" />
+    <import resource="proxy.xml"/>
 </beans>
