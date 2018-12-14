@@ -41,7 +41,7 @@
                 <prop key="jdbc.time.zone">${series.database.timezone}</prop>
             </props>
         </property>
-        <property name="mappingLocations" value="#{'${series.database.mappings}'.split(',')}" />
+        <property name="mappingLocations" value="classpath*:/hbm/sos/v44/*.hbm.xml" />
     </bean>
 
     <tx:annotation-driven />
