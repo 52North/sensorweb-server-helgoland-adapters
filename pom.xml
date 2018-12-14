@@ -9,7 +9,7 @@
     <groupId>org.n52.series-api</groupId>
     <artifactId>series-sos-proxy</artifactId>
     <name>Series REST API - SOS Proxy</name>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-alpha.3</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -42,7 +42,7 @@
         <connection>scm:git:https://github.com/52North/series-sos-proxy.git</connection>
         <developerConnection>scm:git:https://github.com/52North/series-sos-proxy.git</developerConnection>
         <url>https://github.com/52North/series-sos-proxy</url>
-        <tag>HEAD</tag>
+        <tag>v1.0.0-alpha.3</tag>
     </scm>
 
     <properties>
