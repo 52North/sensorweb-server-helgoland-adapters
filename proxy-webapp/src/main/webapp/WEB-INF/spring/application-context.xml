@@ -34,6 +34,10 @@
     <import resource="spi-impl-dao_beans.xml"/>
     <import resource="spi-impl-dao_tasks.xml" />
 
+    <!-- local.configFile overrides defaults from application.properties -->
+    <ctx:property-placeholder location="classpath:/application.properties,file://${local.configFile}"
+        ignore-resource-not-found="true" ignore-unresolvable="false" />
+
     <!-- For SOS Bundles (instead of extra database config) -->
     <!--<bean class="org.n52.series.db.da.sos.SOSHibernateSessionHolder" destroy-method="shutdown" />-->
     <import resource="series-database-config.xml" />

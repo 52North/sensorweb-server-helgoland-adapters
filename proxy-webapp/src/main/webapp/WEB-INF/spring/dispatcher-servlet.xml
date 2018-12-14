@@ -15,10 +15,6 @@
     <!-- load default config from java -->
     <ctx:component-scan base-package="org.n52.series.dao.spring" />
 
-    <!-- local.configFile overrides defaults from application.properties -->
-    <ctx:property-placeholder location="classpath:/application.properties,file://${local.configFile}"
-        ignore-resource-not-found="true" ignore-unresolvable="false" />
-
     <import resource="api_mvc.xml" />
     <import resource="application-context.xml" />
 
