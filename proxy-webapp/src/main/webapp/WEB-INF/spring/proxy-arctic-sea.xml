@@ -18,6 +18,7 @@
     <bean id="decoderRepository" class="org.n52.svalbard.decode.DecoderRepository"/>
 
     <bean id="xmlOptionsHelper" class="org.n52.svalbard.util.XmlOptionsHelper" />
+    <bean id="sweHelper" class="org.n52.svalbard.util.SweHelper" />
 
     <!-- Encoder implementations from svalbard -->
     <bean class="org.n52.svalbard.decode.CapabilitiesBaseTypeDecoder"/>
