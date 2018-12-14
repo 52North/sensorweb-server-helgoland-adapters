@@ -12,6 +12,7 @@
         <property column="name" name="name" type="string"/>
         <property column="description"  name="description" type="string"/>
         <property formula="'F'" name="reference" type="org.hibernate.type.TrueFalseType"/>
+        <property formula="'F'" name="deleted" type="org.hibernate.type.TrueFalseType"/>
         <property column="mobile" name="mobile" type="org.hibernate.type.TrueFalseType"/>
         <property column="insitu" name="insitu" type="org.hibernate.type.TrueFalseType"/>
         <set name="parents" table="sensorsystem" inverse="false" fetch="select">
