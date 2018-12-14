@@ -34,7 +34,7 @@
         <property name="dataSource" ref="seriesDatasource" />
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">org.hibernate.spatial.dialect.postgis.PostgisDialect</prop>
+                <prop key="hibernate.dialect">org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect</prop>
                 <prop key="hibernate.default_schema">${series.database.schema.default}</prop>
                 <prop key="hibernate.hbm2ddl.auto">${series.hibernate.hbm2ddl.auto}</prop>
                 <prop key="hibernate.format_sql">true</prop>
