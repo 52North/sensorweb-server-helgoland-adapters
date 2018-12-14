@@ -23,7 +23,7 @@
            <property column="lat" name="lat" type="double" />
            <property column="lon" name="lon" type="double" />
             -->
-            <property column="samplingGeometry" name="geometry" type="org.hibernate.spatial.GeometryType"/>
+            <property column="samplingGeometry" name="geometry" type="jts_geometry"/>
         </component>
         <set inverse="true" name="parameters" table="parameter" fetch="join">
             <key column="observationid" not-null="true"/>

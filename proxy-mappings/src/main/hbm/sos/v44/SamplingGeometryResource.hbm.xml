@@ -10,14 +10,14 @@
 
         <component class="GeometryEntity" name="geometryEntity">
             <!-- <property column="lat" name="lat" type="double" /> <property column="lon" name="lon" type="double" /> -->
-            <property column="samplingGeometry" name="geometry" type="org.hibernate.spatial.GeometryType" />
+            <property column="samplingGeometry" name="geometry" type="jts_geometry" />
         </component>
 
         <property name="seriesPkid" column="seriesid" type="long" />
 
         <!--   <sql-query name="getSampleLatLonGeometries"> -->
         <!--     <return-scalar column="phenomenontime" type="timestamp" /> -->
-        <!--     <return-scalar column="geom" type="org.hibernate.spatial.GeometryType" /> -->
+        <!--     <return-scalar column="geom" type="jts_geometry" /> -->
         <!--     <return-scalar column="lat" type="double" /> -->
         <!--     <return-scalar column="lon" type="double" /> -->
         <!--     SELECT DISTINCT o.phenomenontime, o.lat, o.lon -->
