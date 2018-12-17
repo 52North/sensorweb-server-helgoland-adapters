@@ -32,7 +32,7 @@
 
         <joined-subclass extends="DataEntity" name="QuantityDataEntity" table="numericvalue">
             <key column="observationid"/>
-            <property column="value" name="value" type="double"/>
+            <property column="value" name="value" type="big_decimal"/>
             <property name="valueType" formula="'quantity'" />
         </joined-subclass>
 

@@ -27,8 +27,8 @@
             <property name="value" column="field_value" type="org.hibernate.type.BooleanType" />
         </subclass>
 
-        <subclass name="MetadataDoubleEntity" discriminator-value="double">
-            <property name="value" column="field_value" type="double" />
+        <subclass name="MetadataQuantityEntity" discriminator-value="quantity">
+            <property name="value" column="field_value" type="big_decimal" />
         </subclass>
 
         <subclass name="MetadataIntegerEntity" discriminator-value="integer">
