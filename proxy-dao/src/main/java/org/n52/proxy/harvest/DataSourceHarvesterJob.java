@@ -156,28 +156,21 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
-                                                           GetCapabilitiesResponse capabilities)
-            throws IOException, DecodingException {
-        for (AbstractConnector connector : connectors) {
-            if (connector instanceof AbstractSosConnector) {
-                AbstractSosConnector sosConnector = (AbstractSosConnector) connector;
-                if (sosConnector.matches(dataSource, capabilities)) {
-                    LOGGER.info("{} create a constellation for {}", connector.toString(), dataSource);
-                    return sosConnector.getConstellation(dataSource, capabilities);
-                }
-            }
-        }
-        return null;
+                                                           GetCapabilitiesResponse capabilities) {
+        return this.connectors.stream()
+                .filter(connector -> connector instanceof AbstractSosConnector)
+                .map(connector -> (AbstractSosConnector) connector)
+                .filter(connector -> connector.matches(dataSource, capabilities))
+                .map(connector -> connector.getConstellation(dataSource, capabilities))
+                .findFirst().orElse(null);
     }
 
     private ServiceConstellation determineSensorThingsConstellation(DataSourceConfiguration dataSource) {
-        for (AbstractConnector connector : connectors) {
-            if (connector instanceof SensorThingsConnector) {
-                SensorThingsConnector sosConnector = (SensorThingsConnector) connector;
-                return sosConnector.getConstellation(dataSource);
-            }
-        }
-        return null;
+        return this.connectors.stream()
+                .filter(connector -> connector instanceof SensorThingsConnector)
+                .map(connector -> (SensorThingsConnector) connector)
+                .map(connector -> connector.getConstellation(dataSource))
+                .findFirst().orElse(null);
     }
 
     public void init(DataSourceConfiguration initConfig) {
@@ -237,8 +230,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             }
             HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities");
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
-            return (GetCapabilitiesResponse) decoderRepository
-                    .getDecoder(CodingHelper.getDecoderKey(xmlResponse))
+            return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
         } catch (XmlException ex) {
             throw new DecodingException(ex);

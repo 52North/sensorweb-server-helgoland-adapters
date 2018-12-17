@@ -185,8 +185,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
 
     public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
-                                                          GetCapabilitiesResponse capabilities)
-            throws IOException, DecodingException;
+                                                          GetCapabilitiesResponse capabilities);
 
     protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         if (seriesEntity instanceof QuantityDatasetEntity) {
