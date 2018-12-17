@@ -255,7 +255,7 @@ public class InsertRepository extends SessionAwareRepository {
     }
 
     public void insertData(DatasetEntity dataset, DataEntity<?> data) {
-        data.setSeriesPkid(data.getPkid());
+        data.setSeriesPkid(dataset.getPkid());
         Session session = getSession();
         Transaction transaction = null;
         try {
