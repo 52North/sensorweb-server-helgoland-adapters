@@ -43,8 +43,6 @@ import org.n52.series.db.dao.FeatureDao;
 
 public class ProxyFeatureDao extends FeatureDao implements InsertDao<FeatureEntity>, ClearDao<FeatureEntity> {
 
-    private static final String COLUMN_SERVICE_PKID = "service.pkid";
-
     public ProxyFeatureDao(Session session) {
         super(session);
     }
@@ -56,26 +54,27 @@ public class ProxyFeatureDao extends FeatureDao implements InsertDao<FeatureEnti
             return instance;
         }
         this.session.save(feature);
+        this.session.flush();
         return feature;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
-        session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+        this.session.createCriteria(getEntityClass())
+                .add(Restrictions.eq(FeatureEntity.PROPERTY_SERVICE, service))
                 .add(Subqueries.propertyNotIn(
                         DescribableEntity.PROPERTY_PKID,
                         DetachedCriteria.forClass(DatasetEntity.class)
                                 .setProjection(Projections.distinct(Projections.property(getDatasetProperty())))))
                 .list()
-                .forEach(session::delete);
+                .forEach(this.session::delete);
     }
 
     private FeatureEntity getInstance(FeatureEntity feature) {
-        Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(DescribableEntity.PROPERTY_DOMAIN_ID, feature.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, feature.getService().getPkid()));
+        Criteria criteria = this.session.createCriteria(getEntityClass())
+                .add(Restrictions.eq(FeatureEntity.PROPERTY_DOMAIN_ID, feature.getDomainId()))
+                .add(Restrictions.eq(FeatureEntity.PROPERTY_SERVICE, feature.getService()));
         return (FeatureEntity) criteria.uniqueResult();
     }
 

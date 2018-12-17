@@ -43,8 +43,6 @@ import org.n52.series.db.dao.ProcedureDao;
 
 public class ProxyProcedureDao extends ProcedureDao implements InsertDao<ProcedureEntity>, ClearDao<ProcedureEntity> {
 
-    private static final String COLUMN_SERVICE_PKID = "service.pkid";
-
     public ProxyProcedureDao(Session session) {
         super(session);
     }
@@ -56,6 +54,7 @@ public class ProxyProcedureDao extends ProcedureDao implements InsertDao<Procedu
             return instance;
         }
         this.session.save(procedure);
+        this.session.flush();
         return procedure;
     }
 
@@ -63,15 +62,15 @@ public class ProxyProcedureDao extends ProcedureDao implements InsertDao<Procedu
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                .add(Subqueries.propertyNotIn(DescribableEntity.PROPERTY_PKID, createDetachedDatasetFilter()));
+                .add(Restrictions.eq(ProcedureEntity.PROPERTY_SERVICE, service))
+                .add(Subqueries.propertyNotIn(ProcedureEntity.PROPERTY_PKID, createDetachedDatasetFilter()));
         criteria.list().forEach(session::delete);
     }
 
     private ProcedureEntity getInstance(ProcedureEntity procedure) {
         Criteria criteria = session.createCriteria(getEntityClass())
                 .add(Restrictions.eq(DescribableEntity.PROPERTY_DOMAIN_ID, procedure.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, procedure.getService().getPkid()));
+                .add(Restrictions.eq(ProcedureEntity.PROPERTY_SERVICE, procedure.getService()));
         return (ProcedureEntity) criteria.uniqueResult();
     }
 

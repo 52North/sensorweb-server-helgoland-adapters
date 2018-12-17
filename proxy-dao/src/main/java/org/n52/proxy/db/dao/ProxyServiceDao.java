@@ -59,8 +59,9 @@ public class ProxyServiceDao extends ServiceDao implements InsertDao<ProxyServic
         if (instance != null) {
             return instance;
         }
+        LOGGER.info("Saving service: {}", service);
         this.session.save(service);
-        LOGGER.info("Save service: " + service);
+        this.session.flush();
         return service;
     }
 

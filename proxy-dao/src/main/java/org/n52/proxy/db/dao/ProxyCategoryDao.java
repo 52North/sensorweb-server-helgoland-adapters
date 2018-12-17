@@ -43,8 +43,6 @@ import org.n52.series.db.dao.CategoryDao;
 
 public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryEntity>, ClearDao<CategoryEntity> {
 
-    private static final String COLUMN_SERVICE_PKID = "service.pkid";
-
     public ProxyCategoryDao(Session session) {
         super(session);
     }
@@ -56,13 +54,14 @@ public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryE
             return instance;
         }
         this.session.save(category);
+        this.session.flush();
         return category;
     }
 
     private CategoryEntity getInstance(CategoryEntity category) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(DescribableEntity.PROPERTY_DOMAIN_ID, category.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, category.getService().getPkid()));
+                .add(Restrictions.eq(CategoryEntity.PROPERTY_DOMAIN_ID, category.getDomainId()))
+                .add(Restrictions.eq(CategoryEntity.PROPERTY_SERVICE, category.getService()));
         return (CategoryEntity) criteria.uniqueResult();
     }
 
@@ -71,7 +70,7 @@ public class ProxyCategoryDao extends CategoryDao implements InsertDao<CategoryE
     public void clearUnusedForService(ServiceEntity service) {
 
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
+                .add(Restrictions.eq(CategoryEntity.PROPERTY_SERVICE, service))
                 .add(Subqueries.propertyNotIn(DescribableEntity.PROPERTY_PKID, createDetachedDatasetFilter()));
         criteria.list().forEach(session::delete);
     }

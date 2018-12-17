@@ -101,6 +101,7 @@ public class ProxyDataDao<T extends DataEntity<?>> extends DataDao<T> implements
             return instance;
         }
         session.save(object);
+        session.flush();
         return object;
     }
 

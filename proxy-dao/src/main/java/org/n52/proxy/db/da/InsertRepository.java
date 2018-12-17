@@ -69,9 +69,7 @@ public class InsertRepository extends SessionAwareRepository {
     public synchronized Set<Long> getIdsForService(ProxyServiceEntity service) {
         Session session = getSession();
         try {
-            Set<Long> idsForService = new ProxyDatasetDao<>(session).getIdsForService(service);
-            session.flush();
-            return idsForService;
+            return new ProxyDatasetDao<>(session).getIdsForService(service);
         } finally {
             returnSession(session);
         }
