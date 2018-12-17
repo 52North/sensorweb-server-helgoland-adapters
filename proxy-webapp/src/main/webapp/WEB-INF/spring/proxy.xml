@@ -32,6 +32,7 @@
     <bean name="dataSourceScheduler" class="org.n52.proxy.harvest.DataSourceHarvesterScheduler" init-method="init" destroy-method="shutdown">
         <property name="scheduler">
             <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+                <property name="schedulerName" value="dataSourceScheduler"/>
                 <property name="jobFactory">
                     <bean class="org.n52.io.task.AutowiringSpringBeanJobFactory" />
                 </property>

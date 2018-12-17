@@ -13,6 +13,7 @@
     <bean id="jobScheduler" class="org.n52.io.task.JobScheduler" init-method="init" destroy-method="shutdown">
         <property name="scheduler">
             <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+                <property name="schedulerName" value="jobScheduler"/>
                 <property name="jobFactory">
                     <bean class="org.n52.io.task.AutowiringSpringBeanJobFactory" />
                 </property>
