@@ -209,12 +209,15 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 entities.stream().forEach(x -> x.setService(service));
                 DatasetEntity ds = insertRepository.insertDataset(dataset
                         .createDatasetEntity(procedure, category, feature, offering, phenomenon, service));
-                datasetIds.remove(ds.getPkid());
+                if (ds != null) {
+                    datasetIds.remove(ds.getPkid());
 
-                dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
-                dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
-
-                LOGGER.info("Add dataset constellation: {}", dataset);
+                    dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
+                    dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
+                    LOGGER.info("Added dataset: {}", dataset);
+                } else {
+                    LOGGER.warn("Can't save dataset: {}", dataset);
+                }
             } else {
                 LOGGER.warn("Can't add dataset: {}", dataset);
             }
