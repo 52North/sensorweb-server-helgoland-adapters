@@ -148,17 +148,6 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyServiceDao(session).getOrInsertInstance(service);
     }
 
-    public void insertOffering(OfferingEntity offeringEntity) {
-        Session session = getSession();
-        try {
-            Transaction transaction = session.beginTransaction();
-            insertOffering(offeringEntity, session);
-            session.flush();
-            transaction.commit();
-        } finally {
-            returnSession(session);
-        }
-    }
 
     private OfferingEntity insertOffering(OfferingEntity offering, Session session) {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
