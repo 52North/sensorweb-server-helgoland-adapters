@@ -4,8 +4,10 @@
     <class name="DatasetEntity" table="series">
         <id name="pkid" type="long">
             <column name="seriesid"/>
-            <generator class="native">
-                <param name="sequence">seriesId_seq</param>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">none</param>
+                <param name="increment_size">1</param>
+                <param name="sequence_name">seriesId_seq</param>
             </generator>
         </id>
         <discriminator column="seriesType" force="true" type="string" />
@@ -33,13 +35,13 @@
         <subclass discriminator-value="quantity" name="QuantityDatasetEntity">
             <property formula="3" name="numberOfDecimals" type="int"/>
             <!-- first value for backwards compatibility -->
-<!--            <component class="ObservationEntity" name="firstValue">
+            <!--            <component class="ObservationEntity" name="firstValue">
                 <property column="firsttimestamp" name="timestart" type="timestamp" insert="false" update="false" />
                 <property column="firsttimestamp" name="timeend" type="timestamp" insert="false" update="false" />
                 <property column="firstnumericvalue" name="value" type="double" />
             </component>-->
             <!-- last value for backwards compatibility -->
-<!--            <component class="ObservationEntity" name="lastValue">
+            <!--            <component class="ObservationEntity" name="lastValue">
                 <property column="lasttimestamp" name="timestart" type="timestamp" insert="false" update="false" />
                 <property column="lasttimestamp" name="timeend" type="timestamp" insert="false" update="false" />
                 <property column="lastnumericvalue" name="value" type="double" />

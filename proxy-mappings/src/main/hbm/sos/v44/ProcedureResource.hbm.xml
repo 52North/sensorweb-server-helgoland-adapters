@@ -4,8 +4,10 @@
     <class name="ProcedureEntity" table="`procedure`">
         <id name="pkid" type="long">
             <column name="procedureid"/>
-            <generator class="native">
-                <param name="sequence">procedureId_seq</param>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">none</param>
+                <param name="increment_size">1</param>
+                <param name="sequence_name">procedureId_seq</param>
             </generator>
         </id>
         <property column="identifier" name="domainId" type="string"/>

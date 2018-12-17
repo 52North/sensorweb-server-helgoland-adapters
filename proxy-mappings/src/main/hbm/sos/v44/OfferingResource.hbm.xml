@@ -4,8 +4,10 @@
     <class name="OfferingEntity" table="offering">
         <id name="pkid" type="long">
             <column name="offeringid"/>
-            <generator class="native">
-                <param name="sequence">offeringId_seq</param>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">none</param>
+                <param name="increment_size">1</param>
+                <param name="sequence_name">offeringId_seq</param>
             </generator>
         </id>
         <property column="identifier" name="domainId" type="string"/>
