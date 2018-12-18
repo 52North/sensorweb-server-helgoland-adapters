@@ -32,7 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.n52.io.response.dataset.AbstractValue;
@@ -62,18 +64,27 @@ public class ProxyDatasetRepository<V extends AbstractValue< ?>> extends Dataset
     protected DatasetOutput createExpanded(DatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
         if (series.getUnit() == null || Strings.isNullOrEmpty(series.getUnit().getName())) {
-            ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
-            String connectorName = service.getConnector();
-            AbstractConnector connector = connectorMap.get(connectorName);
-            UnitEntity unit = connector.getUom(series);
-            if (unit == null) {
-                // create empty unit
-                unit = EntityBuilder.createUnit("", null, service);
+            Transaction transaction = null;
+            try {
+                transaction = session.beginTransaction();
+                ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
+                String connectorName = service.getConnector();
+                AbstractConnector connector = connectorMap.get(connectorName);
+                UnitEntity unit = connector.getUom(series);
+                if (unit == null) {
+                    // create empty unit
+                    unit = EntityBuilder.createUnit("", null, service);
+                }
+                series.setUnit(unit);
+                session.save(unit);
+                session.save(series);
+                session.flush();
+                transaction.commit();
+            } catch (DataAccessException | HibernateException ex) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
             }
-            series.setUnit(unit);
-            session.save(unit);
-            session.save(series);
-            session.flush();
         }
         return super.createExpanded(series, query, session);
     }
