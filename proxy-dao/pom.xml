@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.n52.series-api</groupId>
         <artifactId>series-sos-proxy</artifactId>
-        <version>1.0.0-alpha.8</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>proxy-dao</artifactId>
     <packaging>jar</packaging>
