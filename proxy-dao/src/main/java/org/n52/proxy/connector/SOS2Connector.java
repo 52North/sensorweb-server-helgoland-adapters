@@ -88,7 +88,7 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))
@@ -98,21 +98,21 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         return getObservation(entity, createFirstTimefilter())
                 .getObservationCollection().toStream().findFirst()
                 .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         return getObservation(entity, createLatestTimefilter())
                 .getObservationCollection().toStream().findFirst()
                 .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetObservationResponse response = getObservation(seriesEntity,
                                                                     createFirstTimefilter());
         return response.getObservationCollection().toStream()
@@ -131,7 +131,7 @@ public class SOS2Connector extends AbstractSosConnector {
                                  DataSourceConfiguration config) {
         String offeringId = addOffering(offering, serviceConstellation);
 
-        offering.getProcedures().forEach((procedureId) -> {
+        offering.getProcedures().forEach(procedureId -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,

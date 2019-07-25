@@ -30,9 +30,8 @@ package org.n52.proxy.connector;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.n52.shetland.ogc.sos.SosConstants.SOS;
-import static org.slf4j.LoggerFactory.getLogger;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +39,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -71,6 +71,7 @@ import org.n52.shetland.ogc.sensorML.System;
 import org.n52.shetland.ogc.sensorML.elements.SmlComponent;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
+import org.n52.shetland.ogc.sos.SosConstants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
@@ -84,7 +85,8 @@ import org.n52.shetland.ogc.swes.SwesConstants;
 
 public class OceanotronSosConnector extends SOS2Connector {
 
-    private static final Logger LOGGER = getLogger(OceanotronSosConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OceanotronSosConnector.class);
+    private static final String OM_2_MIMETYPE = "text/xml;subtype=\"http://www.opengis.net/om/2.0\"";
 
     /**
      * Matches when the provider name is equal "Geomatys"
@@ -97,18 +99,16 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
-        GetObservationResponse observationResponse = getObservation(
-                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+        GetObservationResponse observationResponse = getObservation(seriesEntity, null, OM_2_MIMETYPE);
         return observationResponse.getObservationCollection().toStream()
                 .map(observation -> createProfileDataEntity(observation, seriesEntity))
                 .collect(toList());
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
-        GetObservationResponse observationResponse = getObservation(
-                seriesEntity, null, "text/xml;subtype=\"http://www.opengis.net/om/2.0\"");
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
+        GetObservationResponse observationResponse = getObservation(seriesEntity, null, OM_2_MIMETYPE);
         List<OmObservation> omColl = observationResponse.getObservationCollection().toStream().collect(toList());
         if (omColl.size() == 1) {
             OmObservation observation = omColl.get(0);
@@ -128,7 +128,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         return null;
     }
 
-    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
+    private DataEntity<?> createProfileDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         ProfileDataEntity dataEntity = new ProfileDataEntity();
         ObservationValue<? extends Value<?>> obsValue = observation.getValue();
         Date timestamp = ((TimeInstant) obsValue.getPhenomenonTime()).getValue().toDate();
@@ -150,8 +150,8 @@ public class OceanotronSosConnector extends SOS2Connector {
 
                     return dataArray.getValues().stream()
                             .map(valueEntry -> {
-                                double measurement = Double.valueOf(valueEntry.get(1));
-                                double verticalValue = Double.valueOf(valueEntry.get(0));
+                                BigDecimal measurement = new BigDecimal(valueEntry.get(1));
+                                BigDecimal verticalValue = new BigDecimal(valueEntry.get(0));
                                 LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
                                 return createVerticalEntry(measurement, timestamp, verticalUnit, verticalValue);
                             })
@@ -172,8 +172,8 @@ public class OceanotronSosConnector extends SOS2Connector {
         return EntityBuilder.createUnit(uom, description, service);
     }
 
-    private QuantityDataEntity createVerticalEntry(double measurement, Date timestamp, UnitEntity verticalUnit,
-                                                   double verticalValue) {
+    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp, UnitEntity verticalUnit,
+                                                   BigDecimal verticalValue) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setValue(measurement);
         quantityDataEntity.setTimestart(timestamp);
@@ -182,20 +182,20 @@ public class OceanotronSosConnector extends SOS2Connector {
         ParameterQuantity parameterQuantity = new ParameterQuantity();
         parameterQuantity.setUnit(verticalUnit);
         parameterQuantity.setName("depth");
-        parameterQuantity.setValue(verticalValue);
+        parameterQuantity.setValue(verticalValue.doubleValue());
         parameters.add(parameterQuantity);
         quantityDataEntity.setParameters(parameters);
         return quantityDataEntity;
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // TODO implement
         return Optional.empty();
     }
@@ -204,13 +204,11 @@ public class OceanotronSosConnector extends SOS2Connector {
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
                                DataSourceConfiguration config) {
         if (sosCaps != null) {
-            sosCaps.getContents().ifPresent((obsOffs) -> {
-                obsOffs.forEach((SosObservationOffering obsOff) -> {
-                    if (config.getAllowedOfferings() == null ||
-                        config.getAllowedOfferings().contains(obsOff.getIdentifier())) {
-                        addElem(obsOff, serviceConstellation, config.getUrl());
-                    }
-                });
+            sosCaps.getContents().ifPresent(obsOffs -> {
+                obsOffs.stream()
+                        .filter(obsOff -> config.getAllowedOfferings() == null ||
+                                          config.getAllowedOfferings().contains(obsOff.getIdentifier()))
+                        .forEach(obsOff -> addElem(obsOff, serviceConstellation, config.getUrl()));
             });
         }
     }
@@ -293,7 +291,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private SensorML getDescribeSensorResponse(String procedureId, String url) {
-        DescribeSensorRequest request = new DescribeSensorRequest(SOS, Sos2Constants.SERVICEVERSION);
+        DescribeSensorRequest request = new DescribeSensorRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
         request.setProcedure(procedureId);
         request.setProcedureDescriptionFormat("http://www.opengis.net/sensorML/1.0.0");
         return (SensorML) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);

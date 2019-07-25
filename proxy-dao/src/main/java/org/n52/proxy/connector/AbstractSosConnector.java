@@ -91,8 +91,9 @@ import org.n52.svalbard.util.CodingHelper;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
+    private static final String COULD_NOT_RETRIEVE_RESPONSE = "Could not retrieve response";
 
-    protected int counter = 0;
+    protected int counter;
 
     private DecoderRepository decoderRepository;
     private EncoderRepository encoderRepository;
@@ -128,7 +129,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         try {
             return decodeResponse(sendGetRequest(uri));
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         }
     }
@@ -148,7 +149,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             XmlObject xmlRequest = encoder.encode(request);
             return decodeResponse(sendPostRequest(xmlRequest, serviceUrl));
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         } catch (EncodingException ex) {
             LOGGER.error("Could not encode request : " + request, ex);
@@ -170,7 +171,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             }
             return decode;
         } catch (IOException ex) {
-            LOGGER.error("Could not retrieve response", ex);
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         } catch (XmlException ex) {
             LOGGER.error("Could not parse response XML", ex);
@@ -184,10 +185,9 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
 
     public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
-                                                          GetCapabilitiesResponse capabilities)
-            throws IOException, DecodingException;
+                                                          GetCapabilitiesResponse capabilities);
 
-    protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity<?> seriesEntity) {
+    protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         if (seriesEntity instanceof QuantityDatasetEntity) {
             return DataEntityBuilder.createQuantityDataEntity(observation);
         } else if (seriesEntity instanceof CountDatasetEntity) {
@@ -238,7 +238,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         return getDataAvailability(procedureId, null, null, null, serviceURL);
     }
 
-    protected GetDataAvailabilityResponse getDataAvailability(DatasetEntity<?> seriesEntity) {
+    protected GetDataAvailabilityResponse getDataAvailability(DatasetEntity seriesEntity) {
         return getDataAvailability(seriesEntity.getProcedure().getDomainId(),
                                    seriesEntity.getOffering().getDomainId(),
                                    seriesEntity.getPhenomenon().getDomainId(),
@@ -275,24 +275,24 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         }
     }
 
-    protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
+    protected GetObservationResponse getObservation(DatasetEntity seriesEntity,
                                                     TemporalFilter temporalFilter) {
         return getObservation(seriesEntity, temporalFilter, null, null);
     }
 
-    protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
+    protected GetObservationResponse getObservation(DatasetEntity seriesEntity,
                                                     TemporalFilter temporalFilter,
                                                     SpatialFilter spatialFilter) {
         return getObservation(seriesEntity, temporalFilter, spatialFilter, null);
     }
 
-    protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
+    protected GetObservationResponse getObservation(DatasetEntity seriesEntity,
                                                     TemporalFilter temporalFilter,
                                                     String responseFormat) {
         return getObservation(seriesEntity, temporalFilter, null, responseFormat);
     }
 
-    protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
+    protected GetObservationResponse getObservation(DatasetEntity seriesEntity,
                                                     TemporalFilter temporalFilter,
                                                     SpatialFilter spatialFilter,
                                                     String responseFormat) {
@@ -302,7 +302,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                               responseFormat);
     }
 
-    protected GetObservationResponse getObservation(DatasetEntity<?> seriesEntity,
+    protected GetObservationResponse getObservation(DatasetEntity seriesEntity,
                                                     List<TemporalFilter> temporalFilter,
                                                     SpatialFilter spatialFilter,
                                                     String responseFormat) {

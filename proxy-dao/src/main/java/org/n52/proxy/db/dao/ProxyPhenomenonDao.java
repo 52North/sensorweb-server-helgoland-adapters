@@ -36,15 +36,12 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.PhenomenonDao;
 
 public class ProxyPhenomenonDao extends PhenomenonDao
         implements InsertDao<PhenomenonEntity>, ClearDao<PhenomenonEntity> {
-
-    private static final String COLUMN_SERVICE_PKID = "service.pkid";
 
     public ProxyPhenomenonDao(Session session) {
         super(session);
@@ -57,6 +54,7 @@ public class ProxyPhenomenonDao extends PhenomenonDao
             return instance;
         }
         this.session.save(phenomenon);
+        this.session.flush();
         return phenomenon;
     }
 
@@ -64,15 +62,15 @@ public class ProxyPhenomenonDao extends PhenomenonDao
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                .add(Subqueries.propertyNotIn("pkid", createDetachedDatasetFilter()));
+                .add(Restrictions.eq(PhenomenonEntity.PROPERTY_SERVICE, service))
+                .add(Subqueries.propertyNotIn(PhenomenonEntity.PROPERTY_PKID, createDetachedDatasetFilter()));
         criteria.list().forEach(session::delete);
     }
 
     private PhenomenonEntity getInstance(PhenomenonEntity phenomenon) {
         Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(DescribableEntity.PROPERTY_DOMAIN_ID, phenomenon.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, phenomenon.getService().getPkid()));
+                .add(Restrictions.eq(PhenomenonEntity.PROPERTY_DOMAIN_ID, phenomenon.getDomainId()))
+                .add(Restrictions.eq(PhenomenonEntity.PROPERTY_SERVICE, phenomenon.getService()));
         return (PhenomenonEntity) criteria.uniqueResult();
     }
 

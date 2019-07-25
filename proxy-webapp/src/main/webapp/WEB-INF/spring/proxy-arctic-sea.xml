@@ -12,12 +12,13 @@
         <description>This calls Constructable#init and Destroyable#destroy for all beans.</description>
     </bean>
 
-    <bean class="org.n52.svalbard.encode.SchemaRepository"/>
+    <bean id="schemaRepository" class="org.n52.svalbard.encode.SchemaRepository"/>
 
     <bean id="encoderRepository" class="org.n52.svalbard.encode.EncoderRepository"/>
     <bean id="decoderRepository" class="org.n52.svalbard.decode.DecoderRepository"/>
 
     <bean id="xmlOptionsHelper" class="org.n52.svalbard.util.XmlOptionsHelper" />
+    <bean id="sweHelper" class="org.n52.svalbard.util.SweHelper" />
 
     <!-- Encoder implementations from svalbard -->
     <bean class="org.n52.svalbard.decode.CapabilitiesBaseTypeDecoder"/>

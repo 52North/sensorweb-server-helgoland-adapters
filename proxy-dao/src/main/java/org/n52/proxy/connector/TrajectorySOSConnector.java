@@ -30,6 +30,7 @@ package org.n52.proxy.connector;
 
 import static java.util.stream.Collectors.toList;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +70,11 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
 
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
+     *
+     * @param config   The {@link DataSourceConfiguration}.
+     * @param response The {@link GetCapabilitiesResponse}.
+     *
+     * @return If this {@link TrajectorySOSConnector} can handle the service.
      */
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse response) {
@@ -91,7 +97,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query) {
+    public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         Stopwatch stopwatch = new Stopwatch().start();
         LOGGER.info("Start GetObs request");
         GetObservationResponse obsResp = createObservationResponse(seriesEntity, null);
@@ -107,7 +113,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity<?> seriesEntity) {
+    public UnitEntity getUom(DatasetEntity seriesEntity) {
         GetDataAvailabilityResponse availabilityResponse = getDataAvailability(seriesEntity);
         if (availabilityResponse.getDataAvailabilities().size() == 1) {
             DateTime start = availabilityResponse.getDataAvailabilities().get(0).getPhenomenonTime().getStart();
@@ -125,31 +131,31 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // currently only return default first observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
         quantityDataEntity.setTimeend(new Date());
-        quantityDataEntity.setValue(0.0);
+        quantityDataEntity.setValue(BigDecimal.ZERO);
         return Optional.of(quantityDataEntity);
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity) {
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // currently only return default last observation
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setTimestart(new Date());
         quantityDataEntity.setTimeend(new Date());
-        quantityDataEntity.setValue(0.0);
+        quantityDataEntity.setValue(BigDecimal.ZERO);
         return Optional.of(quantityDataEntity);
     }
 
     private void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps, String serviceUri) {
         if (sosCaps != null) {
-            sosCaps.getContents().ifPresent((obsOffs) -> {
-//                obsOffs.forEach((obsOff) -> {
-//                    doForOffering(obsOff, serviceConstellation, serviceUri);
-//                });
+            sosCaps.getContents().ifPresent(obsOffs -> {
+                //obsOffs.forEach((obsOff) -> {
+                //    doForOffering(obsOff, serviceConstellation, serviceUri);
+                //});
                 doForOffering(obsOffs.first(), serviceConstellation, serviceUri);
             });
         }
@@ -158,11 +164,11 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     private void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
                                String serviceUri) {
         String offeringId = addOffering(offering, serviceConstellation);
-//        offering.getProcedures().forEach((procedureId) -> {
-//            offering.getObservableProperties().forEach((obsProp) -> {
-//                doDataAvailability(obsProp, procedureId, offeringId, serviceUri, serviceConstellation);
-//            });
-//        });
+        //offering.getProcedures().forEach((procedureId) -> {
+        //    offering.getObservableProperties().forEach((obsProp) -> {
+        //        doDataAvailability(obsProp, procedureId, offeringId, serviceUri, serviceConstellation);
+        //    });
+        //});
         doDataAvailability(offering.getObservableProperties().first(), offering.getProcedures().first(), offeringId,
                            serviceUri, serviceConstellation);
     }
@@ -171,7 +177,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                                     ServiceConstellation serviceConstellation) {
         GetDataAvailabilityResponse gdaResponse = getDataAvailability(procedureId, offeringId, obsProp, null,
                                                                               serviceUri);
-        gdaResponse.getDataAvailabilities().forEach((dataAval) -> {
+        gdaResponse.getDataAvailabilities().forEach(dataAval -> {
             String featureId = addFeature(dataAval, serviceConstellation);
             addProcedure(dataAval, true, true, serviceConstellation);
             String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
@@ -191,11 +197,11 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         return featureId;
     }
 
-    private GetObservationResponse createObservationResponse(DatasetEntity<?> seriesEntity,
+    private GetObservationResponse createObservationResponse(DatasetEntity seriesEntity,
                                                              TemporalFilter temporalFilter) {
         String responseFormat = null;
         // TODO use inspire omso 3.0 format later, when trajectory encoder/decoder are available
-//        request.setResponseFormat("http://inspire.ec.europa.eu/schemas/omso/3.0");
+        // request.setResponseFormat("http://inspire.ec.europa.eu/schemas/omso/3.0");
         return getObservation(seriesEntity, temporalFilter, responseFormat);
     }
 

@@ -39,14 +39,11 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.DescribableEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.dao.OfferingDao;
 
 public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingEntity>, ClearDao<OfferingEntity> {
-
-    private static final String COLUMN_SERVICE_PKID = "service.pkid";
 
     public ProxyOfferingDao(Session session) {
         super(session);
@@ -59,22 +56,23 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
             return instance;
         }
         this.session.save(offering);
+        this.session.flush();
         return offering;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void clearUnusedForService(ServiceEntity service) {
-        Criteria criteria = session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, service.getPkid()))
-                .add(Subqueries.propertyNotIn("pkid", createDetachedDatasetFilter()));
+        Criteria criteria = this.session.createCriteria(getEntityClass())
+                .add(Restrictions.eq(OfferingEntity.PROPERTY_SERVICE, service))
+                .add(Subqueries.propertyNotIn(OfferingEntity.PROPERTY_PKID, createDetachedDatasetFilter()));
         criteria.list().forEach(session::delete);
     }
 
     private OfferingEntity getInstance(OfferingEntity offering) {
-        return (OfferingEntity) session.createCriteria(getEntityClass())
-                .add(Restrictions.eq(DescribableEntity.PROPERTY_DOMAIN_ID, offering.getDomainId()))
-                .add(Restrictions.eq(COLUMN_SERVICE_PKID, offering.getService().getPkid()))
+        return (OfferingEntity) this.session.createCriteria(getEntityClass())
+                .add(Restrictions.eq(OfferingEntity.PROPERTY_DOMAIN_ID, offering.getDomainId()))
+                .add(Restrictions.eq(OfferingEntity.PROPERTY_SERVICE, offering.getService()))
                 .uniqueResult();
     }
 
@@ -86,7 +84,7 @@ public class ProxyOfferingDao extends OfferingDao implements InsertDao<OfferingE
     @SuppressWarnings("unchecked")
     public List<OfferingEntity> getInstancesFor(Collection<String> domainIds) {
         return getDefaultCriteria(ProxyDbQuery.createDefaults())
-                .add(Restrictions.in(DescribableEntity.PROPERTY_DOMAIN_ID, domainIds))
+                .add(Restrictions.in(OfferingEntity.PROPERTY_DOMAIN_ID, domainIds))
                 .list();
     }
 }

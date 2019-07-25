@@ -1,9 +1,9 @@
 package org.n52.proxy.connector.constellations;
 
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
 
 import java.util.Date;
 
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.QuantityDatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -34,7 +34,7 @@ public class QuantityDatasetConstellation extends DatasetConstellation<QuantityD
         // add empty unit entity, will be replaced later in the repositories
         if (unit == null) {
             // create empty unit
-            unit = createUnit("", null, service);
+            unit = EntityBuilder.createUnit("", null, service);
         }
         quantityDataset.setUnit(unit);
         quantityDataset.setFirstValueAt(new Date());

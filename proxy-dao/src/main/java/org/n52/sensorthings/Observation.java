@@ -1,8 +1,11 @@
 package org.n52.sensorthings;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import com.google.gson.annotations.SerializedName;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * @author Jan Schulte
@@ -11,7 +14,7 @@ public class Observation extends SensorThingsElement {
 
     private Date phenomenonTime;
 
-    private double result;
+    private BigDecimal result;
 
     private String resultTime;
 
@@ -24,6 +27,7 @@ public class Observation extends SensorThingsElement {
     /**
      * @return the phenomenonTime
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Date getPhenomenonTime() {
         return phenomenonTime;
     }
@@ -31,6 +35,7 @@ public class Observation extends SensorThingsElement {
     /**
      * @param phenomenonTime the phenomenonTime to set
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public void setPhenomenonTime(Date phenomenonTime) {
         this.phenomenonTime = phenomenonTime;
     }
@@ -38,14 +43,14 @@ public class Observation extends SensorThingsElement {
     /**
      * @return the result
      */
-    public double getResult() {
+    public BigDecimal getResult() {
         return result;
     }
 
     /**
      * @param result the result to set
      */
-    public void setResult(double result) {
+    public void setResult(BigDecimal result) {
         this.result = result;
     }
 

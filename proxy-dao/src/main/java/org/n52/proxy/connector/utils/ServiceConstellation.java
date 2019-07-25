@@ -28,16 +28,13 @@
  */
 package org.n52.proxy.connector.utils;
 
-import static org.n52.proxy.connector.utils.EntityBuilder.createCategory;
-import static org.n52.proxy.connector.utils.EntityBuilder.createFeature;
-import static org.n52.proxy.connector.utils.EntityBuilder.createOffering;
-import static org.n52.proxy.connector.utils.EntityBuilder.createPhenomenon;
-import static org.n52.proxy.connector.utils.EntityBuilder.createProcedure;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 
 import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -47,11 +44,8 @@ import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.dao.JTSGeometryConverter;
 import org.n52.shetland.util.JTSHelper;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 public class ServiceConstellation {
 
@@ -85,9 +79,17 @@ public class ServiceConstellation {
         return phenomenon;
     }
 
+    public PhenomenonEntity putPhenomenon(String id, String name) {
+        return putPhenomenon(EntityBuilder.createPhenomenon(id, name, service));
+    }
+
     public ProcedureEntity putProcedure(ProcedureEntity procedure) {
         procedures.put(procedure.getDomainId(), procedure);
         return procedure;
+    }
+
+    public ProcedureEntity putProcedure(String id, String name, boolean insitu, boolean mobile) {
+        return putProcedure(EntityBuilder.createProcedure(id, name, insitu, mobile, service));
     }
 
     public OfferingEntity putOffering(OfferingEntity offering) {
@@ -95,14 +97,33 @@ public class ServiceConstellation {
         return offering;
     }
 
+    public OfferingEntity putOffering(String id, String name) {
+        return putOffering(EntityBuilder.createOffering(id, name, service));
+    }
+
     public FeatureEntity putFeature(FeatureEntity feature) {
         features.put(feature.getDomainId(), feature);
         return feature;
     }
 
+    public FeatureEntity putFeature(String id, String name, String description, double latitude, double longitude,
+                                    int srid) {
+        return putFeature(id, name, description, createGeometry(srid, longitude, latitude));
+    }
+
+    public FeatureEntity putFeature(String id, String name, String description, Geometry geometry) {
+        return putFeature(EntityBuilder.createFeature(id, name, description,
+                                                      createGeometryEntitity(geometry),
+                                                      service));
+    }
+
     public CategoryEntity putCategory(CategoryEntity category) {
         categories.put(category.getDomainId(), category);
         return category;
+    }
+
+    public CategoryEntity putCategory(String id, String name) {
+        return putCategory(EntityBuilder.createCategory(id, name, service));
     }
 
     public void setService(ProxyServiceEntity service) {
@@ -153,46 +174,20 @@ public class ServiceConstellation {
         return datasets;
     }
 
-    public CategoryEntity putCategory(String id, String name) {
-        return putCategory(createCategory(id, name, service));
-    }
-
-    public FeatureEntity putFeature(String id, String name, String description, double latitude, double longitude,
-                                    int srid) {
-        return putFeature(id, name, description, createGeometry(srid, longitude, latitude));
-    }
-
-    public FeatureEntity putFeature(String id, String name, String description, Geometry geometry) {
-        return putFeature(createFeature(id, name, description,
-                                        createGeometryEntitity(geometry),
-                                        service));
-    }
-
-    public OfferingEntity putOffering(String id, String name) {
-        return putOffering(createOffering(id, name, service));
-    }
-
-    public PhenomenonEntity putPhenomenon(String id, String name) {
-        return putPhenomenon(createPhenomenon(id, name, service));
-    }
-
-    public ProcedureEntity putProcedure(String id, String name, boolean insitu, boolean mobile) {
-        return putProcedure(createProcedure(id, name, insitu, mobile, service));
-    }
-
     public boolean add(DatasetConstellation<?> e) {
         return datasets.add(e);
     }
 
     protected GeometryEntity createGeometryEntitity(Geometry geometry) {
+        com.vividsolutions.jts.geom.Geometry geom = JTSGeometryConverter.convert(geometry);
         GeometryEntity geometryEntity = new GeometryEntity();
-        geometryEntity.setGeometry(geometry);
+        geometryEntity.setGeometry(geom);
         geometryEntity.setSrid(geometry.getSRID());
-        geometryEntity.setGeometryFactory(geometry.getFactory());
+        geometryEntity.setGeometryFactory(geom.getFactory());
         return geometryEntity;
     }
 
-    protected static Point createGeometry(int srid, double longitude, double latitude) {
+    protected static Geometry createGeometry(int srid, double longitude, double latitude) {
         return JTSHelper.getGeometryFactoryForSRID(srid).createPoint(new Coordinate(longitude, latitude));
     }
 

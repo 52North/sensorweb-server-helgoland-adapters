@@ -21,6 +21,7 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.dao.JTSGeometryConverter;
 import org.n52.shetland.ogc.filter.FilterConstants.SpatialOperator;
 import org.n52.shetland.ogc.filter.FilterConstants.TimeOperator;
 import org.n52.shetland.ogc.filter.SpatialFilter;
@@ -37,11 +38,12 @@ import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
-import org.n52.shetland.util.ReferencedEnvelope;
 
 import com.google.common.primitives.Ints;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 
 /**
  * @author Jan Schulte
@@ -71,13 +73,13 @@ public abstract class AbstractConnector {
         return httpClient.executePost(uri, request);
     }
 
-    public abstract List<DataEntity<?>> getObservations(DatasetEntity<?> seriesEntity, DbQuery query);
+    public abstract List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query);
 
-    public abstract UnitEntity getUom(DatasetEntity<?> seriesEntity);
+    public abstract UnitEntity getUom(DatasetEntity seriesEntity);
 
-    public abstract Optional<DataEntity<?>> getFirstObservation(DatasetEntity<?> entity);
+    public abstract Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity);
 
-    public abstract Optional<DataEntity<?>> getLastObservation(DatasetEntity<?> entity);
+    public abstract Optional<DataEntity<?>> getLastObservation(DatasetEntity entity);
 
     protected void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation) {
         ProxyServiceEntity service
@@ -242,9 +244,9 @@ public abstract class AbstractConnector {
         if (envelope == null) {
             return null;
         } else {
-            Geometry geom = new ReferencedEnvelope(envelope, srid).toGeometry();
+            Geometry geom = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), srid).toGeometry(envelope);
             String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
-            return new SpatialFilter(SpatialOperator.BBOX, geom, valueReference);
+            return new SpatialFilter(SpatialOperator.BBOX, JTSGeometryConverter.convert(geom), valueReference);
         }
     }
 }

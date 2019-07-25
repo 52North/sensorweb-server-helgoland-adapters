@@ -55,27 +55,23 @@ public class ProxyDbQuery extends DbQuery {
 
     @Override
     public Criteria addFilters(Criteria criteria, String seriesProperty) {
-        super.addFilters(criteria, seriesProperty);
-        return addServiceFilter(seriesProperty, criteria);
-    }
+        Criteria c = super.addFilters(criteria, seriesProperty);
 
-    public Criteria addServiceFilter(String parameter, Criteria criteria) {
         if (serviceId != null && !serviceId.isEmpty()) {
-            criteria.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(serviceId)));
-        } else if (getParameters().getService() != null) {
-            criteria.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(getParameters().getService())));
-        } else if (getParameters().getServices() != null && !getParameters().getServices().isEmpty()) {
-            criteria.add(Restrictions.in(SERVICE_PKID, QueryUtils.parseToIds(getParameters().getServices())));
+            return c.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(serviceId)));
         }
-        return criteria;
+        if (getParameters().getService() != null) {
+            return c.add(Restrictions.eq(SERVICE_PKID, QueryUtils.parseToId(getParameters().getService())));
+        }
+        if (getParameters().getServices() != null && !getParameters().getServices().isEmpty()) {
+            return c.add(Restrictions.in(SERVICE_PKID, QueryUtils.parseToIds(getParameters().getServices())));
+        }
+
+        return c;
     }
 
     public static ProxyDbQuery createDefaults() {
-        return createFrom(IoParameters.createDefaults());
-    }
-
-    public static ProxyDbQuery createFrom(IoParameters parameters) {
-        return new ProxyDbQuery(parameters);
+        return new ProxyDbQuery(IoParameters.createDefaults());
     }
 
 }

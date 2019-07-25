@@ -4,8 +4,10 @@
     <class abstract="true" name="DataEntity" table="observation">
         <id name="pkid" type="long">
             <column name="observationid"/>
-            <generator class="native">
-                <param name="sequence">observationId_seq</param>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">none</param>
+                <param name="increment_size">1</param>
+                <param name="sequence_name">observationId_seq</param>
             </generator>
         </id>
         <property column="seriesid" name="seriesPkid" type="long"/>
@@ -23,7 +25,7 @@
            <property column="lat" name="lat" type="double" />
            <property column="lon" name="lon" type="double" />
             -->
-            <property column="samplingGeometry" name="geometry" type="org.hibernate.spatial.GeometryType"/>
+            <property column="samplingGeometry" name="geometry" type="jts_geometry"/>
         </component>
         <set inverse="true" name="parameters" table="parameter" fetch="join">
             <key column="observationid" not-null="true"/>
@@ -32,7 +34,7 @@
 
         <joined-subclass extends="DataEntity" name="QuantityDataEntity" table="numericvalue">
             <key column="observationid"/>
-            <property column="value" name="value" type="double"/>
+            <property column="value" name="value" type="big_decimal"/>
             <property name="valueType" formula="'quantity'" />
         </joined-subclass>
 

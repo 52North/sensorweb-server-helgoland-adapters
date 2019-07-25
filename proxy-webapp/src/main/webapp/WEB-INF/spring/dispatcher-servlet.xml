@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:ctx="http://www.springframework.org/schema/context"
-    xsi:schemaLocation="
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:ctx="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
         http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
         http://www.springframework.org/schema/mvc
@@ -12,54 +12,12 @@
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-4.2.xsd">
 
-    <mvc:annotation-driven />
-    <ctx:annotation-config />
+     <!-- local.configFile overrides defaults from application.properties -->
+    <ctx:property-placeholder location="classpath:/application.properties,file://${local.configFile}"
+        ignore-resource-not-found="true" ignore-unresolvable="false" />
 
-    <import resource="property-placeholder-config.xml" />
+    <!-- load default config from java -->
+    <ctx:component-scan base-package="org.n52.series.dao.spring" />
 
-    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper">
-        <!-- TODO @Autowire object mapper -->
-        <property name="serializationInclusion" value="NON_NULL" />
-    </bean>
-
-    <!--<bean class="org.n52.web.ctrl.RootController" />-->
-    <bean class="org.n52.web.ctrl.ParameterController" id="parameterController" abstract="true">
-        <property name="externalUrl" value="${external.url}" />
-        <property name="metadataExtensions">
-            <list>
-                <bean class="org.n52.io.response.extension.LicenseExtension" />
-            </list>
-        </property>
-    </bean>
-
-    <import resource="api_v1_mvc.xml" />
-    <import resource="api_v1_mvc_legacy.xml" />
-
-    <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager" />
-
-    <bean id="jsonViewResolver" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView">
-        <property name="extractValueFromSingleKeyModel" value="true" />
-        <property name="objectMapper" ref="objectMapper" />
-    </bean>
-
-    <bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
-        <property name="defaultContentType" value="application/json" />
-    </bean>
-
-    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
-        <property name="viewResolvers">
-            <list>
-<!--                 <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" /> -->
-<!--                 <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> -->
-<!--                     <property name="prefix" value="/WEB-INF/jsp/" /> -->
-<!--                     <property name="suffix" value=".jsp" /> -->
-<!--                 </bean> -->
-            </list>
-        </property>
-        <property name="defaultViews">
-            <util:list>
-                <ref bean="jsonViewResolver" />
-            </util:list>
-        </property>
-    </bean>
+    <import resource="api_mvc.xml" />
 </beans>

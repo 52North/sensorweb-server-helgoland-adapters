@@ -4,8 +4,10 @@
     <class abstract="true" name="FeatureEntity" table="featureofinterest">
         <id name="pkid" type="long">
             <column name="featureofinterestid"/>
-            <generator class="native">
-                <param name="sequence">featureofinterestId_seq</param>
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="optimizer">none</param>
+                <param name="increment_size">1</param>
+                <param name="sequence_name">featureofinterestId_seq</param>
             </generator>
         </id>
 
@@ -17,7 +19,7 @@
            <property column="lat" name="lat" type="double" />
            <property column="lon" name="lon" type="double" />
             -->
-            <property column="geom" name="geometry" type="org.hibernate.spatial.GeometryType"/>
+            <property column="geom" name="geometry" type="jts_geometry"/>
         </component>
         <!--
         <set name="children" table="featurerelation" inverse="false" fetch="select">

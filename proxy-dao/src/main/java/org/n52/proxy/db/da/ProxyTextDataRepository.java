@@ -28,11 +28,16 @@
  */
 package org.n52.proxy.db.da;
 
+import static java.util.stream.Collectors.toMap;
+
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import org.n52.io.response.dataset.text.TextData;
+import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.text.TextValue;
 import org.n52.proxy.connector.AbstractConnector;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -40,36 +45,38 @@ import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.TextDataEntity;
 import org.n52.series.db.beans.TextDatasetEntity;
+import org.n52.series.db.da.TextDataRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyTextDataRepository extends org.n52.series.db.da.TextDataRepository
-        implements ProxyDataRepository<TextDatasetEntity, TextValue> {
+public class ProxyTextDataRepository extends TextDataRepository {
 
     private Map<String, AbstractConnector> connectorMap;
 
-    @Override
-    public void setConnectorMap(Map<String, AbstractConnector> connectorMap) {
-        this.connectorMap = connectorMap;
+    @Autowired
+    public void setConnectors(List<AbstractConnector> connectors) {
+        this.connectorMap = connectors.stream()
+                .collect(toMap(AbstractConnector::getConnectorName, Function.identity()));
     }
 
     @Override
     public TextValue getFirstValue(TextDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> firstObs = this.getConnector(entity).getFirstObservation(entity).orElse(null);
-        return createSeriesValueFor((TextDataEntity) firstObs, entity, query);
+        return assembleDataValue((TextDataEntity) firstObs, entity, query);
     }
 
     @Override
     public TextValue getLastValue(TextDatasetEntity entity, Session session, DbQuery query) {
         DataEntity<?> lastObs = this.getConnector(entity).getLastObservation(entity).orElse(null);
-        return createSeriesValueFor((TextDataEntity) lastObs, entity, query);
+        return assembleDataValue((TextDataEntity) lastObs, entity, query);
     }
 
     @Override
-    protected TextData assembleData(TextDatasetEntity seriesEntity, DbQuery query, Session session) throws DataAccessException {
-        TextData result = new TextData();
+    protected Data<TextValue> assembleData(TextDatasetEntity seriesEntity, DbQuery query, Session session)
+            throws DataAccessException {
+        Data<TextValue> result = new Data<>();
         this.getConnector(seriesEntity)
                 .getObservations(seriesEntity, query).stream()
-                .map((entry) -> createSeriesValueFor((TextDataEntity) entry, seriesEntity, query))
+                .map(entry -> assembleDataValue((TextDataEntity) entry, seriesEntity, query))
                 .forEach(entry -> result.addNewValue(entry));
         return result;
     }

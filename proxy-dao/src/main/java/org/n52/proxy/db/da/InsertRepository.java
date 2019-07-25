@@ -69,9 +69,7 @@ public class InsertRepository extends SessionAwareRepository {
     public synchronized Set<Long> getIdsForService(ProxyServiceEntity service) {
         Session session = getSession();
         try {
-            Set<Long> idsForService = new ProxyDatasetDao<>(session).getIdsForService(service);
-            session.flush();
-            return idsForService;
+            return new ProxyDatasetDao<>(session).getIdsForService(service);
         } finally {
             returnSession(session);
         }
@@ -150,23 +148,12 @@ public class InsertRepository extends SessionAwareRepository {
         return new ProxyServiceDao(session).getOrInsertInstance(service);
     }
 
-    public void insertOffering(OfferingEntity offeringEntity) {
-        Session session = getSession();
-        try {
-            Transaction transaction = session.beginTransaction();
-            insertOffering(offeringEntity, session);
-            session.flush();
-            transaction.commit();
-        } finally {
-            returnSession(session);
-        }
-    }
 
     private OfferingEntity insertOffering(OfferingEntity offering, Session session) {
         return new ProxyOfferingDao(session).getOrInsertInstance(offering);
     }
 
-    public synchronized DatasetEntity<?> insertDataset(DatasetEntity<?> dataset) {
+    public synchronized DatasetEntity insertDataset(DatasetEntity dataset) {
         Session session = getSession();
         Transaction transaction = null;
         try {
@@ -178,7 +165,7 @@ public class InsertRepository extends SessionAwareRepository {
             FeatureEntity feature = insertFeature(dataset.getFeature(), session);
             PhenomenonEntity phenomenon = insertPhenomenon(dataset.getPhenomenon(), session);
 
-            DatasetEntity<?> inserted
+            DatasetEntity inserted
                     = insertDataset(dataset, category, procedure, offering, feature, phenomenon, session);
 
             session.flush();
@@ -195,7 +182,7 @@ public class InsertRepository extends SessionAwareRepository {
         return null;
     }
 
-    private DatasetEntity<?> insertDataset(DatasetEntity<?> dataset, CategoryEntity category, ProcedureEntity procedure,
+    private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
                                            OfferingEntity offering, FeatureEntity feature, PhenomenonEntity phenomenon,
                                            Session session) {
         dataset.setCategory(category);
@@ -217,7 +204,7 @@ public class InsertRepository extends SessionAwareRepository {
             session.flush();
             transaction.commit();
         } catch (HibernateException e) {
-            LOGGER.error("Error occured while saving related feature: ", e);
+            LOGGER.error("Error occured while saving related feature", e);
         } finally {
             returnSession(session);
         }
@@ -267,8 +254,8 @@ public class InsertRepository extends SessionAwareRepository {
                configuration.getItemName().equals(service.getName());
     }
 
-    public void insertData(DatasetEntity<?> dataset, DataEntity<?> data) {
-        data.setSeriesPkid(data.getPkid());
+    public void insertData(DatasetEntity dataset, DataEntity<?> data) {
+        data.setSeriesPkid(dataset.getPkid());
         Session session = getSession();
         Transaction transaction = null;
         try {
@@ -277,7 +264,7 @@ public class InsertRepository extends SessionAwareRepository {
             session.flush();
             transaction.commit();
         } catch (HibernateException e) {
-            LOGGER.error("Error occured while saving related feature: ", e);
+            LOGGER.error("Error occured while saving data", e);
             if (transaction != null) {
                 transaction.rollback();
             }

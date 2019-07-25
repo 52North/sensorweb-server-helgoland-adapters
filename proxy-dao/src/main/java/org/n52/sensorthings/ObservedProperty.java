@@ -10,7 +10,7 @@ public class ObservedProperty extends SensorThingsElement {
     private String definition;
 
     @SerializedName("Datastreams@iot.navigationLink")
-    String datastreamsLink;
+    private String datastreamsLink;
 
     /**
      * @return the definition
@@ -24,6 +24,14 @@ public class ObservedProperty extends SensorThingsElement {
      */
     public void setDefinition(String definition) {
         this.definition = definition;
+    }
+
+    public String getDatastreamsLink() {
+        return datastreamsLink;
+    }
+
+    public void setDatastreamsLink(String datastreamsLink) {
+        this.datastreamsLink = datastreamsLink;
     }
 
 }

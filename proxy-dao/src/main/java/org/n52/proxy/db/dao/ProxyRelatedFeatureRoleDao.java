@@ -71,6 +71,7 @@ public class ProxyRelatedFeatureRoleDao extends AbstractDao<RelatedFeatureRoleEn
             return instance;
         }
         this.session.save(relatedFeature);
+        this.session.flush();
         return relatedFeature;
     }
 

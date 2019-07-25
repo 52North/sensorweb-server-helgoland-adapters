@@ -28,19 +28,19 @@
  */
 package org.n52.proxy.db.da;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.n52.proxy.connector.utils.EntityBuilder.createUnit;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.n52.io.response.dataset.Data;
+import org.n52.io.response.dataset.AbstractValue;
 import org.n52.io.response.dataset.DatasetOutput;
 import org.n52.proxy.connector.AbstractConnector;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.DataAccessException;
 import org.n52.series.db.beans.DatasetEntity;
@@ -48,34 +48,43 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.da.DatasetRepository;
 import org.n52.series.db.dao.DbQuery;
 
-public class ProxyDatasetRepository<T extends Data<?>> extends DatasetRepository<T> {
+import com.google.common.base.Strings;
 
-    private Map<String, AbstractConnector> connectorMap = new HashMap<>();
+public class ProxyDatasetRepository<V extends AbstractValue< ?>> extends DatasetRepository<V> {
+
+    private final Map<String, AbstractConnector> connectorMap = new HashMap<>();
 
     @Autowired
     public void setConnectors(List<AbstractConnector> connectors) {
-        connectors.forEach((connector) -> {
-            connectorMap.put(connector.getConnectorName(), connector);
-        });
+        connectors.forEach(connector -> connectorMap.put(connector.getConnectorName(), connector));
     }
 
     @Override
     @SuppressWarnings("rawtypes")
     protected DatasetOutput createExpanded(DatasetEntity series, DbQuery query, Session session)
             throws DataAccessException {
-        if (series.getUnit() == null || isNullOrEmpty(series.getUnit().getName())) {
-            final ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
-            final String connectorName = service.getConnector();
-            AbstractConnector connector = connectorMap.get(connectorName);
-            UnitEntity unit = connector.getUom(series);
-            if (unit == null) {
-                // create empty unit
-                unit = createUnit("", null, service);
+        if (series.getUnit() == null || Strings.isNullOrEmpty(series.getUnit().getName())) {
+            Transaction transaction = null;
+            try {
+                transaction = session.beginTransaction();
+                ProxyServiceEntity service = (ProxyServiceEntity) series.getService();
+                String connectorName = service.getConnector();
+                AbstractConnector connector = connectorMap.get(connectorName);
+                UnitEntity unit = connector.getUom(series);
+                if (unit == null) {
+                    // create empty unit
+                    unit = EntityBuilder.createUnit("", null, service);
+                }
+                series.setUnit(unit);
+                session.save(unit);
+                session.save(series);
+                session.flush();
+                transaction.commit();
+            } catch (DataAccessException | HibernateException ex) {
+                if (transaction != null) {
+                    transaction.rollback();
+                }
             }
-            series.setUnit(unit);
-            session.save(unit);
-            session.save(series);
-            session.flush();
         }
         return super.createExpanded(series, query, session);
     }

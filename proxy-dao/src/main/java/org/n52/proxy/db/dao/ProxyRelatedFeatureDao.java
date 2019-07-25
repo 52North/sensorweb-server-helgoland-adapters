@@ -72,6 +72,7 @@ public class ProxyRelatedFeatureDao extends AbstractDao<RelatedFeatureEntity>
             return instance;
         }
         this.session.save(relatedFeature);
+        this.session.flush();
         return relatedFeature;
     }
 

@@ -28,9 +28,6 @@
  */
 package org.n52.proxy.connector.constellations;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-
 import java.util.Optional;
 
 import org.n52.proxy.db.beans.ProxyServiceEntity;
@@ -45,7 +42,7 @@ import org.n52.series.db.beans.ProcedureEntity;
 /**
  * @author Jan Schulte
  */
-public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
+public abstract class DatasetConstellation<T extends DatasetEntity> {
 
     private final String procedure;
     private final String offering;
@@ -114,8 +111,8 @@ public abstract class DatasetConstellation<T extends DatasetEntity<?>> {
         datasetEntity.setFeature(feature);
         datasetEntity.setPhenomenon(phenomenon);
         datasetEntity.setOffering(offering);
-        datasetEntity.setPublished(TRUE);
-        datasetEntity.setDeleted(FALSE);
+        datasetEntity.setPublished(true);
+        datasetEntity.setDeleted(false);
         datasetEntity.setService(service);
 
         getLatest().map(DataEntity::getTimestart).ifPresent(datasetEntity::setLastValueAt);
