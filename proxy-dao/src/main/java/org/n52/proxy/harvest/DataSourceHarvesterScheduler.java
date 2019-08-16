@@ -34,6 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
+import org.n52.io.task.ScheduledJob;
+import org.n52.proxy.config.ConfigurationReader;
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.da.InsertRepository;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -41,12 +47,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.n52.io.task.ScheduledJob;
-import org.n52.proxy.config.ConfigurationReader;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.db.da.InsertRepository;
 
 public class DataSourceHarvesterScheduler {
 
@@ -57,7 +57,7 @@ public class DataSourceHarvesterScheduler {
     private Scheduler scheduler;
     private boolean enabled = true;
 
-    @Autowired
+    @Inject
     private InsertRepository insertRepository;
 
     public void init() {

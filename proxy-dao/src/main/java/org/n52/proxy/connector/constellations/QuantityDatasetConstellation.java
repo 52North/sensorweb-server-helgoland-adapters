@@ -1,45 +1,44 @@
 package org.n52.proxy.connector.constellations;
 
 
-import java.util.Date;
-
-import org.n52.proxy.connector.utils.EntityBuilder;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.QuantityDatasetEntity;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.beans.dataset.DatasetType;
+import org.n52.series.db.beans.dataset.ObservationType;
+import org.n52.series.db.beans.dataset.ValueType;
 
 /**
  * @author Jan Schulte
  */
-public class QuantityDatasetConstellation extends DatasetConstellation<QuantityDatasetEntity> {
+public class QuantityDatasetConstellation extends DatasetConstellation {
 
     private UnitEntity unit;
 
     public QuantityDatasetConstellation(String procedure, String offering, String category, String phenomenon,
-            String feature) {
-        super(procedure, offering, category, phenomenon, feature);
+            String feature, String platform) {
+        super(procedure, offering, category, phenomenon, feature, platform);
     }
 
     public UnitEntity getUnit() {
         return unit;
     }
 
-    public void setUnit(UnitEntity unit) {
+    public QuantityDatasetConstellation setUnit(UnitEntity unit) {
         this.unit = unit;
+        return this;
     }
 
     @Override
-    protected QuantityDatasetEntity createDatasetEntity(ProxyServiceEntity service) {
-        QuantityDatasetEntity quantityDataset = new QuantityDatasetEntity();
-        // add empty unit entity, will be replaced later in the repositories
-        if (unit == null) {
-            // create empty unit
-            unit = EntityBuilder.createUnit("", null, service);
-        }
-        quantityDataset.setUnit(unit);
-        quantityDataset.setFirstValueAt(new Date());
-        quantityDataset.setLastValueAt(new Date());
-        return quantityDataset;
+    protected DatasetEntity createDatasetEntity(ServiceEntity service) {
+        DatasetEntity dataset = new DatasetEntity();
+        dataset.setUnit(unit);
+        dataset.setFirstValueAt(getSamplingTimeStart());
+        dataset.setLastValueAt(getSamplingTimeEnd());
+        dataset.setDatasetType(DatasetType.timeseries);
+        dataset.setObservationType(ObservationType.simple);
+        dataset.setValueType(ValueType.quantity);
+        return dataset;
     }
 
 }

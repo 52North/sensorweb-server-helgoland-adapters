@@ -28,38 +28,51 @@
  */
 package org.n52.proxy.connector.constellations;
 
+import java.util.Date;
 import java.util.Optional;
 
-import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
+import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.beans.ServiceEntity;
 
 /**
  * @author Jan Schulte
  */
-public abstract class DatasetConstellation<T extends DatasetEntity> {
+public abstract class DatasetConstellation {
 
     private final String procedure;
     private final String offering;
     private final String category;
     private final String phenomenon;
     private final String feature;
+    private final String platform;
 
     private DataEntity<?> first;
     private DataEntity<?> latest;
-    private String domainId;
+    private String identifier;
+    private boolean mobile;
+    private boolean insitu;
 
-    public DatasetConstellation(String procedure, String offering, String category, String phenomenon, String feature) {
+    private Date samplingTimeStart;
+    private Date samplingTimeEnd;
+
+    public DatasetConstellation(String procedure, String offering, String phenomenon, String feature) {
+        this(procedure, offering, phenomenon, phenomenon, feature, feature);
+    }
+
+    public DatasetConstellation(String procedure, String offering, String category, String phenomenon, String feature, String platform) {
         this.procedure = procedure;
         this.offering = offering;
         this.category = category;
         this.phenomenon = phenomenon;
         this.feature = feature;
+        this.platform = platform;
     }
 
     public String getProcedure() {
@@ -82,12 +95,16 @@ public abstract class DatasetConstellation<T extends DatasetEntity> {
         return feature;
     }
 
-    public String getDomainId() {
-        return domainId;
+    public String getPlatform() {
+        return platform;
     }
 
-    public void setDomainId(String domainId) {
-        this.domainId = domainId;
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
     @Override
@@ -97,31 +114,33 @@ public abstract class DatasetConstellation<T extends DatasetEntity> {
                ", phenomenon=" + phenomenon + ", feature=" + feature + '}';
     }
 
-    public final T createDatasetEntity(
+    public final DatasetEntity createDatasetEntity(
             ProcedureEntity procedure,
             CategoryEntity category,
             FeatureEntity feature,
             OfferingEntity offering,
             PhenomenonEntity phenomenon,
-            ProxyServiceEntity service) {
-        T datasetEntity = createDatasetEntity(service);
-        datasetEntity.setDomainId(getDomainId());
+            PlatformEntity platform,
+            ServiceEntity service) {
+        DatasetEntity datasetEntity = createDatasetEntity(service);
+        datasetEntity.setIdentifier(getIdentifier());
         datasetEntity.setProcedure(procedure);
         datasetEntity.setCategory(category);
         datasetEntity.setFeature(feature);
+        datasetEntity.setPlatform(platform);
         datasetEntity.setPhenomenon(phenomenon);
         datasetEntity.setOffering(offering);
         datasetEntity.setPublished(true);
         datasetEntity.setDeleted(false);
         datasetEntity.setService(service);
 
-        getLatest().map(DataEntity::getTimestart).ifPresent(datasetEntity::setLastValueAt);
-        getFirst().map(DataEntity::getTimestart).ifPresent(datasetEntity::setFirstValueAt);
+        getFirst().map(DataEntity::getSamplingTimeStart).ifPresent(datasetEntity::setFirstValueAt);
+        getLatest().map(DataEntity::getSamplingTimeEnd).ifPresent(datasetEntity::setLastValueAt);
 
         return datasetEntity;
     }
 
-    protected abstract T createDatasetEntity(ProxyServiceEntity service);
+    protected abstract DatasetEntity createDatasetEntity(ServiceEntity service);
 
     public Optional<DataEntity<?>> getFirst() {
         return Optional.ofNullable(first);
@@ -138,5 +157,42 @@ public abstract class DatasetConstellation<T extends DatasetEntity> {
     public void setLatest(DataEntity<?> latest) {
         this.latest = latest;
     }
+
+    public boolean isMobile() {
+        return mobile;
+    }
+
+    public void setMobile(boolean mobile) {
+        this.mobile = mobile;
+    }
+
+    public boolean isInsitu() {
+        return insitu;
+    }
+
+    public void setInsitu(boolean insitu) {
+        this.insitu = insitu;
+    }
+
+    public Date getSamplingTimeStart() {
+        return getFirst().isPresent() ? getFirst().get().getSamplingTimeStart()
+                : samplingTimeStart != null ? samplingTimeStart : new Date();
+    }
+
+    public DatasetConstellation setSamplingTimeStart(Date samplingTimeStart) {
+        this.samplingTimeStart = samplingTimeStart;
+        return this;
+    }
+
+    public Date getSamplingTimeEnd() {
+        return getLatest().isPresent() ? getLatest().get().getSamplingTimeEnd()
+                : samplingTimeEnd != null ? samplingTimeEnd : new Date();
+    }
+
+    public DatasetConstellation setSamplingTimeEnd(Date samplingTimeEnd) {
+        this.samplingTimeEnd = samplingTimeEnd;
+        return this;
+    }
+
 
 }

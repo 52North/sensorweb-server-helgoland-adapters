@@ -37,6 +37,7 @@ public class DataSourceConfiguration {
     private String version;
     private String connector;
     private String type;
+    private boolean supportsFirstLast = true;
     private List<String> allowedOfferings;
 
     private DataSourceJobConfiguration job;
@@ -87,6 +88,14 @@ public class DataSourceConfiguration {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean isSupportsFirstLast() {
+        return supportsFirstLast;
+    }
+
+    public void setSupportsFirstLast(boolean supportsFirstLast) {
+        this.supportsFirstLast = supportsFirstLast;
     }
 
     public List<String> getAllowedOfferings() {

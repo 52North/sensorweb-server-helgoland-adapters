@@ -1,0 +1,16 @@
+{
+    "dataSources": [
+        {
+            "itemName": "sensorwebtestbed",
+            "url": "http://sensorweb.demo.52north.org/sensorwebtestbed/service",
+            "version": "2.0.0",
+            "type": "SOS",
+            "supportsFirstLast": true,
+            "job": {
+                "cronExpression": "0 0 0/1 * * ?",
+                "enabled": true,
+                "triggerAtStartup": true
+            }
+        }
+    ]
+}

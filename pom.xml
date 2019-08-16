@@ -9,12 +9,12 @@
     <groupId>org.n52.series-api</groupId>
     <artifactId>series-sos-proxy</artifactId>
     <name>Series REST API - SOS Proxy</name>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
         <module>proxy-dao</module>
-        <module>proxy-mappings</module>
+        <module>proxy-app</module>
         <module>proxy-webapp</module>
     </modules>
 
@@ -52,22 +52,20 @@
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
 
-        <sensorwebclient.version>3.2.0</sensorwebclient.version>
-        <org.springframework.version>5.1.3.RELEASE</org.springframework.version>
+        <org.springframework.version>5.1.9.RELEASE</org.springframework.version>
         <logback.version>1.2.3</logback.version>
-        <jackson.version>2.9.7</jackson.version>
-        <geotools.version>19.0</geotools.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <jackson.version>2.9.9</jackson.version>
+        <geotools.version>21.2</geotools.version>
+        <slf4j.version>1.7.26</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <hibernate.version>5.2.12.Final</hibernate.version>
-        <hibernate.spatial.version>5.2.12-52N.1</hibernate.spatial.version>
-        <arctic-sea.version>5.1.0</arctic-sea.version>
-        <series.api.version>2.0.1-alpha.2</series.api.version>
-        <series.db.version>2.0.0-alpha.11</series.db.version>
+        <hibernate.version>5.4.3.Final</hibernate.version>
+        <arctic-sea.version>7.2.0-SNAPSHOT</arctic-sea.version>
+        <series.api.version>2.0.1-SNAPSHOT</series.api.version>
+        <series.db.version>4.0.0-SNAPSHOT</series.db.version>
+        <series-hibernate.version>2.0.0-SNAPSHOT</series-hibernate.version>
+        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
         <postgresql.version>42.2.5</postgresql.version>
         <postgis.version>2.3.0</postgis.version>
-        <!--<hibernate.version>5.1.0.Final</hibernate.version>-->
-        
         <java.compiler.source>1.8</java.compiler.source>
         <java.compiler.target>1.8</java.compiler.target>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -79,6 +77,14 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>proxy-dao</artifactId>
@@ -111,9 +117,36 @@
                 <version>${series.db.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.n52.sensorweb</groupId>
+                <groupId>org.n52.series-api</groupId>
                 <artifactId>xml-pdf-format</artifactId>
-                <version>3.2.0</version>
+                <version>${series.api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.n52.series.db</groupId>
+                <artifactId>entities</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.series.db</groupId>
+                <artifactId>mappings</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.series.db</groupId>
+                <artifactId>types</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geolatte</groupId>
+                <artifactId>geolatte-geom</artifactId>
+                <version>1.4.0</version>
+                <exclusions>
+                  <exclusion>
+                      <groupId>org.locationtech.jts</groupId>
+                      <artifactId>jts-core</artifactId>
+                  </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -158,13 +191,17 @@
                         <groupId>com.google.guava</groupId>
                         <artifactId>guava</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
                 </exclusions>
                 <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>27.0-jre</version>
+                <version>28.0-jre</version>
             </dependency>
             
         
@@ -181,7 +218,7 @@
             <dependency>
                 <groupId>net.jodah</groupId>
                 <artifactId>failsafe</artifactId>
-                <version>1.0.4</version>
+                <version>1.1.1</version>
             </dependency>
 
             <dependency>
@@ -190,9 +227,9 @@
                 <version>1</version>
             </dependency>
             <dependency>
-                <groupId>c3p0</groupId>
+                <groupId>com.mchange</groupId>
                 <artifactId>c3p0</artifactId>
-                <version>0.9.1.1</version>
+                <version>0.9.5.4</version>
             </dependency>
             <dependency>
                 <groupId>net.postgis</groupId>
@@ -211,48 +248,63 @@
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-spatial</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
             </dependency>
             <dependency>
+                <groupId> javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>2.2</version>
+            </dependency>
+            <dependency>
+                <groupId> org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>1.0.2.Final</version>
+            </dependency>
+            <dependency>
                 <groupId>com.thetransactioncompany</groupId>
                 <artifactId>cors-filter</artifactId>
-                <version>1.8</version>
+                <version>2.6</version>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.10</version>
+                <version>4.4.11</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.6</version>
+                <version>4.5.9</version>
             </dependency>
 
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.8.0</version>
+                <version>2.8.5</version>
             </dependency>
 
             <dependency>
                 <groupId>com.github.filosganga</groupId>
                 <artifactId>geogson-core</artifactId>
-                <version>1.1.100</version>
+                <version>1.4.2</version>
             </dependency>
             
             <dependency>
                 <groupId>org.apache.xmlbeans</groupId>
                 <artifactId>xmlbeans</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
             </dependency>
 
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjtools</artifactId>
-                <version>${aspectj.version}</version>
+                <version>1.8.9</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -272,29 +324,13 @@
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
-                <version>2.10.1</version>
+                <version>2.10.3</version>
             </dependency>
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
-                <version>3.0.1</version>
+                <version>4.0.1</version>
                 <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${geotools.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -390,19 +426,7 @@
             <dependency>
                 <groupId>org.locationtech.jts</groupId>
                 <artifactId>jts-core</artifactId>
-                <version>1.16.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.vividsolutions</groupId>
-                <artifactId>jts-core</artifactId>
-                <version>1.14.0</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- old version dependency causes conclicts -->
-                        <groupId>xerces</groupId>
-                        <artifactId>xercesImpl</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>1.16.1</version>
             </dependency>
 
             <dependency>
@@ -449,30 +473,29 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
                 <version>${org.springframework.version}</version>
-                <!--<version>4.2.3.RELEASE</version>-->
                 <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.quartz-scheduler</groupId>
                 <artifactId>quartz</artifactId>
-                <version>2.3.0</version>
+                <version>2.3.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.jfree</groupId>
                 <artifactId>jfreechart</artifactId>
-                <version>1.0.19</version>
+                <version>1.5.0</version>
             </dependency>
             <dependency>
                 <groupId>org.jfree</groupId>
                 <artifactId>jcommon</artifactId>
-                <version>1.0.23</version>
+                <version>1.0.24</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>fop</artifactId>
-                <version>2.1</version>
+                <version>2.3</version>
                 <exclusions>
                     <exclusion>
                         <!--jcl-over-slf4j is used instead -->
@@ -483,12 +506,21 @@
                         <groupId>commons-io</groupId>
                         <artifactId>commons-io</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.xmlgraphics</groupId>
+                        <artifactId>xmlgraphics-commons</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.xmlgraphics</groupId>
+                <artifactId>xmlgraphics-commons</artifactId>
+                <version>2.2</version>
             </dependency>
             <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
-                <version>2.7.0</version>
+                <version>2.7.2</version>
                 <exclusions>
                     <exclusion>
                         <!-- uses older xml-apis than other fop dependencies -->
@@ -518,7 +550,7 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.10</version>
+                <version>1.12</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -588,20 +620,20 @@
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-core</artifactId>
-                <version>${hamcrest.version}</version>
+                <version>2.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-all</artifactId>
-                <version>${hamcrest.version}</version>
+                <version>1.3</version>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-annotations</artifactId>
-                <version>3.1.8</version>
+                <version>3.1.12</version>
             </dependency>
 
         </dependencies>
@@ -759,6 +791,7 @@
                                     <id>n52-releases</id>
                                     <id>n52-snapshots</id>
                                     <id>sonatype-nexus-snapshots</id>
+                                    <id>boundless</id>
                                 </allowedRepositories>
                             </requireNoRepositories>
                         </rules>
@@ -867,6 +900,11 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <!-- Needed for geodb -->
+            <id>boundless</id>
+            <url>http://repo.boundlessgeo.com/main/</url>
         </repository>
     </repositories>
 </project>

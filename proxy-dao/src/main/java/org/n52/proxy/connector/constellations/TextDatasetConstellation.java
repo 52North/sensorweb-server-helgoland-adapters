@@ -2,25 +2,31 @@ package org.n52.proxy.connector.constellations;
 
 import java.util.Date;
 
-import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.TextDatasetEntity;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.ServiceEntity;
+import org.n52.series.db.beans.dataset.DatasetType;
+import org.n52.series.db.beans.dataset.ObservationType;
+import org.n52.series.db.beans.dataset.ValueType;
 
 /**
  * @author Jan Schulte
  */
-public class TextDatasetConstellation extends DatasetConstellation<TextDatasetEntity> {
+public class TextDatasetConstellation extends DatasetConstellation {
 
     public TextDatasetConstellation(String procedure, String offering, String category, String phenomenon,
-            String feature) {
-        super(procedure, offering, category, phenomenon, feature);
+            String feature, String platform) {
+        super(procedure, offering, category, phenomenon, feature, platform);
     }
 
     @Override
-    protected TextDatasetEntity createDatasetEntity(ProxyServiceEntity service) {
-        TextDatasetEntity textDataset = new TextDatasetEntity();
-        textDataset.setFirstValueAt(new Date());
-        textDataset.setLastValueAt(new Date());
-        return textDataset;
+    protected DatasetEntity createDatasetEntity(ServiceEntity service) {
+        DatasetEntity dataset = new DatasetEntity();
+        dataset.setFirstValueAt(new Date());
+        dataset.setLastValueAt(new Date());
+        dataset.setDatasetType(DatasetType.timeseries);
+        dataset.setObservationType(ObservationType.simple);
+        dataset.setValueType(ValueType.text);
+        return dataset;
     }
 
 }

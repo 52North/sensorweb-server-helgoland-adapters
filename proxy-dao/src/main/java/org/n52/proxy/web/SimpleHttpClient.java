@@ -33,9 +33,6 @@ import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -51,6 +48,9 @@ import org.apache.xmlbeans.XmlObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+
 public class SimpleHttpClient implements HttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
@@ -58,9 +58,8 @@ public class SimpleHttpClient implements HttpClient {
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
     private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", StandardCharsets.UTF_8);
     private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-            .retryOn(ConnectException.class)
-            .withDelay(10, TimeUnit.SECONDS)
-            .withMaxDuration(15, TimeUnit.MINUTES);
+            .withDelay(10, 900, TimeUnit.SECONDS)
+            .retryOn(ConnectException.class);
     private CloseableHttpClient httpclient;
     private int connectionTimeout;
     private int socketTimeout;

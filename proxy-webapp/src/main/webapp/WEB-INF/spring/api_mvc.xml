@@ -85,6 +85,15 @@
         </constructor-arg>
     </bean>
 
+    <bean class="org.n52.web.ctrl.CategoryParameterController" parent="parameterController">
+        <constructor-arg index="0" ref="metadataService" />
+        <constructor-arg index="1">
+            <bean class="org.n52.web.ctrl.ParameterBackwardsCompatibilityAdapter">
+                <constructor-arg index="0" ref="phenomenonParameterService" />
+            </bean>
+        </constructor-arg>
+    </bean>
+
     <bean class="org.n52.web.ctrl.PlatformsParameterController" parent="parameterController">
         <constructor-arg index="0" ref="metadataService" />
         <constructor-arg index="1" ref="platformParameterService" />
@@ -97,11 +106,12 @@
         </property>
     </bean>
 
+<!--
     <bean class="org.n52.web.ctrl.GeometriesController" parent="parameterController">
         <constructor-arg index="0" ref="metadataService" />
         <constructor-arg index="1" ref="geometriesService" />
     </bean>
-
+ -->
     <bean class="org.n52.web.ctrl.DatasetController" parent="parameterController">
         <constructor-arg index="0" ref="metadataService" />
         <constructor-arg index="1" ref="datasetService" />
@@ -142,11 +152,11 @@
     <bean id="renderingHintsExtension" class="org.n52.io.extension.RenderingHintsExtension" />
     <bean id="statusIntervalsExtension" class="org.n52.io.extension.StatusIntervalsExtension" />
 
+<!--
     <bean class="org.n52.web.ctrl.StationsParameterController">
         <constructor-arg index="0" ref="metadataService" />
         <constructor-arg index="1" ref="stationParameterService" />
-    </bean>
-
+    </bean> -->
     <bean class="org.n52.web.ctrl.TimeseriesMetadataController" parent="parameterController">
         <constructor-arg index="0" ref="metadataService" />
         <constructor-arg index="1" ref="timeseriesService" />

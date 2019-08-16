@@ -15,9 +15,6 @@ import org.apache.http.entity.ContentType;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
@@ -35,13 +32,17 @@ import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
+@Component
 public class SensorThingsConnector extends AbstractConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SensorThingsConnector.class);
@@ -73,7 +74,7 @@ public class SensorThingsConnector extends AbstractConnector {
     public ServiceConstellation getConstellation(DataSourceConfiguration config) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation);
+        addService(config, serviceConstellation, null);
         createDatasets(serviceConstellation, config.getUrl());
         return serviceConstellation;
     }
@@ -105,8 +106,9 @@ public class SensorThingsConnector extends AbstractConnector {
                                                                                           offeringId,
                                                                                           categoryId,
                                                                                           phenomenonId,
-                                                                                          featureId);
-            constellation.setDomainId(Integer.toString(datastream.getIotID()));
+                                                                                          featureId,
+                                                                                          offeringId);
+            constellation.setIdentifier(Integer.toString(datastream.getIotID()));
             constellation.setUnit(EntityBuilder.createUnit(datastream.getUnitOfMeasurement().getSymbol(),
                                                            datastream.getUnitOfMeasurement().getDefinition(),
                                                            serviceConstellation.getService()));
@@ -141,7 +143,7 @@ public class SensorThingsConnector extends AbstractConnector {
                                       "phenomenonTime%%20gt%%20'%s'" +
                                       "%%20and%%20" +
                                       "phenomenonTime%%20lt%%20'%s'",
-                                      seriesEntity.getDomainId(),
+                                      seriesEntity.getIdentifier(),
                                       start.toString(formatter),
                                       end.toString(formatter));
         Observations observations = (Observations) doGetRequest(seriesEntity.getService().getUrl(),
@@ -161,7 +163,7 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private DataEntity<?> createObservationBounds(DatasetEntity entity, String order) {
         String e = String.format("Datastreams(%s)/Observations?$orderby=phenomenonTime%%20%s&$top=1",
-                                 entity.getDomainId(), order);
+                                 entity.getIdentifier(), order);
         Observations observations = (Observations) doGetRequest(entity.getService().getUrl(), e, Observations.class);
         if (observations.getValue().size() == 1) {
             return createObservation(observations.getValue().get(0));
@@ -195,8 +197,8 @@ public class SensorThingsConnector extends AbstractConnector {
 
     private DataEntity<?> createObservation(Observation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
-        dataEntity.setTimestart(observation.getPhenomenonTime());
-        dataEntity.setTimeend(observation.getPhenomenonTime());
+        dataEntity.setSamplingTimeStart(observation.getPhenomenonTime());
+        dataEntity.setSamplingTimeEnd(observation.getPhenomenonTime());
         dataEntity.setValue(observation.getResult());
         return dataEntity;
     }

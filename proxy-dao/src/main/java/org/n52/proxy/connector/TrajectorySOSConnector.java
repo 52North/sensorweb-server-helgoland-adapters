@@ -36,22 +36,18 @@ import java.util.List;
 import java.util.Optional;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Configurable;
-
 import org.n52.janmayen.Stopwatch;
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.proxy.connector.utils.ServiceMetadata;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.om.ObservationValue;
 import org.n52.shetland.ogc.om.OmObservation;
@@ -62,7 +58,12 @@ import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.stereotype.Component;
 
+@Component
 @Configurable
 public class TrajectorySOSConnector extends AbstractSosConnector {
 
@@ -90,7 +91,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation);
+        addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
         addDatasets(serviceConstellation, sosCaps, config.getUrl());
         return serviceConstellation;
@@ -124,7 +125,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
                     .map(OmObservation::getValue)
                     .map(ObservationValue::getValue)
                     .map(v -> v.getUnit())
-                    .map(unit -> EntityBuilder.createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
+                    .map(unit -> EntityBuilder.createUnit(unit, null, seriesEntity.getService()))
                     .orElse(null);
         }
         return null;
@@ -133,19 +134,19 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
     @Override
     public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
         // currently only return default first observation
-        QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
-        quantityDataEntity.setTimestart(new Date());
-        quantityDataEntity.setTimeend(new Date());
-        quantityDataEntity.setValue(BigDecimal.ZERO);
-        return Optional.of(quantityDataEntity);
+        return getObservation(entity);
     }
 
     @Override
     public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
         // currently only return default last observation
+        return getObservation(entity);
+    }
+
+    private Optional<DataEntity<?>> getObservation(DatasetEntity entity) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
-        quantityDataEntity.setTimestart(new Date());
-        quantityDataEntity.setTimeend(new Date());
+        quantityDataEntity.setSamplingTimeStart(new Date());
+        quantityDataEntity.setSamplingTimeEnd(new Date());
         quantityDataEntity.setValue(BigDecimal.ZERO);
         return Optional.of(quantityDataEntity);
     }
@@ -185,6 +186,7 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
             // TODO maybe not only QuantityDatasetConstellation
             serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                                                       phenomenonId,
+                                                                      featureId,
                                                                       featureId));
         });
     }

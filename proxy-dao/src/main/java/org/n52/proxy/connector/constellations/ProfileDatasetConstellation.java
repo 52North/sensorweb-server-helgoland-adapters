@@ -8,22 +8,28 @@ package org.n52.proxy.connector.constellations;
 import java.util.Date;
 
 import org.n52.proxy.connector.utils.EntityBuilder;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.series.db.beans.ProfileDatasetEntity;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.beans.dataset.DatasetType;
+import org.n52.series.db.beans.dataset.ObservationType;
+import org.n52.series.db.beans.dataset.ValueType;
 
 /**
  * @author Jan Schulte
  */
-public class ProfileDatasetConstellation extends DatasetConstellation<ProfileDatasetEntity> {
-
-    private String verticalParameterName = "depth";
+public class ProfileDatasetConstellation extends DatasetConstellation {
 
     private UnitEntity unit;
 
-    public ProfileDatasetConstellation(String procedure, String offering, String category, String phenomenon,
+    public ProfileDatasetConstellation(String procedure, String offering, String phenomenon,
             String feature) {
-        super(procedure, offering, category, phenomenon, feature);
+        super(procedure, offering, phenomenon, feature);
+    }
+
+    public ProfileDatasetConstellation(String procedure, String offering, String category, String phenomenon,
+            String feature, String platform) {
+        super(procedure, offering, category, phenomenon, feature, platform);
     }
 
     public UnitEntity getUnit() {
@@ -35,16 +41,14 @@ public class ProfileDatasetConstellation extends DatasetConstellation<ProfileDat
     }
 
     @Override
-    protected ProfileDatasetEntity createDatasetEntity(ProxyServiceEntity service) {
-        ProfileDatasetEntity dataset = new ProfileDatasetEntity();
-        if (unit == null) {
-            unit = EntityBuilder.createUnit("", null, service);
-        }
+    protected DatasetEntity createDatasetEntity(ServiceEntity service) {
+        DatasetEntity dataset = new DatasetEntity();
         dataset.setUnit(unit);
-        dataset.setVerticalParameterName(verticalParameterName);
         dataset.setFirstValueAt(new Date());
         dataset.setLastValueAt(new Date());
-        dataset.setValueType("quantity-profile");
+        dataset.setDatasetType(DatasetType.timeseries);
+        dataset.setObservationType(ObservationType.profile);
+        dataset.setValueType(ValueType.quantity);
         return dataset;
     }
 

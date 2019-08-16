@@ -38,23 +38,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.ProfileDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
+import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.beans.parameter.Parameter;
-import org.n52.series.db.beans.parameter.ParameterQuantity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.om.ObservationValue;
@@ -82,7 +78,11 @@ import org.n52.shetland.ogc.swe.SweDataRecord;
 import org.n52.shetland.ogc.swe.SweField;
 import org.n52.shetland.ogc.swe.simpleType.SweQuantity;
 import org.n52.shetland.ogc.swes.SwesConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class OceanotronSosConnector extends SOS2Connector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OceanotronSosConnector.class);
@@ -120,7 +120,7 @@ public class OceanotronSosConnector extends SOS2Connector {
                     SweDataRecord sweDataRecord = (SweDataRecord) elementType;
                     List<SweField> fields = sweDataRecord.getFields();
                     if (fields.size() == 2) {
-                        return createUnitEntity(fields.get(1), (ProxyServiceEntity) seriesEntity.getService());
+                        return createUnitEntity(fields.get(1), seriesEntity.getService());
                     }
                 }
             }
@@ -132,9 +132,9 @@ public class OceanotronSosConnector extends SOS2Connector {
         ProfileDataEntity dataEntity = new ProfileDataEntity();
         ObservationValue<? extends Value<?>> obsValue = observation.getValue();
         Date timestamp = ((TimeInstant) obsValue.getPhenomenonTime()).getValue().toDate();
-        dataEntity.setTimestart(timestamp);
-        dataEntity.setTimeend(timestamp);
-        ProxyServiceEntity service = (ProxyServiceEntity) seriesEntity.getService();
+        dataEntity.setSamplingTimeStart(timestamp);
+        dataEntity.setSamplingTimeEnd(timestamp);
+        ServiceEntity service = seriesEntity.getService();
         Optional<Set<DataEntity<?>>> values = Optional.ofNullable(obsValue)
                 .map(ObservationValue::getValue)
                 .flatMap(Functions.castIfInstanceOf(SweDataArrayValue.class))
@@ -147,13 +147,13 @@ public class OceanotronSosConnector extends SOS2Connector {
                             .filter(fields -> fields.size() == 2)
                             .map(fields -> createUnitEntity(fields.get(0), service))
                             .orElse(null);
-
+//TODO VerticalMetadataEntity
                     return dataArray.getValues().stream()
                             .map(valueEntry -> {
                                 BigDecimal measurement = new BigDecimal(valueEntry.get(1));
                                 BigDecimal verticalValue = new BigDecimal(valueEntry.get(0));
                                 LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
-                                return createVerticalEntry(measurement, timestamp, verticalUnit, verticalValue);
+                                return createVerticalEntry(measurement, timestamp, verticalValue);
                             })
                             .map(x -> (DataEntity<?>) x)
                             .collect(toSet());
@@ -162,7 +162,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         return dataEntity;
     }
 
-    private UnitEntity createUnitEntity(SweField field, ProxyServiceEntity service) {
+    private UnitEntity createUnitEntity(SweField field, ServiceEntity service) {
         if (!(field.getElement() instanceof SweQuantity)) {
             return null;
         }
@@ -172,19 +172,21 @@ public class OceanotronSosConnector extends SOS2Connector {
         return EntityBuilder.createUnit(uom, description, service);
     }
 
-    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp, UnitEntity verticalUnit,
+    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp,
                                                    BigDecimal verticalValue) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setValue(measurement);
-        quantityDataEntity.setTimestart(timestamp);
-        quantityDataEntity.setTimeend(timestamp);
-        Set<Parameter<?>> parameters = new HashSet<>(1);
-        ParameterQuantity parameterQuantity = new ParameterQuantity();
-        parameterQuantity.setUnit(verticalUnit);
-        parameterQuantity.setName("depth");
-        parameterQuantity.setValue(verticalValue.doubleValue());
-        parameters.add(parameterQuantity);
-        quantityDataEntity.setParameters(parameters);
+        quantityDataEntity.setSamplingTimeStart(timestamp);
+        quantityDataEntity.setSamplingTimeEnd(timestamp);
+        quantityDataEntity.setVerticalFrom(verticalValue);
+        quantityDataEntity.setVerticalFrom(verticalValue);
+//        Set<ParameterEntity<?>> parameters = new HashSet<>(1);
+//        ParameterQuantityEntity parameterQuantity = new ParameterQuantityEntity();
+//        parameterQuantity.setUnit(verticalUnit);
+//        parameterQuantity.setName("depth");
+//        parameterQuantity.setValue(verticalValue);
+//        parameters.add(parameterQuantity);
+//        quantityDataEntity.setParameters(parameters);
         return quantityDataEntity;
     }
 
@@ -216,7 +218,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     private void addElem(SosObservationOffering obsOff, ServiceConstellation servConst, String url) {
 
         String offeringId = obsOff.getOffering().getIdentifier();
-        servConst.putOffering(offeringId, offeringId);
+        addMetadata(servConst.putOffering(offeringId, offeringId), obsOff);
 
         LOGGER.info("Harvest for Offering {} with {} procedure(s), {} observableProperperties", offeringId,
                     obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
@@ -258,7 +260,6 @@ public class OceanotronSosConnector extends SOS2Connector {
                             ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
                                     procedureComponentId, offeringId,
                                     obsProp,
-                                    obsProp,
                                     foiId);
                             servConst.add(profileDatasetConstellation);
                         }
@@ -269,7 +270,6 @@ public class OceanotronSosConnector extends SOS2Connector {
             if (foiId != null) {
                 ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
                         procedureComponentId, offeringId,
-                        obsProp,
                         obsProp,
                         foiId);
                 servConst.add(profileDatasetConstellation);
@@ -285,6 +285,7 @@ public class OceanotronSosConnector extends SOS2Connector {
             String foiDescription = feature.getDescription();
             SamplingFeature samplingFeature = (SamplingFeature) feature;
             servConst.putFeature(foiId, foiName, foiDescription, samplingFeature.getGeometry());
+            servConst.putPlatform(foiId, foiName, foiDescription);
             return foiId;
         }
         return null;

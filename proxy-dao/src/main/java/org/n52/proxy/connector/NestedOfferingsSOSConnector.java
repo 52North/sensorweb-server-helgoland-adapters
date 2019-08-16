@@ -33,9 +33,6 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.n52.janmayen.function.Functions;
 import org.n52.janmayen.function.Predicates;
 import org.n52.proxy.config.DataSourceConfiguration;
@@ -43,11 +40,10 @@ import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ProxyException;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.ReferenceType;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
@@ -58,10 +54,14 @@ import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferingConstants;
 import org.n52.shetland.ogc.sos.ro.RelatedOfferings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Jan Schulte
  */
+@Component
 public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NestedOfferingsSOSConnector.class);
@@ -105,7 +105,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     @Override
     public UnitEntity getUom(DatasetEntity seriesEntity) {
         // TODO implement
-        return EntityBuilder.createUnit("unit", null, (ProxyServiceEntity) seriesEntity.getService());
+        return EntityBuilder.createUnit("unit", null, seriesEntity.getService());
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
@@ -133,7 +133,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         // TODO maybe not only QuantityDatasetConstellation
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                                                                   phenomenonId,
-                                                                                  featureId));
+                                                                                  featureId, featureId));
                     });
                 }
             } catch (ProxyException ex) {

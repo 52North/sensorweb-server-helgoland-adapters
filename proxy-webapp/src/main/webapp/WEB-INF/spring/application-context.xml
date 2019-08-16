@@ -14,22 +14,20 @@
     </bean>
     -->
 
-    <bean id="entityCounter" class="org.n52.series.db.da.EntityCounter" />
-    <bean id="metadataService" class="org.n52.series.srv.CountingMetadataAccessService" />
+   <bean id="metadataService" class="org.n52.series.srv.CountingMetadataAccessService" />
     <bean id="searchService" class="org.n52.series.srv.Search" />
-
-    <bean id="dataRepositoryFactory" class="org.n52.series.db.AnnotationBasedDataRepositoryFactory" />
-    <bean id="ioFactory" class="org.n52.io.handler.DefaultIoFactory" />
 
     <import resource="spi-impl-dao_beans.xml"/>
     <import resource="spi-impl-dao_tasks.xml" />
 
     <!-- local.configFile overrides defaults from application.properties -->
-    <ctx:property-placeholder location="classpath:/application.properties,file://${local.configFile}"
+    <!-- <ctx:property-placeholder location="classpath:/application.properties,file://${local.configFile}"
+        ignore-resource-not-found="true" ignore-unresolvable="false" /> -->
+    <ctx:property-placeholder location="classpath:/application.properties"
         ignore-resource-not-found="true" ignore-unresolvable="false" />
 
     <!-- For SOS Bundles (instead of extra database config) -->
     <!--<bean class="org.n52.series.db.da.sos.SOSHibernateSessionHolder" destroy-method="shutdown" />-->
-    <import resource="series-database-config.xml" />
+    <!-- <import resource="series-database-config.xml" /> -->
     <import resource="proxy.xml"/>
 </beans>

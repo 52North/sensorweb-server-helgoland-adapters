@@ -1,0 +1,27 @@
+
+{
+    "phenomenonStyles": {
+        "6": {
+            "style": {
+                "chartType": "line",
+                "properties": {
+                    "interval": "byHour",
+                    "width": 2,
+                    "color": "#0000ff"
+                }
+            }
+        }
+    },
+    "datasetStyles": {
+        "7": {
+            "style": {
+                "chartType": "bar",
+                "properties": {
+                    "interval": "byDay",
+                    "width": 0.8,
+                    "color": "#ff00ff"
+                }
+            }
+        }
+    }
+}

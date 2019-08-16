@@ -9,19 +9,19 @@ import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlObject;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.proxy.connector.utils.ServiceMetadata;
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.OfferingEntity;
+import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.dao.DbQuery;
-import org.n52.series.db.dao.JTSGeometryConverter;
+import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.filter.FilterConstants.SpatialOperator;
 import org.n52.shetland.ogc.filter.FilterConstants.TimeOperator;
 import org.n52.shetland.ogc.filter.SpatialFilter;
@@ -29,6 +29,7 @@ import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.CodeType;
 import org.n52.shetland.ogc.gml.ReferenceType;
+import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
 import org.n52.shetland.ogc.om.OmConstants;
@@ -38,12 +39,11 @@ import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
+import org.n52.shetland.util.ReferencedEnvelope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.primitives.Ints;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
 
 /**
  * @author Jan Schulte
@@ -81,13 +81,15 @@ public abstract class AbstractConnector {
 
     public abstract Optional<DataEntity<?>> getLastObservation(DatasetEntity entity);
 
-    protected void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation) {
-        ProxyServiceEntity service
+    protected void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation, ServiceMetadata serviceMetadata) {
+        ServiceEntity service
                 = EntityBuilder.createService(config.getItemName(),
                                               "here goes description",
                                               config.getConnector(),
                                               config.getUrl(),
-                                              config.getVersion());
+                                              config.getVersion(),
+                                              config.isSupportsFirstLast(),
+                                              serviceMetadata);
         serviceConstellation.setService(service);
     }
 
@@ -95,9 +97,9 @@ public abstract class AbstractConnector {
         String offeringId = offering.getIdentifier();
         CodeType name = offering.getFirstName();
         if (name != null) {
-            serviceConstellation.putOffering(offeringId, name.getValue());
+            addMetadata(serviceConstellation.putOffering(offeringId, name.getValue()), offering);
         } else {
-            serviceConstellation.putOffering(offeringId, offeringId);
+            addMetadata(serviceConstellation.putOffering(offeringId, offeringId), offering);
         }
         return offeringId;
     }
@@ -112,6 +114,41 @@ public abstract class AbstractConnector {
     protected String addOffering(String offeringId, String offeringName, ServiceConstellation serviceConstellation) {
         serviceConstellation.putOffering(offeringId, offeringName);
         return offeringId;
+    }
+
+    protected OfferingEntity addMetadata(OfferingEntity entity, SosObservationOffering obsOff) {
+        if (obsOff.isSetObservedArea()) {
+            entity.setGeometry(obsOff.getObservedArea().toGeometry());
+        }
+        if (obsOff.isSetPhenomenonTime()) {
+            Time time = obsOff.getPhenomenonTime();
+            DateTime start = null;
+            DateTime end = null;
+            if (time instanceof TimePeriod) {
+                start = ((TimePeriod) time).getStart();
+                end = ((TimePeriod) time).getEnd();
+            } else if (time instanceof TimeInstant) {
+                start = ((TimeInstant) time).getValue();
+                end = start;
+            }
+            entity.setSamplingTimeStart(start.toDate());
+            entity.setSamplingTimeEnd(end.toDate());
+        }
+        if (obsOff.isSetResultTime()) {
+            Time time = obsOff.getResultTime();
+            DateTime start = null;
+            DateTime end = null;
+            if (time instanceof TimePeriod) {
+                start = ((TimePeriod) time).getStart();
+                end = ((TimePeriod) time).getEnd();
+            } else if (time instanceof TimeInstant) {
+                start = ((TimeInstant) time).getValue();
+                end = start;
+            }
+            entity.setResultTimeStart(start.toDate());
+            entity.setResultTimeEnd(end.toDate());
+        }
+        return entity;
     }
 
     protected String addProcedure(String procedureId, boolean insitu, boolean mobile,
@@ -189,6 +226,7 @@ public abstract class AbstractConnector {
         } else {
             LOGGER.warn("No geometry found");
         }
+        serviceConstellation.putPlatform(featureId, featureName, featureDescription);
         return featureId;
     }
 
@@ -198,10 +236,25 @@ public abstract class AbstractConnector {
                                   OmConstants.PHENOMENON_TIME_NAME);
     }
 
+    protected TemporalFilter createFirstTimefilter(DatasetEntity dataset) {
+        return dataset.getService().getSupportsFirstLast() ? createFirstTimefilter()
+                : createTimeFilter(new DateTime(dataset.getFirstValueAt()));
+    }
+
+    protected TemporalFilter createFirstTimefilter(boolean supportsFirstLast, DateTime lastTimestamp) {
+        return supportsFirstLast ? createFirstTimefilter()
+                : createTimeFilter(lastTimestamp);
+    }
+
     protected TemporalFilter createLatestTimefilter() {
         return new TemporalFilter(TimeOperator.TM_Equals,
                                   new TimeInstant(ExtendedIndeterminateTime.LATEST),
                                   OmConstants.PHENOMENON_TIME_NAME);
+    }
+
+    protected TemporalFilter createLatestTimefilter(DatasetEntity dataset) {
+        return dataset.getService().getSupportsFirstLast() ? createLatestTimefilter()
+                : createTimeFilter(new DateTime(dataset.getLastValueAt()));
     }
 
     protected TemporalFilter createTimeFilter(DbQuery query) {
@@ -236,6 +289,13 @@ public abstract class AbstractConnector {
         return createSpatialFilter(query.getSpatialFilter());
     }
 
+    protected SpatialFilter createSpatialFilter(Geometry geometry) {
+        if (geometry != null && geometry.getSRID() > 0) {
+            return createSpatialFilter(geometry.getEnvelopeInternal(), geometry.getSRID());
+        }
+        return createSpatialFilter(geometry.getEnvelopeInternal());
+    }
+
     protected SpatialFilter createSpatialFilter(Envelope envelope) {
         return createSpatialFilter(envelope, 4326);
     }
@@ -244,9 +304,8 @@ public abstract class AbstractConnector {
         if (envelope == null) {
             return null;
         } else {
-            Geometry geom = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), srid).toGeometry(envelope);
             String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
-            return new SpatialFilter(SpatialOperator.BBOX, JTSGeometryConverter.convert(geom), valueReference);
+            return new SpatialFilter(SpatialOperator.BBOX, new ReferencedEnvelope(envelope, srid), valueReference);
         }
     }
 }

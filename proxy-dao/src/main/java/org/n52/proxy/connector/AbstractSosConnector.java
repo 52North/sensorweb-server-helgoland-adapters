@@ -39,23 +39,24 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import org.joda.time.DateTime;
 import org.n52.janmayen.http.QueryBuilder;
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.DataEntityBuilder;
+import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.series.db.beans.CountDatasetEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.QuantityDatasetEntity;
-import org.n52.series.db.beans.TextDatasetEntity;
+import org.n52.series.db.beans.OfferingEntity;
+import org.n52.series.db.beans.UnitEntity;
+import org.n52.series.db.beans.dataset.ValueType;
 import org.n52.shetland.ogc.filter.SpatialFilter;
 import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.om.OmObservation;
@@ -68,8 +69,10 @@ import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosConstants;
+import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityConstants;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
+import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
 import org.n52.shetland.ogc.sos.request.DescribeSensorRequest;
 import org.n52.shetland.ogc.sos.request.GetFeatureOfInterestRequest;
 import org.n52.shetland.ogc.sos.request.GetObservationRequest;
@@ -88,6 +91,8 @@ import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
 import org.n52.svalbard.encode.exception.NoEncoderForKeyException;
 import org.n52.svalbard.util.CodingHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
@@ -102,7 +107,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         return decoderRepository;
     }
 
-    @Autowired
+    @Inject
     public void setDecoderRepository(DecoderRepository decoderRepository) {
         this.decoderRepository = decoderRepository;
     }
@@ -111,7 +116,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         return encoderRepository;
     }
 
-    @Autowired
+    @Inject
     public void setEncoderRepository(EncoderRepository encoderRepository) {
         this.encoderRepository = encoderRepository;
     }
@@ -123,6 +128,14 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         } else {
             return canHandle(config, capabilities);
         }
+    }
+
+    public UnitEntity getUom(String procedure, String offering, String phenomenon, String feature,
+            boolean supportsFirstLast, DateTime lastTimestamp, String serviceURL) {
+        GetObservationResponse response = getObservation(procedure, offering, phenomenon, feature,
+                createFirstTimefilter(supportsFirstLast, lastTimestamp), serviceURL);
+        return response.getObservationCollection().toStream().findFirst().map(o -> o.getValue().getValue().getUnit())
+                .map(unit -> EntityBuilder.createUnit(unit, null)).orElse(null);
     }
 
     protected Object getSosResponseFor(String uri) {
@@ -188,11 +201,11 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                                                           GetCapabilitiesResponse capabilities);
 
     protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
-        if (seriesEntity instanceof QuantityDatasetEntity) {
+        if (ValueType.quantity.equals(seriesEntity.getValueType())) {
             return DataEntityBuilder.createQuantityDataEntity(observation);
-        } else if (seriesEntity instanceof CountDatasetEntity) {
+        } else if (ValueType.count.equals(seriesEntity.getValueType())) {
             return DataEntityBuilder.createCountDataEntity(observation);
-        } else if (seriesEntity instanceof TextDatasetEntity) {
+        } else if (ValueType.text.equals(seriesEntity.getValueType())) {
             return DataEntityBuilder.createTextDataEntity(observation);
         } else {
             LOGGER.error("No supported datasetEntity for ", seriesEntity);
@@ -239,10 +252,10 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     protected GetDataAvailabilityResponse getDataAvailability(DatasetEntity seriesEntity) {
-        return getDataAvailability(seriesEntity.getProcedure().getDomainId(),
-                                   seriesEntity.getOffering().getDomainId(),
-                                   seriesEntity.getPhenomenon().getDomainId(),
-                                   seriesEntity.getFeature().getDomainId(),
+        return getDataAvailability(seriesEntity.getProcedure().getIdentifier(),
+                                   seriesEntity.getOffering().getIdentifier(),
+                                   seriesEntity.getPhenomenon().getIdentifier(),
+                                   seriesEntity.getFeature().getIdentifier(),
                                    seriesEntity.getService().getUrl());
     }
 
@@ -307,14 +320,26 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                                                     SpatialFilter spatialFilter,
                                                     String responseFormat) {
         GetObservationRequest request = new GetObservationRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
-        request.addProcedure(seriesEntity.getProcedure().getDomainId());
-        request.addOffering(seriesEntity.getOffering().getDomainId());
-        request.addObservedProperty(seriesEntity.getPhenomenon().getDomainId());
-        request.addFeatureIdentifier(seriesEntity.getFeature().getDomainId());
+        request.addProcedure(seriesEntity.getProcedure().getIdentifier());
+        request.addOffering(seriesEntity.getOffering().getIdentifier());
+        request.addObservedProperty(seriesEntity.getPhenomenon().getIdentifier());
+        request.addFeatureIdentifier(seriesEntity.getFeature().getIdentifier());
         Optional.ofNullable(temporalFilter).ifPresent(request::setTemporalFilters);
         Optional.ofNullable(spatialFilter).ifPresent(request::setSpatialFilter);
         Optional.ofNullable(responseFormat).ifPresent(request::setResponseFormat);
         return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
                                                           seriesEntity.getService().getUrl());
+    }
+
+    private GetObservationResponse getObservation(String procedure, String offering, String phenomenon, String feature,
+            TemporalFilter temporalFilter, String serviceURL) {
+        GetObservationRequest request = new GetObservationRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
+        request.addProcedure(procedure);
+        request.addOffering(offering);
+        request.addObservedProperty(phenomenon);
+        request.addFeatureIdentifier(feature);
+        Optional.ofNullable(temporalFilter).ifPresent(request::addTemporalFilter);
+        return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
+                serviceURL);
     }
 }

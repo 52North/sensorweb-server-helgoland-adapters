@@ -33,20 +33,17 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Configurable;
-
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.EntityBuilder;
 import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
+import org.n52.proxy.connector.utils.ServiceMetadata;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
+import org.n52.shetland.ogc.gml.time.TimePeriod;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
@@ -55,7 +52,12 @@ import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.stereotype.Component;
 
+@Component
 @Configurable
 public class SOS2Connector extends AbstractSosConnector {
 
@@ -80,7 +82,7 @@ public class SOS2Connector extends AbstractSosConnector {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation);
+        addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
         addDatasets(serviceConstellation, sosCaps, config);
         LOGGER.info("{} requests were sended to harvest the service {}", counter, config.getItemName());
@@ -98,26 +100,26 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     @Override
-    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity entity) {
-        return getObservation(entity, createFirstTimefilter())
+    public Optional<DataEntity<?>> getFirstObservation(DatasetEntity dataset) {
+        return getObservation(dataset, createFirstTimefilter(dataset))
                 .getObservationCollection().toStream().findFirst()
-                .map(obs -> createDataEntity(obs, entity));
+                .map(obs -> createDataEntity(obs, dataset));
     }
 
     @Override
-    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
-        return getObservation(entity, createLatestTimefilter())
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity dataset) {
+        return getObservation(dataset, createLatestTimefilter(dataset))
                 .getObservationCollection().toStream().findFirst()
-                .map(obs -> createDataEntity(obs, entity));
+                .map(obs -> createDataEntity(obs, dataset));
     }
 
     @Override
-    public UnitEntity getUom(DatasetEntity seriesEntity) {
-        GetObservationResponse response = getObservation(seriesEntity,
-                                                                    createFirstTimefilter());
+    public UnitEntity getUom(DatasetEntity dataset) {
+        GetObservationResponse response = getObservation(dataset,
+                                                                    createFirstTimefilter(dataset));
         return response.getObservationCollection().toStream()
                 .findFirst().map(o -> o.getValue().getValue().getUnit())
-                .map(unit -> EntityBuilder.createUnit(unit, null, (ProxyServiceEntity) seriesEntity.getService()))
+                .map(unit -> EntityBuilder.createUnit(unit, null, dataset.getService()))
                 .orElse(null);
     }
 
@@ -144,13 +146,19 @@ public class SOS2Connector extends AbstractSosConnector {
                     String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
                     String categoryId = addCategory(dataAval, serviceConstellation);
                     String featureId = dataAval.getFeatureOfInterest().getHref();
-                    // TODO maybe not only QuantityDatasetConstellation
+                    TimePeriod phenomenonTime = dataAval.getPhenomenonTime();
+
+                    UnitEntity unit = getUom(procedureId, offeringId, phenomenonId, featureId,
+                            serviceConstellation.getService().getSupportsFirstLast(),
+                            phenomenonTime.getEnd(), config.getUrl());
                     serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                                                              phenomenonId,
-                                                                              featureId));
+                            phenomenonId, featureId, featureId).setUnit(unit)
+                                    .setSamplingTimeStart(phenomenonTime.getStart().toDate())
+                                    .setSamplingTimeEnd(phenomenonTime.getEnd().toDate()));
                 });
             }
             LOGGER.info(foiResponse.toString());
         });
     }
+
 }

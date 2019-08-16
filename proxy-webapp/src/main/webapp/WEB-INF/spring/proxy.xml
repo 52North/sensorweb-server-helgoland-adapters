@@ -8,22 +8,23 @@
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-4.2.xsd">
 
-    <bean class="org.n52.proxy.db.da.ProxyTextDataRepository"/>
-    <bean class="org.n52.proxy.db.da.ProxyCountDataRepository"/>
-    <bean class="org.n52.proxy.db.da.ProxyQuantityDataRepository"/>
-    <bean class="org.n52.proxy.db.da.ProxyQuantityProfileDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyTextDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyCountDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyQuantityDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyQuantityProfileDataRepository"/>
 
+<!--
     <bean class="org.n52.proxy.connector.OceanotronSosConnector"/>
     <bean class="org.n52.proxy.connector.SOS2Connector"/>
     <bean class="org.n52.proxy.connector.TrajectorySOSConnector"/>
     <bean class="org.n52.proxy.connector.HydroSOSConnector"/>
     <bean class="org.n52.proxy.connector.NestedOfferingsSOSConnector"/>
     <bean class="org.n52.proxy.connector.SensorThingsConnector"/>
+ -->
+    <bean name="insertRepository" class="org.n52.proxy.da.InsertRepository"/>
+    <bean name="datasetRepository" class="org.n52.proxy.da.ProxyDatasetRepository" />
 
-    <bean name="insertRepository" class="org.n52.proxy.db.da.InsertRepository"/>
-    <bean name="datasetRepository" class="org.n52.proxy.db.da.ProxyDatasetRepository" />
-
-    <bean name="dbQueryFactory" class="org.n52.proxy.db.dao.ProxyDbQueryFactory">
+    <bean name="dbQueryFactory" class="org.n52.series.db.old.dao.DbQueryFactory">
         <property name="databaseSrid" value="${database.srid}" />
     </bean>
 

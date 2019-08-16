@@ -17,3 +17,5 @@ hs_err_pid*
 
 target
 nbactions.xml
+versions.log
+*.springBeans

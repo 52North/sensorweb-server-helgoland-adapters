@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/proxy
+#    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_ON_EXIT=FALSE
+  jpa:
+    properties:
+      hibernate: 
+        hbm2ddl:
+           # hbm2ddl values: validate | update | create | create-drop
+          auto: update
+#  h2:
+#    console:
+#      enabled: true
+#      path: /console
+#      settings:
+#        trace: false
+#        web-allow-others: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+##
+## LOGGING SETTINGS
+##
+debug: false
+logging:
+  config: classpath:logback.xml
+  file: target/logs/dao-series-api.log
+  level:
+    org.n52: WARN
+    ## Spring
+    org.springframework: INFO
+    org.springframework.web.servlet.mvc.method.annotation: INFO
+    ## Hibernate
+    org.hibernate: INFO
+    org.hibernate.type: TRACE
+    org.hibernate.SQL: DEBUG
+    ## other
+    org.apache: WARN
+    org.geotools: WARN
+    com.sun.xml: ERROR

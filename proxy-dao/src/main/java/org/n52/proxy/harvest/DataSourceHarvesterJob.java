@@ -34,9 +34,35 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
+import org.n52.io.task.ScheduledJob;
+import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.proxy.config.DataSourceJobConfiguration;
+import org.n52.proxy.connector.AbstractConnector;
+import org.n52.proxy.connector.AbstractSosConnector;
+import org.n52.proxy.connector.ConnectorRequestFailedException;
+import org.n52.proxy.connector.SensorThingsConnector;
+import org.n52.proxy.connector.utils.ServiceConstellation;
+import org.n52.proxy.da.InsertRepository;
+import org.n52.proxy.web.SimpleHttpClient;
+import org.n52.series.db.beans.CategoryEntity;
+import org.n52.series.db.beans.DatasetEntity;
+import org.n52.series.db.beans.DescribableEntity;
+import org.n52.series.db.beans.FeatureEntity;
+import org.n52.series.db.beans.OfferingEntity;
+import org.n52.series.db.beans.PhenomenonEntity;
+import org.n52.series.db.beans.PlatformEntity;
+import org.n52.series.db.beans.ProcedureEntity;
+import org.n52.series.db.beans.ServiceEntity;
+import org.n52.series.db.beans.UnitEntity;
+import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
+import org.n52.svalbard.decode.DecoderRepository;
+import org.n52.svalbard.decode.exception.DecodingException;
+import org.n52.svalbard.util.CodingHelper;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -48,30 +74,7 @@ import org.quartz.JobKey;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.n52.io.task.ScheduledJob;
-import org.n52.proxy.config.DataSourceConfiguration;
-import org.n52.proxy.config.DataSourceJobConfiguration;
-import org.n52.proxy.connector.AbstractConnector;
-import org.n52.proxy.connector.AbstractSosConnector;
-import org.n52.proxy.connector.ConnectorRequestFailedException;
-import org.n52.proxy.connector.SensorThingsConnector;
-import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
-import org.n52.proxy.db.da.InsertRepository;
-import org.n52.proxy.web.SimpleHttpClient;
-import org.n52.series.db.beans.CategoryEntity;
-import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.beans.DescribableEntity;
-import org.n52.series.db.beans.FeatureEntity;
-import org.n52.series.db.beans.OfferingEntity;
-import org.n52.series.db.beans.PhenomenonEntity;
-import org.n52.series.db.beans.ProcedureEntity;
-import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
-import org.n52.svalbard.decode.DecoderRepository;
-import org.n52.svalbard.decode.exception.DecodingException;
-import org.n52.svalbard.util.CodingHelper;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
@@ -83,13 +86,13 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     private DataSourceConfiguration config;
 
-    @Autowired
+    @Inject
     private InsertRepository insertRepository;
 
-    @Autowired
+    @Inject
     private DecoderRepository decoderRepository;
 
-    @Autowired
+    @Inject
     private Set<AbstractConnector> connectors;
 
     public DataSourceHarvesterJob() {
@@ -145,11 +148,11 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         if (dataSource.getType() == null) {
             return null;
         }
-        if (dataSource.getType().equals("SOS")) {
+        if (dataSource.getType().equalsIgnoreCase("SOS")) {
             GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
             return determineSOSConstellation(dataSource, capabilities);
         }
-        if (dataSource.getType().equals("SensorThings")) {
+        if (dataSource.getType().equalsIgnoreCase("SensorThings")) {
             return determineSensorThingsConstellation(dataSource);
         }
         return null;
@@ -184,10 +187,12 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     private void saveConstellation(ServiceConstellation constellation) {
         // serviceEntity
-        ProxyServiceEntity service = insertRepository.insertService(constellation.getService());
+        ServiceEntity service = insertRepository.insertService(constellation.getService());
         Set<Long> datasetIds = insertRepository.getIdsForService(service);
+        int datasetCount = datasetIds.size();
 
         // save all constellations
         constellation.getDatasets().forEach(dataset -> {
@@ -196,14 +201,15 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
             OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
             PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
+            PlatformEntity platform = constellation.getPlatforms().get(dataset.getPlatform());
 
-            List<DescribableEntity> entities = Arrays.asList(procedure, category, feature, offering, phenomenon);
+            List<DescribableEntity> entities = Arrays.asList(procedure, category, feature, offering, phenomenon, platform);
             if (entities.stream().allMatch(Objects::nonNull)) {
                 entities.stream().forEach(x -> x.setService(service));
                 DatasetEntity ds = insertRepository.insertDataset(dataset
-                        .createDatasetEntity(procedure, category, feature, offering, phenomenon, service));
+                        .createDatasetEntity(procedure, category, feature, offering, phenomenon, platform, service));
                 if (ds != null) {
-                    datasetIds.remove(ds.getPkid());
+                    datasetIds.remove(ds.getId());
 
                     dataset.getFirst().ifPresent(data -> insertRepository.insertData(ds, data));
                     dataset.getLatest().ifPresent(data -> insertRepository.insertData(ds, data));
@@ -216,7 +222,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             }
         });
 
-        insertRepository.cleanUp(service, datasetIds);
+        insertRepository.cleanUp(service, datasetIds, datasetCount > 0 && datasetIds.size() == datasetCount);
     }
 
     private GetCapabilitiesResponse getCapabilities(String serviceUrl) throws IOException, DecodingException {

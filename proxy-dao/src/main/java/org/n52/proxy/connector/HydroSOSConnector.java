@@ -31,17 +31,16 @@ package org.n52.proxy.connector;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Optional;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
 import org.n52.proxy.connector.utils.ServiceConstellation;
+import org.n52.proxy.connector.utils.ServiceMetadata;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.dao.DbQuery;
+import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
 import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
@@ -50,10 +49,14 @@ import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Jan Schulte
  */
+@Component
 public class HydroSOSConnector extends SOS2Connector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
@@ -68,7 +71,7 @@ public class HydroSOSConnector extends SOS2Connector {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation);
+        addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
         addDatasets(serviceConstellation, sosCaps, config);
         return serviceConstellation;
@@ -82,6 +85,12 @@ public class HydroSOSConnector extends SOS2Connector {
                 .collect(toList());
         LOGGER.info("Found {} Entries", data.size());
         return data;
+    }
+
+    @Override
+    public Optional<DataEntity<?>> getLastObservation(DatasetEntity entity) {
+        return getObservation(entity, null).getObservationCollection().toStream().findFirst()
+                .map(obs -> createDataEntity(obs, entity));
     }
 
     @Override
@@ -104,7 +113,7 @@ public class HydroSOSConnector extends SOS2Connector {
                         String featureId = addFeature((SamplingFeature) feature, serviceConstellation);
                         // TODO maybe not only QuantityDatasetConstellation
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                                                                  phenomenonId, featureId));
+                                                                                  phenomenonId, featureId, featureId));
                     });
                 }
             });

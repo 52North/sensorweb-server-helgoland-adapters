@@ -3,15 +3,11 @@ package org.n52.proxy.connector.utils;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.TextDataEntity;
-import org.n52.series.db.dao.JTSGeometryConverter;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
@@ -19,6 +15,8 @@ import org.n52.shetland.ogc.om.NamedValue;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.om.SingleObservationValue;
 import org.n52.shetland.ogc.om.values.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Jan Schulte
@@ -30,7 +28,7 @@ public final class DataEntityBuilder {
     private DataEntityBuilder() {
     }
 
-    public static DataEntity<BigDecimal> createQuantityDataEntity(OmObservation observation) {
+    public static QuantityDataEntity createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
         getNumericValue(observation).map(x -> {
             if (x instanceof BigDecimal) {
@@ -44,13 +42,13 @@ public final class DataEntityBuilder {
 
     }
 
-    public static DataEntity<Integer> createCountDataEntity(OmObservation observation) {
+    public static CountDataEntity createCountDataEntity(OmObservation observation) {
         CountDataEntity dataEntity = new CountDataEntity();
         getNumericValue(observation).map(Number::intValue).ifPresent(dataEntity::setValue);
         return setCommonValues(observation, dataEntity);
     }
 
-    public static DataEntity<String> createTextDataEntity(OmObservation observation) {
+    public static TextDataEntity createTextDataEntity(OmObservation observation) {
         TextDataEntity dataEntity = new TextDataEntity();
         getStringValue(observation).ifPresent(dataEntity::setValue);
         return setCommonValues(observation, dataEntity);
@@ -114,12 +112,12 @@ public final class DataEntityBuilder {
         Time phenomenonTime = observation.getPhenomenonTime();
         if (phenomenonTime instanceof TimeInstant) {
             TimeInstant instant = (TimeInstant) phenomenonTime;
-            dataEntity.setTimestart(instant.getValue().toDate());
-            dataEntity.setTimeend(instant.getValue().toDate());
+            dataEntity.setSamplingTimeStart(instant.getValue().toDate());
+            dataEntity.setSamplingTimeEnd(instant.getValue().toDate());
         } else if (phenomenonTime instanceof TimePeriod) {
             TimePeriod period = (TimePeriod) phenomenonTime;
-            dataEntity.setTimestart(period.getStart().toDate());
-            dataEntity.setTimeend(period.getEnd().toDate());
+            dataEntity.setSamplingTimeStart(period.getStart().toDate());
+            dataEntity.setSamplingTimeEnd(period.getEnd().toDate());
         } else {
             LOGGER.warn("No matching time found");
         }
@@ -131,15 +129,18 @@ public final class DataEntityBuilder {
                 .map(NamedValue::getValue)
                 .filter(Value::isSetValue)
                 .map(Value::getValue)
-                .map(JTSGeometryConverter::convert)
-                .map(GeometryEntity::new)
+                .map(geometry -> {
+                    GeometryEntity geometryEntity = new GeometryEntity();
+                    geometryEntity.setGeometry(geometry);
+                    geometryEntity.setSrid(geometry.getSRID());
+                    geometryEntity.setGeometryFactory(geometry.getFactory());
+                    return geometryEntity;
+                })
                 .ifPresent(dataEntity::setGeometryEntity);
     }
 
     private static <T, D extends DataEntity<T>> D setCommonValues(OmObservation observation, D dataEntity) {
         dataEntity.setDeleted(false);
-        dataEntity.setChild(false);
-        dataEntity.setParent(false);
         setPhenomenonTime(observation, dataEntity);
         setValidTime(observation, dataEntity);
         setResultTime(observation, dataEntity);

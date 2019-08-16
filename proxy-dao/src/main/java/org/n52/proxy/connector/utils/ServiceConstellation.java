@@ -35,22 +35,21 @@ import java.util.Map;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-
 import org.n52.proxy.connector.constellations.DatasetConstellation;
-import org.n52.proxy.db.beans.ProxyServiceEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.FeatureEntity;
 import org.n52.series.db.beans.GeometryEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
+import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
-import org.n52.series.db.dao.JTSGeometryConverter;
+import org.n52.series.db.beans.ServiceEntity;
 import org.n52.shetland.util.JTSHelper;
 
 public class ServiceConstellation {
 
     // service
-    private ProxyServiceEntity service;
+    private ServiceEntity service;
 
     // map für procedures
     private final Map<String, ProcedureEntity> procedures = new HashMap<>();
@@ -67,15 +66,18 @@ public class ServiceConstellation {
     // map für feature
     private final Map<String, FeatureEntity> features = new HashMap<>();
 
-    // dataset collection
-    private final Collection<DatasetConstellation<?>> datasets = new HashSet<>();
+    // map für platform
+    private final Map<String, PlatformEntity> platforms = new HashMap<>();
 
-    public ProxyServiceEntity getService() {
+    // dataset collection
+    private final Collection<DatasetConstellation> datasets = new HashSet<>();
+
+    public ServiceEntity getService() {
         return service;
     }
 
     public PhenomenonEntity putPhenomenon(PhenomenonEntity phenomenon) {
-        phenomena.put(phenomenon.getDomainId(), phenomenon);
+        phenomena.put(phenomenon.getIdentifier(), phenomenon);
         return phenomenon;
     }
 
@@ -84,16 +86,16 @@ public class ServiceConstellation {
     }
 
     public ProcedureEntity putProcedure(ProcedureEntity procedure) {
-        procedures.put(procedure.getDomainId(), procedure);
+        procedures.put(procedure.getIdentifier(), procedure);
         return procedure;
     }
 
     public ProcedureEntity putProcedure(String id, String name, boolean insitu, boolean mobile) {
-        return putProcedure(EntityBuilder.createProcedure(id, name, insitu, mobile, service));
+        return putProcedure(EntityBuilder.createProcedure(id, name, service));
     }
 
     public OfferingEntity putOffering(OfferingEntity offering) {
-        offerings.put(offering.getDomainId(), offering);
+        offerings.put(offering.getIdentifier(), offering);
         return offering;
     }
 
@@ -102,7 +104,7 @@ public class ServiceConstellation {
     }
 
     public FeatureEntity putFeature(FeatureEntity feature) {
-        features.put(feature.getDomainId(), feature);
+        features.put(feature.getIdentifier(), feature);
         return feature;
     }
 
@@ -117,8 +119,17 @@ public class ServiceConstellation {
                                                       service));
     }
 
+    public PlatformEntity putPlatform(PlatformEntity platform) {
+        platforms.put(platform.getIdentifier(), platform);
+        return platform;
+    }
+
+    public PlatformEntity putPlatform(String id, String name, String description) {
+        return putPlatform(EntityBuilder.createPlatform(id, name, description, service));
+    }
+
     public CategoryEntity putCategory(CategoryEntity category) {
-        categories.put(category.getDomainId(), category);
+        categories.put(category.getIdentifier(), category);
         return category;
     }
 
@@ -126,7 +137,7 @@ public class ServiceConstellation {
         return putCategory(EntityBuilder.createCategory(id, name, service));
     }
 
-    public void setService(ProxyServiceEntity service) {
+    public void setService(ServiceEntity service) {
         this.service = service;
     }
 
@@ -170,20 +181,27 @@ public class ServiceConstellation {
         return features.containsKey(featureId);
     }
 
-    public Collection<DatasetConstellation<?>> getDatasets() {
+    public Map<String, PlatformEntity> getPlatforms() {
+        return platforms;
+    }
+
+    public boolean hasPlatforms(String platformId) {
+        return platforms.containsKey(platformId);
+    }
+
+    public Collection<DatasetConstellation> getDatasets() {
         return datasets;
     }
 
-    public boolean add(DatasetConstellation<?> e) {
+    public boolean add(DatasetConstellation e) {
         return datasets.add(e);
     }
 
     protected GeometryEntity createGeometryEntitity(Geometry geometry) {
-        com.vividsolutions.jts.geom.Geometry geom = JTSGeometryConverter.convert(geometry);
         GeometryEntity geometryEntity = new GeometryEntity();
-        geometryEntity.setGeometry(geom);
+        geometryEntity.setGeometry(geometry);
         geometryEntity.setSrid(geometry.getSRID());
-        geometryEntity.setGeometryFactory(geom.getFactory());
+        geometryEntity.setGeometryFactory(geometry.getFactory());
         return geometryEntity;
     }
 
