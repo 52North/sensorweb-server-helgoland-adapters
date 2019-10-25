@@ -1,9 +1,9 @@
-# series-sos-proxy
-A SOS proxy implementation of series rest API 
+# helgoland-server
+A Helgoland Server implementation of series rest API 
 
 ## Credits
 
-The development of the 52°North SOS Proxy implementation was supported by several organizations and projects. Among other we would like to thank the following organisations and project
+The development of the 52°North Helgoland Server implementation was supported by several organizations and projects. Among other we would like to thank the following organisations and project
 
 | Project/Logo | Description |
 | :-------------: | :------------- |
