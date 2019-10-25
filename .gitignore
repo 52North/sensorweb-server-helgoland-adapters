@@ -19,3 +19,4 @@ target
 nbactions.xml
 versions.log
 *.springBeans
+console.log
