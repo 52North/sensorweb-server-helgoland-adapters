@@ -52,7 +52,7 @@
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
 
-        <org.springframework.version>5.2.3.RELEASE</org.springframework.version>
+        <org.springframework.version>5.2.4.RELEASE</org.springframework.version>
         <logback.version>1.2.3</logback.version>
         <jackson.version>2.10.0</jackson.version>
         <geotools.version>21.2</geotools.version>
