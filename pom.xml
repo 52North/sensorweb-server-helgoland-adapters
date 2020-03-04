@@ -63,7 +63,7 @@
         <series.api.version>2.0.1-SNAPSHOT</series.api.version>
         <series.db.version>4.0.0-SNAPSHOT</series.db.version>
         <series-hibernate.version>2.0.0-SNAPSHOT</series-hibernate.version>
-        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
+        <spring-boot.version>2.2.5.RELEASE</spring-boot.version>
         <postgresql.version>42.2.5</postgresql.version>
         <postgis.version>2.3.0</postgis.version>
         <java.compiler.source>1.8</java.compiler.source>
