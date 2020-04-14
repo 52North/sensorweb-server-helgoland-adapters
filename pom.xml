@@ -13,9 +13,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>helgoland-adapters-dao</module>
-        <module>helgoland-adapters-app</module>
-        <module>helgoland-adapters-webapp</module>
+        <module>dao</module>
+        <module>app</module>
+        <module>webapp</module>
     </modules>
 
     <organization>
@@ -55,11 +55,12 @@
         <org.springframework.version>5.2.5.RELEASE</org.springframework.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <logback.version>1.2.3</logback.version>
-        <jackson.version>2.10.0</jackson.version>
+        <jackson.version>2.10.3</jackson.version>
         <geotools.version>23.0</geotools.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hibernate.version>5.4.12.Final</hibernate.version>
+        <geolatte.version>1.4.0</geolatte.version>
         <arctic-sea.version>7.4.1</arctic-sea.version>
         <series.api.version>3.1.0</series.api.version>
         <series.db.version>4.0.0-SNAPSHOT</series.db.version>
@@ -87,67 +88,58 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>proxy-dao</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>proxy-mappings</artifactId>
+                <artifactId>helgoland-adapters-dao</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.n52.series-api</groupId>
-                <artifactId>spi</artifactId>
+                <groupId>org.n52.sensorweb-server.helgoland</groupId>
+                <artifactId>helgoland-spi</artifactId>
                 <version>${series.api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series-api</groupId>
-                <artifactId>io</artifactId>
-                <version>${series.api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series-api</groupId>
-                <artifactId>rest</artifactId>
-                <version>${series.api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series-api.db</groupId>
-                <artifactId>dao</artifactId>
-                <version>${series.db.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series-api</groupId>
-                <artifactId>xml-pdf-format</artifactId>
-                <version>${series.api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.n52.series.db</groupId>
-                <artifactId>entities</artifactId>
-                <version>${series-hibernate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series.db</groupId>
-                <artifactId>mappings</artifactId>
-                <version>${series-hibernate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.n52.series.db</groupId>
-                <artifactId>types</artifactId>
-                <version>${series-hibernate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geolatte</groupId>
-                <artifactId>geolatte-geom</artifactId>
-                <version>1.4.0</version>
                 <exclusions>
                   <exclusion>
-                      <groupId>org.locationtech.jts</groupId>
-                      <artifactId>jts-core</artifactId>
+                    <groupId>org.n52.arctic-sea</groupId>
+                    <artifactId>svalbard-odata</artifactId>
                   </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.helgoland</groupId>
+                <artifactId>helgoland-io</artifactId>
+                <version>${series.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.helgoland</groupId>
+                <artifactId>helgoland-rest</artifactId>
+                <version>${series.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.dao-impl</groupId>
+                <artifactId>dao-impl-dao</artifactId>
+                <version>${series.db.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.helgoland</groupId>
+                <artifactId>helgoland-xml-pdf-format</artifactId>
+                <version>${series.api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.n52.sensorweb-server.db-model</groupId>
+                <artifactId>db-model-entities</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.db-model</groupId>
+                <artifactId>db-model-mappings</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.db-model</groupId>
+                <artifactId>db-model-types</artifactId>
+                <version>${series-hibernate.version}</version>
+            </dependency>
+            
 
             <dependency>
                 <groupId>org.n52.arctic-sea</groupId>
@@ -201,7 +193,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>28.0-jre</version>
+                <version>29.0-jre</version>
             </dependency>
             
         
@@ -218,13 +210,24 @@
             <dependency>
                 <groupId>net.jodah</groupId>
                 <artifactId>failsafe</artifactId>
-                <version>1.1.1</version>
+                <version>2.3.3</version>
             </dependency>
 
             <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>1</version>
+            </dependency>
+                <dependency>
+                <groupId>javax</groupId>
+                <artifactId>javaee-api</artifactId>
+                <version>7.0</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.mchange</groupId>
@@ -250,13 +253,28 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-spatial</artifactId>
                 <version>${hibernate.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.geolatte</groupId>
+                        <artifactId>geolatte-geom</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.geolatte</groupId>
+                <artifactId>geolatte-geom</artifactId>
+                <version>${geolatte.version}</version>
+                <exclusions>
+                  <exclusion>
+                      <groupId>org.locationtech.jts</groupId>
+                      <artifactId>jts-core</artifactId>
+                  </exclusion>
+                </exclusions>
+            </dependency><dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
-            </dependency>
-            <dependency>
+            </dependency><dependency>
                 <groupId> javax.persistence</groupId>
                 <artifactId>javax.persistence-api</artifactId>
                 <version>2.2</version>
@@ -269,24 +287,24 @@
             <dependency>
                 <groupId>com.thetransactioncompany</groupId>
                 <artifactId>cors-filter</artifactId>
-                <version>2.6</version>
+                <version>2.9</version>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.11</version>
+                <version>4.4.13</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.9</version>
+                <version>4.5.12</version>
             </dependency>
 
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.8.5</version>
+                <version>2.8.6</version>
             </dependency>
 
             <dependency>
@@ -304,7 +322,7 @@
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjtools</artifactId>
-                <version>1.8.9</version>
+                <version>1.9.5</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -324,7 +342,7 @@
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
-                <version>2.10.3</version>
+                <version>2.10.5</version>
             </dependency>
             <dependency>
                 <groupId>javax.servlet</groupId>
@@ -390,6 +408,10 @@
                     <exclusion>
                         <groupId>javax.media</groupId>
                         <artifactId>jai_codec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -479,7 +501,7 @@
             <dependency>
                 <groupId>org.quartz-scheduler</groupId>
                 <artifactId>quartz</artifactId>
-                <version>2.3.1</version>
+                <version>2.3.2</version>
             </dependency>
 
             <dependency>
@@ -495,7 +517,7 @@
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>fop</artifactId>
-                <version>2.3</version>
+                <version>2.4</version>
                 <exclusions>
                     <exclusion>
                         <!--jcl-over-slf4j is used instead -->
@@ -515,7 +537,7 @@
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>xmlgraphics-commons</artifactId>
-                <version>2.2</version>
+                <version>2.4</version>
             </dependency>
             <dependency>
                 <groupId>xalan</groupId>
@@ -550,7 +572,7 @@
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.12</version>
+                <version>1.14</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -612,15 +634,9 @@
                 <scope>runtime</scope>
             </dependency>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-core</artifactId>
-                <version>2.1</version>
+                <version>2.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -633,7 +649,7 @@
             <dependency>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-annotations</artifactId>
-                <version>3.1.12</version>
+                <version>4.0.0</version>
             </dependency>
 
         </dependencies>
@@ -646,22 +662,22 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.1.0</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.1.1</version>
                 </plugin>
 
                 <plugin>
                     <!-- license headers -->
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>2.11</version>
+                    <version>3.0</version>
                     <configuration>
-                        <header>misc/52N_license-header.txt</header>
+                        <header>etc/license-header.txt</header>
                         <properties>
                             <inceptionYear>${project.inceptionYear}</inceptionYear>
                             <latestYearOfContribution>${currentYear}</latestYearOfContribution>
@@ -687,10 +703,10 @@
                     <!-- dependencies' licenses -->
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>1.8</version>
+                    <version>2.0.0</version>
                     <configuration>
                         <useMissingFile>true</useMissingFile>
-                        <fileTemplate>misc/license-as-csv.ftl</fileTemplate>
+                        <fileTemplate>etc/license-as-csv.ftl</fileTemplate>
                         <licenseMerges>
                             <licenseMerge>The Apache Software License, Version 2.0|Apache 2|Apache License, Version 2.0|Apache License, version 2.0|Apache Public License 2.0|AL 2.0</licenseMerge>
                             <licenseMerge>Apache Software Licenses|Apache Software License|Apache License</licenseMerge>
@@ -708,11 +724,11 @@
                     <!-- assemble licenses -->
                     <groupId>org.jasig.maven</groupId>
                     <artifactId>maven-notice-plugin</artifactId>
-                    <version>1.0.6.1</version>
+                    <version>1.1.0</version>
                     <configuration>
-                        <noticeTemplate>misc/NOTICE.template</noticeTemplate>
+                        <noticeTemplate>etc/NOTICE.template</noticeTemplate>
                         <licenseMapping>
-                            <param>misc/license-mappings.xml</param>
+                            <param>etc/license-mappings.xml</param>
                             <param>https://52north.github.io/cdn/licenses/license-mappings.xml</param>
                         </licenseMapping>
                         <generateChildNotices>false</generateChildNotices>
@@ -736,7 +752,7 @@
                 <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
-                    <version>2.2.1</version>
+                    <version>4.0.0</version>
                     <configuration>
                         <dateFormat>yyyy-MM-dd HH:mm:ssZ</dateFormat>
                         <gitDescribe>
@@ -751,7 +767,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.3</version>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>${java.compiler.source}</source>
                         <target>${java.compiler.target}</target>
@@ -762,7 +778,7 @@
 
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>2.5.3</version>
                     <configuration>
                         <preparationGoals>clean</preparationGoals>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
@@ -772,7 +788,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.2.0</version>
                     <configuration>
                         <descriptors>
                             <descriptor>src/main/assembly/release.xml</descriptor>
@@ -799,11 +815,18 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+        </plugins>
         <extensions>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-webdav-jackrabbit</artifactId>
-                <version>2.10</version>
+                <version>3.3.4</version>
             </extension>
         </extensions>
     </build>

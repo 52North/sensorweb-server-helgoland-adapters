@@ -1,0 +1,98 @@
+##
+## SPRING BOOT SETTINGS
+##
+
+server:
+  servlet:
+    context-path: /api
+  tomcat:
+    uri-encoding: UTF-8
+
+##
+## DATABASE SETTINGS
+##
+
+database.jpa.persistence-location: classpath:META-INF/persistence.xml
+
+spring:
+  datasource:
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/proxy
+    #url: jdbc:h2:mem:testdb;MODE=PostgreSQL
+    #data: classpath:/META-INF/data-${spring.datasource.platform}.sql
+    initialization-mode: always
+  jpa:
+    properties:
+      hibernate: 
+        hbm2ddl:
+          # hbm2ddl values: validate | update | create | create-drop
+          auto: update
+        jdbc:
+          time_zone: UTC
+          # https://hibernate.atlassian.net/browse/HHH-12368
+          lob.non_contextual_creation: true
+        format_sql: true
+        default_schema: public
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+
+        # disable driver's feature detection
+        # see https://stackoverflow.com/questions/46493500/hibernate-with-c3p0-createclob-is-not-yet-implemented
+        temp.use_jdbc_metadata_defaults: false
+
+##
+## LOGGING SETTINGS
+##
+debug: false
+logging:
+  config: classpath:logback.xml
+  file: target/logs/dao-series-api.log
+  level:
+    org.n52: WARN
+    ## Spring
+    org.springframework: INFO
+    org.springframework.web.servlet.mvc.method.annotation: INFO
+    ## Hibernate
+    org.hibernate: INFO
+    #org.hibernate.type: TRACE
+    #org.hibernate.SQL: DEBUG
+    ## other
+    org.apache: WARN
+    org.geotools: WARN
+    com.sun.xml: ERROR
+
+
+##
+## REST API SETTINGS
+##
+
+## Deployments behind a Proxy need to know the external URL
+external.url: http://localhost:8084/webapp/api/123
+
+docs.context: docs
+
+##
+## IO DEFAULTS
+##
+
+## TBD
+
+# gracefully match leap years (P1Y)
+request.interval.restriction: P370D
+# what CRS persisted geometries do have
+database.srid: EPSG:4326
+
+## Service Configuration
+
+service.name: My RESTful Dataset Service
+# NO_DATA values in database which will return null values
+service.nodata.values: -9999.0,99999,NO_DATA
+
+
+##
+## Job Scheduler and Tasks
+##
+
+# disables all jobs
+job.scheduler.enabled: false
+job.scheduler.task.prerendering.enabled: true

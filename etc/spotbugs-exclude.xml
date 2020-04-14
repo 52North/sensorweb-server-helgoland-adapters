@@ -1,0 +1,6 @@
+<FindBugsFilter>
+    <!-- http://findbugs.sourceforge.net/manual/filter.html -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED" />
+    </Match>
+</FindBugsFilter>

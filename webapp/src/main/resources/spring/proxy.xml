@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:ctx="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <import resource="proxy-arctic-sea.xml"/>
+    <import resource="proxy-connectors.xml"/>
+    <bean class="org.n52.proxy.da.ProxyTextDataRepository"/>
+
+    <bean class="org.n52.proxy.da.ProxyCountDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyQuantityDataRepository"/>
+    <bean class="org.n52.proxy.da.ProxyQuantityProfileDataRepository"/>
+
+    <bean name="insertRepository" class="org.n52.proxy.da.InsertRepository"/>
+
+    <bean name="configurationProvider" class="org.n52.proxy.config.ConfigurationReader"/>
+
+    <bean name="dataSourceScheduler" class="org.n52.proxy.harvest.DataSourceHarvesterScheduler" init-method="init" destroy-method="shutdown">
+        <property name="scheduler">
+            <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+                <property name="schedulerName" value="dataSourceScheduler"/>
+                <property name="jobFactory">
+                    <bean class="org.n52.io.task.AutowiringSpringBeanJobFactory" />
+                </property>
+            </bean>
+        </property>
+        <property name="configurationProvider" ref="configurationProvider"/>
+    </bean>
+</beans>
