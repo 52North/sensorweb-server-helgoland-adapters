@@ -4,23 +4,23 @@
     <parent>
         <groupId>org.n52</groupId>
         <artifactId>parent</artifactId>
-        <version>14</version>
+        <version>18</version>
     </parent>
-    <groupId>org.n52.series-api</groupId>
-    <artifactId>series-sos-proxy</artifactId>
-    <name>Series REST API - SOS Proxy</name>
+    <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
+    <artifactId>helgoland-adapters-parent</artifactId>
+    <name>Sensor Web Server Helgoland - Adapters</name>
     <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>proxy-dao</module>
-        <module>proxy-app</module>
-        <module>proxy-webapp</module>
+        <module>helgoland-adapters-dao</module>
+        <module>helgoland-adapters-app</module>
+        <module>helgoland-adapters-webapp</module>
     </modules>
 
     <organization>
         <name>52North Initiative for Geospatial Open Source Software GmbH</name>
-        <url>http://52north.org</url>
+        <url>https://52north.org</url>
     </organization>
 
     <developers>
@@ -34,7 +34,7 @@
     <licenses>
         <license>
             <name>GNU General Public License, Version 2.0</name>
-            <url>http://www.gnu.de/documents/gpl-2.0.en.html</url>
+            <url>https://www.gnu.de/documents/gpl-2.0.en.html</url>
         </license>
     </licenses>
 
@@ -52,20 +52,20 @@
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
 
-        <org.springframework.version>5.1.9.RELEASE</org.springframework.version>
+        <org.springframework.version>5.2.5.RELEASE</org.springframework.version>
+        <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <logback.version>1.2.3</logback.version>
         <jackson.version>2.10.0</jackson.version>
-        <geotools.version>21.2</geotools.version>
-        <slf4j.version>1.7.26</slf4j.version>
+        <geotools.version>23.0</geotools.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <hibernate.version>5.4.3.Final</hibernate.version>
-        <arctic-sea.version>7.2.0-SNAPSHOT</arctic-sea.version>
-        <series.api.version>2.0.1-SNAPSHOT</series.api.version>
+        <hibernate.version>5.4.12.Final</hibernate.version>
+        <arctic-sea.version>7.4.1</arctic-sea.version>
+        <series.api.version>3.1.0</series.api.version>
         <series.db.version>4.0.0-SNAPSHOT</series.db.version>
-        <series-hibernate.version>2.0.0-SNAPSHOT</series-hibernate.version>
-        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
-        <postgresql.version>42.2.5</postgresql.version>
-        <postgis.version>2.3.0</postgis.version>
+        <series-hibernate.version>1.3.0</series-hibernate.version>
+        <postgresql.version>42.2.12</postgresql.version>
+        <postgis.version>2.5.0</postgis.version>
         <java.compiler.source>1.8</java.compiler.source>
         <java.compiler.target>1.8</java.compiler.target>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -713,7 +713,7 @@
                         <noticeTemplate>misc/NOTICE.template</noticeTemplate>
                         <licenseMapping>
                             <param>misc/license-mappings.xml</param>
-                            <param>http://52north.github.io/cdn/licenses/license-mappings.xml</param>
+                            <param>https://52north.github.io/cdn/licenses/license-mappings.xml</param>
                         </licenseMapping>
                         <generateChildNotices>false</generateChildNotices>
                     </configuration>
@@ -880,19 +880,17 @@
         <repository>
             <id>n52-releases</id>
             <name>52n Releases</name>
-            <url>http://52north.org/maven/repo/releases/</url>
+            <url>https://52north.org/maven/repo/releases/</url>
         </repository>
         <repository>
             <id>geotools</id>
             <name>Open Source Geospatial Foundation Repository</name>
-            <url>http://download.osgeo.org/webdav/geotools/</url>
-            <!--<url>https://boundless.artifactoryonline.com/boundless/main</url> -->
-            <!--<url>http://repo.boundlessgeo.com/main/</url> -->
+            <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
         <repository>
             <id>n52-snapshots</id>
             <name>n52-snapshots</name>
-            <url>http://52north.org/maven/repo/snapshots/</url>
+            <url>https://52north.org/maven/repo/snapshots/</url>
         </repository>
         <repository>
             <id>sonatype-nexus-snapshots</id>
@@ -900,11 +898,6 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <!-- Needed for geodb -->
-            <id>boundless</id>
-            <url>http://repo.boundlessgeo.com/main/</url>
         </repository>
     </repositories>
 </project>

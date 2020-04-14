@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <name>Series REST API - SOS Proxy Dao Module</name>
     <description>REST SPI Implementation for SOS Proxy.</description>
-    <url>http://52north.org/communities/sensorweb/</url>
+    <url>https://52north.org/communities/sensorweb/</url>
 
     <dependencies>
         <dependency>
