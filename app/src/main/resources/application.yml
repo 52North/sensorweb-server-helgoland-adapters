@@ -68,7 +68,7 @@ logging:
 ##
 
 ## Deployments behind a Proxy need to know the external URL
-external.url: http://localhost:8084/webapp/api/123
+external.url: http://localhost:8081/api/
 
 docs.context: docs
 
