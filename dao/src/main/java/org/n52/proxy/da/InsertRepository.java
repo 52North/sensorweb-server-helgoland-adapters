@@ -56,7 +56,9 @@ import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.old.dao.DbQueryFactory;
+import org.n52.series.db.query.DatasetQuerySpecifications;
 import org.n52.series.db.repositories.core.DataRepository;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -99,7 +101,9 @@ public class InsertRepository {
     private DataRepository dataRepository;
 
     public synchronized Set<Long> getIdsForService(ServiceEntity service) {
-        return datasetRepository.findByService(service).stream().map(DescribableEntity::getId).collect(toSet());
+        DatasetQuerySpecifications dsQS = DatasetQuerySpecifications.of(dbQueryFactory.createDefault(), null);
+        Specification<DatasetEntity> specification = dsQS.matchServices(service.getId().toString());
+        return datasetRepository.findAll(specification).stream().map(DescribableEntity::getId).collect(toSet());
     }
 
     public void cleanUp(ServiceEntity service, Set<Long> datasetIds, boolean removeService) {
