@@ -917,11 +917,6 @@
             <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
         <repository>
-            <id>n52-snapshots</id>
-            <name>n52-snapshots</name>
-            <url>https://52north.org/maven/repo/snapshots/</url>
-        </repository>
-        <repository>
             <id>sonatype-nexus-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
