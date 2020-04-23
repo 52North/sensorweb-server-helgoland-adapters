@@ -28,7 +28,9 @@
  */
 package org.n52.proxy.config;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataSourceConfiguration {
 
@@ -39,6 +41,8 @@ public class DataSourceConfiguration {
     private String type;
     private boolean supportsFirstLast = true;
     private List<String> allowedOfferings;
+    private Map<String, String> getUrls = new LinkedHashMap<>();
+    private Map<String, String> postUrls = new LinkedHashMap<>();
 
     private DataSourceJobConfiguration job;
 
@@ -110,6 +114,22 @@ public class DataSourceConfiguration {
     public String toString() {
         return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url
                 + ", version=" + version + ", connector=" + connector + ", type=" + type + "}";
+    }
+
+    public void addGetUrls(String key, String value) {
+        getUrls.put(key, value);
+    }
+
+    public Map<String, String> getGetUrls() {
+        return getUrls;
+    }
+
+    public void addPostUrls(String key, String value) {
+        postUrls.put(key, value);
+    }
+
+    public Map<String, String> getPostUrls() {
+        return postUrls;
     }
 
 }

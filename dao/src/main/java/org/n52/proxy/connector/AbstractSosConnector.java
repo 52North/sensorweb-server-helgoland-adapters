@@ -31,6 +31,7 @@ package org.n52.proxy.connector;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,11 +41,14 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.xml.soap.SOAPConstants;
 
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.joda.time.DateTime;
+import org.n52.janmayen.http.HTTPHeaders;
+import org.n52.janmayen.http.MediaTypes;
 import org.n52.janmayen.http.QueryBuilder;
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.QuantityDatasetConstellation;
@@ -60,12 +64,17 @@ import org.n52.shetland.ogc.filter.TemporalFilter;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.ows.OWSConstants;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
+import org.n52.shetland.ogc.ows.OwsDCP;
+import org.n52.shetland.ogc.ows.OwsDomain;
 import org.n52.shetland.ogc.ows.OwsOperation;
 import org.n52.shetland.ogc.ows.OwsOperationsMetadata;
+import org.n52.shetland.ogc.ows.OwsRequestMethod;
+import org.n52.shetland.ogc.ows.OwsValueRestriction;
 import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
 import org.n52.shetland.ogc.sos.Sos2Constants;
+import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.shetland.ogc.sos.SosConstants;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityConstants;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse;
@@ -76,6 +85,9 @@ import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
 import org.n52.shetland.ogc.swes.SwesConstants;
+import org.n52.shetland.w3c.soap.SoapConstants;
+import org.n52.shetland.w3c.soap.SoapRequest;
+import org.n52.shetland.w3c.soap.SoapResponse;
 import org.n52.svalbard.decode.Decoder;
 import org.n52.svalbard.decode.DecoderKey;
 import org.n52.svalbard.decode.DecoderRepository;
@@ -94,6 +106,8 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
 
     private static final String COULD_NOT_RETRIEVE_RESPONSE = "Could not retrieve response";
+
+    private static final String DEFAULT = "default";
 
     protected int counter;
 
@@ -163,7 +177,26 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
             throw new ConnectorRequestFailedException(ex);
         } catch (EncodingException ex) {
-            LOGGER.error("Could not encode request : " + request, ex);
+            LOGGER.error("Could not encode pox request : " + request, ex);
+            throw new ConnectorRequestFailedException(ex);
+        }
+    }
+
+    private Object getSosResponseFor(SoapRequest request, String namespace, String serviceUrl) {
+        counter++;
+        try {
+            EncoderKey encoderKey = CodingHelper.getEncoderKey(namespace, request);
+            Encoder<XmlObject, Object> encoder = getEncoderRepository().getEncoder(encoderKey);
+            if (encoder == null) {
+                throw new NoEncoderForKeyException(encoderKey);
+            }
+            XmlObject xmlRequest = encoder.encode(request);
+            return decodeResponse(sendPostRequest(xmlRequest, serviceUrl));
+        } catch (IOException ex) {
+            LOGGER.error(COULD_NOT_RETRIEVE_RESPONSE, ex);
+            throw new ConnectorRequestFailedException(ex);
+        } catch (EncodingException ex) {
+            LOGGER.error("Could not encode soap request : " + request, ex);
             throw new ConnectorRequestFailedException(ex);
         }
     }
@@ -220,26 +253,76 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     protected GetFeatureOfInterestResponse getFeatureOfInterest(String featureId, String procedureId, String obsProp,
-            String url) {
-        GetFeatureOfInterestRequest request =
-                new GetFeatureOfInterestRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
-        Optional.ofNullable(featureId).map(Arrays::asList).ifPresent(request::setFeatureIdentifiers);
-        Optional.ofNullable(procedureId).map(Arrays::asList).ifPresent(request::setProcedures);
-        Optional.ofNullable(obsProp).map(Arrays::asList).ifPresent(request::setObservedProperties);
-        return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, url);
+            String serviceURL) {
+        DataSourceConfiguration config = getServiceConfig(serviceURL);
+        try {
+            if (supportsKvp(config)) {
+                QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
+                builder.add(OWSConstants.RequestParams.service, SosConstants.SOS);
+                builder.add(OWSConstants.RequestParams.version, Sos2Constants.SERVICEVERSION);
+                builder.add(OWSConstants.RequestParams.request, SosConstants.Operations.GetFeatureOfInterest);
+                builder.add(Sos2Constants.GetFeatureOfInterestParams.procedure, procedureId);
+                builder.add(Sos2Constants.GetFeatureOfInterestParams.observedProperty, obsProp);
+                builder.add(Sos2Constants.GetFeatureOfInterestParams.featureOfInterest, featureId);
+                return (GetFeatureOfInterestResponse) getSosResponseFor(builder.build());
+            } else {
+                GetFeatureOfInterestRequest request =
+                        new GetFeatureOfInterestRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
+                Optional.ofNullable(featureId).map(Arrays::asList).ifPresent(request::setFeatureIdentifiers);
+                Optional.ofNullable(procedureId).map(Arrays::asList).ifPresent(request::setProcedures);
+                Optional.ofNullable(obsProp).map(Arrays::asList).ifPresent(request::setObservedProperties);
+                if (supportsPox(config)) {
+                    return (GetFeatureOfInterestResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
+                            getPoxUrl(config).toString());
+                }
+                SoapRequest soap =
+                        new SoapRequest(SOAPConstants.URI_NS_SOAP_1_2_ENVELOPE, SOAPConstants.SOAP_1_2_PROTOCOL);
+                soap.setSoapBodyContent(request);
+                return (GetFeatureOfInterestResponse) ((SoapResponse) getSosResponseFor(soap, SoapConstants.NS_SOAP_12,
+                        getSoapUrl(config).toString())).getBodyContent();
+            }
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
-    protected DescribeSensorResponse describeSensor(String procedureId, String url, String format) {
-        DescribeSensorRequest request = new DescribeSensorRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
-        request.setProcedure(procedureId);
-        request.setProcedureDescriptionFormat(format);
-        return (DescribeSensorResponse) getSosResponseFor(request, SwesConstants.NS_SWES_20, url);
+    protected DescribeSensorResponse describeSensor(String procedureId, String format,
+            DataSourceConfiguration config) {
+        try {
+            if (supportsKvp(config)) {
+                QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
+                builder.add(OWSConstants.RequestParams.service, SosConstants.SOS);
+                builder.add(OWSConstants.RequestParams.version, Sos2Constants.SERVICEVERSION);
+                builder.add(OWSConstants.RequestParams.request, SosConstants.Operations.GetFeatureOfInterest);
+                builder.add(Sos2Constants.DescribeSensorParams.procedureDescriptionFormat, format);
+                builder.add(SosConstants.DescribeSensorParams.procedure, procedureId);
+                return (DescribeSensorResponse) getSosResponseFor(builder.build());
+            } else {
+                DescribeSensorRequest request =
+                        new DescribeSensorRequest(SosConstants.SOS, Sos2Constants.SERVICEVERSION);
+                request.setProcedure(procedureId);
+                request.setProcedureDescriptionFormat(format);
+                if (supportsPox(config)) {
+                    return (DescribeSensorResponse) getSosResponseFor(request, SwesConstants.NS_SWES_20,
+                            getPoxUrl(config).toString());
+                }
+                SoapRequest soap =
+                        new SoapRequest(SOAPConstants.URI_NS_SOAP_1_2_ENVELOPE, SOAPConstants.SOAP_1_2_PROTOCOL);
+                soap.setSoapBodyContent(request);
+                return (DescribeSensorResponse) ((SoapResponse) getSosResponseFor(soap, SoapConstants.NS_SOAP_12,
+                        getSoapUrl(config).toString())).getBodyContent();
+            }
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException(ex);
+        }
     }
 
     protected boolean supportsGDA(OwsCapabilities owsCaps) {
-        return owsCaps.getOperationsMetadata().map(OwsOperationsMetadata::getOperations).map(Set::stream)
-                .orElseGet(Stream::empty).map(OwsOperation::getName)
-                .anyMatch(name -> name.equals(GetDataAvailabilityConstants.EN_GET_DATA_AVAILABILITY));
+        return (owsCaps.getServiceIdentification().isPresent() && owsCaps.getServiceIdentification().get()
+                .getProfiles().contains(URI.create(GetDataAvailabilityConstants.CONFORMANCE_CLASS)))
+                || owsCaps.getOperationsMetadata().map(OwsOperationsMetadata::getOperations).map(Set::stream)
+                        .orElseGet(Stream::empty).map(OwsOperation::getName)
+                        .anyMatch(name -> name.equals(GetDataAvailabilityConstants.OPERATION_NAME));
     }
 
     protected GetDataAvailabilityResponse getDataAvailabilityByProcedure(String procedureId, String serviceURL) {
@@ -259,9 +342,10 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     protected GetDataAvailabilityResponse getDataAvailability(String procedure, String offering, String phenomenon,
-            String feature, String url) {
+            String feature, String serviceURL) {
+        DataSourceConfiguration config = getServiceConfig(serviceURL);
         try {
-            QueryBuilder builder = new QueryBuilder(url);
+            QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
             builder.add(OWSConstants.RequestParams.service, SosConstants.SOS);
             builder.add(OWSConstants.RequestParams.version, Sos2Constants.SERVICEVERSION);
             builder.add(OWSConstants.RequestParams.request, GetDataAvailabilityConstants.EN_GET_DATA_AVAILABILITY);
@@ -318,6 +402,113 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         request.addObservedProperty(phenomenon);
         request.addFeatureIdentifier(feature);
         Optional.ofNullable(temporalFilter).ifPresent(request::addTemporalFilter);
-        return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20, serviceURL);
+        return getObservation(request, serviceURL);
+    }
+
+    private GetObservationResponse getObservation(GetObservationRequest request, String serviceURL) {
+        DataSourceConfiguration config = getServiceConfig(serviceURL);
+        try {
+            if (supportsPox(config)) {
+                return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
+                        getPoxUrl(config).toString());
+            }
+            SoapRequest soap =
+                    new SoapRequest(SOAPConstants.URI_NS_SOAP_1_2_ENVELOPE, SOAPConstants.SOAP_1_2_PROTOCOL);
+            soap.setSoapBodyContent(request);
+            return (GetObservationResponse) ((SoapResponse) getSosResponseFor(soap, SoapConstants.NS_SOAP_12,
+                    getSoapUrl(config).toString())).getBodyContent();
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+
+    }
+
+    protected void addBindingUrls(SosCapabilities capabilities, DataSourceConfiguration config) {
+        Optional<OwsOperation> operation = capabilities.getOperationsMetadata()
+                .map(OwsOperationsMetadata::getOperations).map(Set::stream).orElseGet(Stream::empty)
+                .filter(o -> o.getName().equals(SosConstants.Operations.GetObservation.name())).findFirst();
+        if (operation.isPresent() && !operation.get().getDCP().isEmpty()) {
+            for (OwsDCP dcp : operation.get().getDCP()) {
+                for (OwsRequestMethod rm : dcp.asHTTP().getRequestMethods()) {
+                    switch (rm.getHttpMethod().toUpperCase()) {
+                        case "GET":
+                            for (OwsDomain domain : rm.getConstraints()) {
+                                if (domain.getName().equals(HTTPHeaders.CONTENT_TYPE)
+                                        && domain.getPossibleValues().isAllowedValues()) {
+                                    for (OwsValueRestriction restriction : domain.getPossibleValues().asAllowedValues()
+                                            .getRestrictions()) {
+                                        if (restriction.isValue()) {
+                                            config.addGetUrls(restriction.asValue().getValue(), rm.getHref()
+                                                    .orElse(URI.create(config.getUrl())).toString().replace("?", ""));
+                                        }
+                                    }
+                                }
+                            }
+                            if (config.getGetUrls().isEmpty()) {
+                                config.addGetUrls(DEFAULT,
+                                        rm.getHref().orElse(URI.create(config.getUrl())).toString());
+                            }
+                            break;
+                        case "POST":
+                            for (OwsDomain domain : rm.getConstraints()) {
+                                if (domain.getName().equals(HTTPHeaders.CONTENT_TYPE)
+                                        && domain.getPossibleValues().isAllowedValues()) {
+                                    for (OwsValueRestriction restriction : domain.getPossibleValues().asAllowedValues()
+                                            .getRestrictions()) {
+                                        if (restriction.isValue()) {
+                                            config.addPostUrls(restriction.asValue().getValue(),
+                                                    rm.getHref().orElse(URI.create(config.getUrl())).toString());
+                                        }
+                                    }
+                                }
+                            }
+                            if (config.getPostUrls().isEmpty()) {
+                                config.addPostUrls(DEFAULT,
+                                        rm.getHref().orElse(URI.create(config.getUrl())).toString());
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+            }
+        }
+    }
+
+    protected URL getKvpUrl(DataSourceConfiguration config) throws MalformedURLException {
+        return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
+                ? config.getGetUrls().get(MediaTypes.APPLICATION_KVP.toString())
+                : config.getGetUrls().get(DEFAULT)).toURL();
+    }
+
+    protected URL getSoapUrl(DataSourceConfiguration config) throws MalformedURLException {
+        return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString())
+                ? config.getGetUrls().get(MediaTypes.TEXT_XML.toString())
+                : config.getGetUrls().get(DEFAULT)).toURL();
+    }
+
+    protected URL getPoxUrl(DataSourceConfiguration config) throws MalformedURLException {
+        return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
+                ? config.getGetUrls().get(MediaTypes.APPLICATION_KVP.toString())
+                : config.getGetUrls().containsKey(MediaTypes.APPLICATION_XML.toString())
+                        ? config.getGetUrls().get(MediaTypes.APPLICATION_XML.toString())
+                        : config.getGetUrls().get(DEFAULT))
+                .toURL();
+    }
+
+    protected boolean supportsSoap(DataSourceConfiguration config) {
+        return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
+                || config.getGetUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString()));
+    }
+
+    protected boolean supportsPox(DataSourceConfiguration config) {
+        return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(MediaTypes.TEXT_XML.toString())
+                || config.getGetUrls().containsKey(MediaTypes.APPLICATION_XML.toString()));
+    }
+
+    protected boolean supportsKvp(DataSourceConfiguration config) {
+        return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
+                || config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString()));
     }
 }

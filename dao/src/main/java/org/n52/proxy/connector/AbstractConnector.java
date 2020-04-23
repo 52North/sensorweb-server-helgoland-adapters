@@ -29,7 +29,9 @@
 package org.n52.proxy.connector;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -81,6 +83,7 @@ public abstract class AbstractConnector {
     private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     private static final long SOCKET_TIMEOUT = TimeUnit.MINUTES.toMillis(30);
 
+    private Map<String, DataSourceConfiguration> dataSourceConfigurations = new LinkedHashMap<>();
     private final SimpleHttpClient httpClient;
 
     public AbstractConnector() {
@@ -327,5 +330,13 @@ public abstract class AbstractConnector {
             String valueReference = Sos2Constants.VALUE_REFERENCE_SPATIAL_FILTERING_PROFILE;
             return new SpatialFilter(SpatialOperator.BBOX, new ReferencedEnvelope(envelope, srid), valueReference);
         }
+    }
+
+    protected void addServiceConfig(DataSourceConfiguration config) {
+        this.dataSourceConfigurations.put(config.getUrl(), config);
+    }
+
+    protected DataSourceConfiguration getServiceConfig(String key) {
+        return this.dataSourceConfigurations.get(key);
     }
 }

@@ -84,6 +84,8 @@ public class SOS2Connector extends AbstractSosConnector {
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
+        addBindingUrls(sosCaps, config);
+        addServiceConfig(config);
         addDatasets(serviceConstellation, sosCaps, config);
         LOGGER.info("{} requests were sended to harvest the service {}", counter, config.getItemName());
         return serviceConstellation;
@@ -136,6 +138,7 @@ public class SOS2Connector extends AbstractSosConnector {
         offering.getProcedures().forEach(procedureId -> {
             addProcedure(procedureId, true, false, serviceConstellation);
 
+//            sosCaps.getOperationsMetadata().ifPresent(consumer);
             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
                                                                                                config.getUrl());
             addFeature(foiResponse.getAbstractFeature(), serviceConstellation);

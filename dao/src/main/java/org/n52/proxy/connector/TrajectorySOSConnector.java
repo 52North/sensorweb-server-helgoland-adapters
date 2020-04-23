@@ -93,6 +93,8 @@ public class TrajectorySOSConnector extends AbstractSosConnector {
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
+        addBindingUrls(sosCaps, config);
+        addServiceConfig(config);
         addDatasets(serviceConstellation, sosCaps, config.getUrl());
         return serviceConstellation;
     }
