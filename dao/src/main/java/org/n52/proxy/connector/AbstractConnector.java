@@ -64,7 +64,7 @@ import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
 import org.n52.shetland.ogc.om.OmConstants;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
+import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
 import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
@@ -234,14 +234,14 @@ public abstract class AbstractConnector {
     }
 
     protected void addFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
-        if (feature instanceof SamplingFeature) {
-            addFeature((SamplingFeature) feature, serviceConstellation);
+        if (feature instanceof AbstractSamplingFeature) {
+            addFeature((AbstractSamplingFeature) feature, serviceConstellation);
         } else if (feature instanceof FeatureCollection) {
             ((FeatureCollection) feature).forEach(featureEntry -> addFeature(featureEntry, serviceConstellation));
         }
     }
 
-    protected String addFeature(SamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
+    protected String addFeature(AbstractSamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
         String featureId = samplingfeature.getIdentifier();
         String featureDescription = samplingfeature.getDescription();
         String featureName =

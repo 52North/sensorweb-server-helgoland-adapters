@@ -146,7 +146,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             return null;
         }
         if (dataSource.getType().equalsIgnoreCase("SOS")) {
-            GetCapabilitiesResponse capabilities = getCapabilities(dataSource.getUrl());
+            GetCapabilitiesResponse capabilities = getCapabilities(dataSource);
             return determineSOSConstellation(dataSource, capabilities);
         }
         if (dataSource.getType().equalsIgnoreCase("SensorThings")) {
@@ -219,16 +219,18 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         insertRepository.cleanUp(service, datasetIds, datasetCount > 0 && datasetIds.size() == datasetCount);
     }
 
-    private GetCapabilitiesResponse getCapabilities(String serviceUrl) throws IOException, DecodingException {
+    private GetCapabilitiesResponse getCapabilities(DataSourceConfiguration dataSource)
+            throws IOException, DecodingException {
         try {
             SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
-            String url = serviceUrl;
+            String url = dataSource.getUrl();
             if (url.contains("?")) {
                 url += "&";
             } else {
                 url += "?";
             }
-            HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities");
+            HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities"
+                    + (dataSource.isDisableHumanReadableName() ? "&returnHumanReadableIdentifier=false" : ""));
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
             return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);

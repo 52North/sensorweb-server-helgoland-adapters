@@ -46,7 +46,7 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.gml.ReferenceType;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
+import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceResponse;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
@@ -126,8 +126,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         if (!serviceConstellation.hasFeature(featureId)) {
                             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(featureId, serviceUri);
                             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                            if (abstractFeature instanceof SamplingFeature) {
-                                addFeature((SamplingFeature) abstractFeature, serviceConstellation);
+                            if (abstractFeature instanceof AbstractSamplingFeature) {
+                                addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
                             }
                         }
                         // TODO maybe not only QuantityDatasetConstellation

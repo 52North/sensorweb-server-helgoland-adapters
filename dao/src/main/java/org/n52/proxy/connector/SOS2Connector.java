@@ -127,40 +127,45 @@ public class SOS2Connector extends AbstractSosConnector {
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
                                DataSourceConfiguration config) {
-        sosCaps.getContents().ifPresent(contents -> contents
-                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
+
+        if (sosCaps.getContents().isPresent()) {
+            doForOffering(sosCaps.getContents().get().first(), serviceConstellation, config);
+        }
+//        sosCaps.getContents().ifPresent(contents -> contents
+//                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
                                  DataSourceConfiguration config) {
+        LOGGER.debug("Harvest data for offering '{}'", offering.getIdentifier());
         String offeringId = addOffering(offering, serviceConstellation);
 
         offering.getProcedures().forEach(procedureId -> {
-            addProcedure(procedureId, true, false, serviceConstellation);
+            try {
+                addProcedure(procedureId, true, false, serviceConstellation);
+                GetFeatureOfInterestResponse foiResponse =
+                        getFeatureOfInterestByProcedure(procedureId, config.getUrl());
+                addFeature(foiResponse.getAbstractFeature(), serviceConstellation);
+                GetDataAvailabilityResponse gdaResponse = getDataAvailabilityByProcedure(procedureId, config.getUrl());
+                if (gdaResponse != null) {
+                    gdaResponse.getDataAvailabilities().forEach(dataAval -> {
+                        String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
+                        String categoryId = addCategory(dataAval, serviceConstellation);
+                        String featureId = dataAval.getFeatureOfInterest().getHref();
+                        TimePeriod phenomenonTime = dataAval.getPhenomenonTime();
 
-//            sosCaps.getOperationsMetadata().ifPresent(consumer);
-            GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
-                                                                                               config.getUrl());
-            addFeature(foiResponse.getAbstractFeature(), serviceConstellation);
-
-            GetDataAvailabilityResponse gdaResponse = getDataAvailabilityByProcedure(procedureId, config.getUrl());
-            if (gdaResponse != null) {
-                gdaResponse.getDataAvailabilities().forEach(dataAval -> {
-                    String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
-                    String categoryId = addCategory(dataAval, serviceConstellation);
-                    String featureId = dataAval.getFeatureOfInterest().getHref();
-                    TimePeriod phenomenonTime = dataAval.getPhenomenonTime();
-
-                    UnitEntity unit = getUom(procedureId, offeringId, phenomenonId, featureId,
-                            serviceConstellation.getService().getSupportsFirstLast(),
-                            phenomenonTime.getEnd(), config.getUrl());
-                    serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                            phenomenonId, featureId, featureId).setUnit(unit)
-                                    .setSamplingTimeStart(phenomenonTime.getStart().toDate())
-                                    .setSamplingTimeEnd(phenomenonTime.getEnd().toDate()));
-                });
+                        UnitEntity unit = getUom(procedureId, offeringId, phenomenonId, featureId,
+                                serviceConstellation.getService().getSupportsFirstLast(), phenomenonTime.getEnd(),
+                                config.getUrl());
+                        serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
+                                phenomenonId, featureId, featureId).setUnit(unit)
+                                        .setSamplingTimeStart(phenomenonTime.getStart().toDate())
+                                        .setSamplingTimeEnd(phenomenonTime.getEnd().toDate()));
+                    });
+                }
+            } catch (Exception e) {
+                LOGGER.debug(String.format("Error while processing offering '%s'", offeringId), e);
             }
-            LOGGER.info(foiResponse.toString());
         });
     }
 

@@ -43,7 +43,7 @@ import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.old.dao.DbQuery;
 import org.n52.shetland.ogc.gml.AbstractFeature;
 import org.n52.shetland.ogc.om.features.FeatureCollection;
-import org.n52.shetland.ogc.om.features.samplingFeatures.SamplingFeature;
+import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
@@ -112,7 +112,7 @@ public class HydroSOSConnector extends SOS2Connector {
                 if (abstractFeature instanceof FeatureCollection) {
                     FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
                     featureCollection.getMembers().forEach((key, feature) -> {
-                        String featureId = addFeature((SamplingFeature) feature, serviceConstellation);
+                        String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
                         // TODO maybe not only QuantityDatasetConstellation
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                                                                   phenomenonId, featureId, featureId));

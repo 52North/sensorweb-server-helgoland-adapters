@@ -40,6 +40,7 @@ public class DataSourceConfiguration {
     private String connector;
     private String type;
     private boolean supportsFirstLast = true;
+    private boolean disableHumanReadableName;
     private List<String> allowedOfferings;
     private Map<String, String> getUrls = new LinkedHashMap<>();
     private Map<String, String> postUrls = new LinkedHashMap<>();
@@ -100,6 +101,14 @@ public class DataSourceConfiguration {
 
     public void setSupportsFirstLast(boolean supportsFirstLast) {
         this.supportsFirstLast = supportsFirstLast;
+    }
+
+    public boolean isDisableHumanReadableName() {
+        return disableHumanReadableName;
+    }
+
+    public void setDisableHumanReadableName(boolean disableHumanReadableName) {
+        this.disableHumanReadableName = disableHumanReadableName;
     }
 
     public List<String> getAllowedOfferings() {

@@ -61,6 +61,7 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.dataset.ValueType;
 import org.n52.shetland.ogc.filter.SpatialFilter;
 import org.n52.shetland.ogc.filter.TemporalFilter;
+import org.n52.shetland.ogc.om.OmConstants;
 import org.n52.shetland.ogc.om.OmObservation;
 import org.n52.shetland.ogc.ows.OWSConstants;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
@@ -84,7 +85,9 @@ import org.n52.shetland.ogc.sos.request.GetObservationRequest;
 import org.n52.shetland.ogc.sos.response.DescribeSensorResponse;
 import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.n52.shetland.ogc.sos.response.GetObservationResponse;
+import org.n52.shetland.ogc.swe.simpleType.SweBoolean;
 import org.n52.shetland.ogc.swes.SwesConstants;
+import org.n52.shetland.ogc.swes.SwesExtension;
 import org.n52.shetland.w3c.soap.SoapConstants;
 import org.n52.shetland.w3c.soap.SoapRequest;
 import org.n52.shetland.w3c.soap.SoapResponse;
@@ -108,6 +111,8 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     private static final String COULD_NOT_RETRIEVE_RESPONSE = "Could not retrieve response";
 
     private static final String DEFAULT = "default";
+
+    private static final String RETURN_HUMAN_READABLE_NAME = "returnHumanReadableIdentifier";
 
     protected int counter;
 
@@ -264,6 +269,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                 builder.add(Sos2Constants.GetFeatureOfInterestParams.procedure, procedureId);
                 builder.add(Sos2Constants.GetFeatureOfInterestParams.observedProperty, obsProp);
                 builder.add(Sos2Constants.GetFeatureOfInterestParams.featureOfInterest, featureId);
+                checkHumanReadableName(config, builder);
                 return (GetFeatureOfInterestResponse) getSosResponseFor(builder.build());
             } else {
                 GetFeatureOfInterestRequest request =
@@ -296,6 +302,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                 builder.add(OWSConstants.RequestParams.request, SosConstants.Operations.GetFeatureOfInterest);
                 builder.add(Sos2Constants.DescribeSensorParams.procedureDescriptionFormat, format);
                 builder.add(SosConstants.DescribeSensorParams.procedure, procedureId);
+                checkHumanReadableName(config, builder);
                 return (DescribeSensorResponse) getSosResponseFor(builder.build());
             } else {
                 DescribeSensorRequest request =
@@ -353,6 +360,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
             builder.add(GetDataAvailabilityConstants.GetDataAvailabilityParams.offering, offering);
             builder.add(GetDataAvailabilityConstants.GetDataAvailabilityParams.observedProperty, phenomenon);
             builder.add(GetDataAvailabilityConstants.GetDataAvailabilityParams.featureOfInterest, feature);
+            checkHumanReadableName(config, builder);
             return (GetDataAvailabilityResponse) getSosResponseFor(builder.build());
         } catch (MalformedURLException ex) {
             throw new IllegalArgumentException(ex);
@@ -389,7 +397,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         request.addFeatureIdentifier(seriesEntity.getFeature().getIdentifier());
         Optional.ofNullable(temporalFilter).ifPresent(request::setTemporalFilters);
         Optional.ofNullable(spatialFilter).ifPresent(request::setSpatialFilter);
-        Optional.ofNullable(responseFormat).ifPresent(request::setResponseFormat);
+        request.setResponseFormat(Optional.ofNullable(responseFormat).orElse(OmConstants.NS_OM_2));
         return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
                 seriesEntity.getService().getUrl());
     }
@@ -402,6 +410,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         request.addObservedProperty(phenomenon);
         request.addFeatureIdentifier(feature);
         Optional.ofNullable(temporalFilter).ifPresent(request::addTemporalFilter);
+        request.setResponseFormat(OmConstants.NS_OM_2);
         return getObservation(request, serviceURL);
     }
 
@@ -483,32 +492,47 @@ public abstract class AbstractSosConnector extends AbstractConnector {
     }
 
     protected URL getSoapUrl(DataSourceConfiguration config) throws MalformedURLException {
-        return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString())
-                ? config.getGetUrls().get(MediaTypes.TEXT_XML.toString())
-                : config.getGetUrls().get(DEFAULT)).toURL();
+        return URI.create(config.getPostUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString())
+                ? config.getPostUrls().get(MediaTypes.APPLICATION_SOAP_XML.toString())
+                : config.getPostUrls().get(DEFAULT)).toURL();
     }
 
     protected URL getPoxUrl(DataSourceConfiguration config) throws MalformedURLException {
-        return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
-                ? config.getGetUrls().get(MediaTypes.APPLICATION_KVP.toString())
-                : config.getGetUrls().containsKey(MediaTypes.APPLICATION_XML.toString())
-                        ? config.getGetUrls().get(MediaTypes.APPLICATION_XML.toString())
-                        : config.getGetUrls().get(DEFAULT))
+        return URI.create(config.getPostUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
+                ? config.getPostUrls().get(MediaTypes.APPLICATION_KVP.toString())
+                : config.getPostUrls().containsKey(MediaTypes.APPLICATION_XML.toString())
+                        ? config.getPostUrls().get(MediaTypes.APPLICATION_XML.toString())
+                        : config.getPostUrls().get(DEFAULT))
                 .toURL();
-    }
-
-    protected boolean supportsSoap(DataSourceConfiguration config) {
-        return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
-                || config.getGetUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString()));
-    }
-
-    protected boolean supportsPox(DataSourceConfiguration config) {
-        return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(MediaTypes.TEXT_XML.toString())
-                || config.getGetUrls().containsKey(MediaTypes.APPLICATION_XML.toString()));
     }
 
     protected boolean supportsKvp(DataSourceConfiguration config) {
         return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
                 || config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString()));
+    }
+
+    protected boolean supportsSoap(DataSourceConfiguration config) {
+        return !config.getPostUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
+                || config.getPostUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString()));
+    }
+
+    protected boolean supportsPox(DataSourceConfiguration config) {
+        return !config.getPostUrls().isEmpty() && (config.getGetUrls().containsKey(MediaTypes.TEXT_XML.toString())
+                || config.getPostUrls().containsKey(MediaTypes.APPLICATION_XML.toString()));
+    }
+
+    protected void checkHumanReadableName(DataSourceConfiguration config, QueryBuilder builder) {
+        if (config.isDisableHumanReadableName()) {
+            builder.add(RETURN_HUMAN_READABLE_NAME, false);
+        }
+    }
+
+    protected void checkHumanReadableName(DataSourceConfiguration config, OwsServiceRequest request) {
+        if (config.isDisableHumanReadableName()) {
+            SwesExtension<SweBoolean> ext = new SwesExtension<>();
+            ext.setIdentifier(RETURN_HUMAN_READABLE_NAME);
+            ext.setValue((SweBoolean) new SweBoolean().setValue(false).setIdentifier(RETURN_HUMAN_READABLE_NAME));
+            request.addExtension(ext);
+        }
     }
 }
