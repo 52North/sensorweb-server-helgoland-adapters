@@ -74,6 +74,7 @@ import org.n52.shetland.ogc.ows.OwsValueRestriction;
 import org.n52.shetland.ogc.ows.exception.OwsExceptionReport;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.ows.service.OwsServiceRequest;
+import org.n52.shetland.ogc.sos.Sos1Constants;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
 import org.n52.shetland.ogc.sos.SosConstants;
@@ -398,8 +399,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         Optional.ofNullable(temporalFilter).ifPresent(request::setTemporalFilters);
         Optional.ofNullable(spatialFilter).ifPresent(request::setSpatialFilter);
         request.setResponseFormat(Optional.ofNullable(responseFormat).orElse(OmConstants.NS_OM_2));
-        return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
-                seriesEntity.getService().getUrl());
+        return getObservation(request, seriesEntity.getService().getUrl());
     }
 
     private GetObservationResponse getObservation(String procedure, String offering, String phenomenon, String feature,
@@ -418,7 +418,10 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         DataSourceConfiguration config = getServiceConfig(serviceURL);
         try {
             if (supportsPox(config)) {
-                return (GetObservationResponse) getSosResponseFor(request, Sos2Constants.NS_SOS_20,
+                return (GetObservationResponse) getSosResponseFor(request,
+                        request.isSetVersion() && request.getVersion().equals(Sos1Constants.SERVICEVERSION)
+                                ? Sos1Constants.NS_SOS
+                                : Sos2Constants.NS_SOS_20,
                         getPoxUrl(config).toString());
             }
             SoapRequest soap =
