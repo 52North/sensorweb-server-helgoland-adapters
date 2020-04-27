@@ -128,11 +128,11 @@ public class SOS2Connector extends AbstractSosConnector {
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
                                DataSourceConfiguration config) {
 
-        if (sosCaps.getContents().isPresent()) {
-            doForOffering(sosCaps.getContents().get().first(), serviceConstellation, config);
-        }
-//        sosCaps.getContents().ifPresent(contents -> contents
-//                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
+//        if (sosCaps.getContents().isPresent()) {
+//            doForOffering(sosCaps.getContents().get().first(), serviceConstellation, config);
+//        }
+        sosCaps.getContents().ifPresent(contents -> contents
+                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
