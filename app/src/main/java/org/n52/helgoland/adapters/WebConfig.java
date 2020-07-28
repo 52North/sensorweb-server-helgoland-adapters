@@ -26,11 +26,12 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.springboot.init;
+package org.n52.helgoland.adapters;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHeaders;
 import org.n52.janmayen.http.HTTPMethods;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.http.MediaType;
@@ -42,9 +43,6 @@ import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @EnableWebMvc
 @Configuration
 // @ImportResource({"classpath*:/spring/dispatcher-servlet.xml"})
@@ -53,24 +51,20 @@ public class WebConfig implements WebMvcConfigurer {
 
     private static final String CSV = "csv";
 
-    @Bean
-    @SuppressWarnings("EmptyLineSeparator")
-    public WebMvcConfigurer createCORSFilter() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                String[] allowedMethods = { HTTPMethods.GET, HTTPMethods.POST, HTTPMethods.PUT, HTTPMethods.DELETE,
-                        HTTPMethods.OPTIONS };
-                String[] exposedHeaders = { HttpHeaders.CONTENT_TYPE, HttpHeaders.CONTENT_ENCODING };
-                String[] allowedHeaders =
-                        { HttpHeaders.CONTENT_TYPE, HttpHeaders.CONTENT_ENCODING, HttpHeaders.ACCEPT };
-                registry.addMapping("/*")
-                        .allowedOrigins("*")
-                        .allowedMethods(allowedMethods)
-                        .exposedHeaders(exposedHeaders)
-                        .allowedHeaders(allowedHeaders);
-            };
-        };
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/*")
+                .allowedOrigins("*")
+                .allowedMethods(HTTPMethods.GET,
+                                HTTPMethods.POST,
+                                HTTPMethods.PUT,
+                                HTTPMethods.DELETE,
+                                HTTPMethods.OPTIONS)
+                .exposedHeaders(HttpHeaders.CONTENT_TYPE,
+                                HttpHeaders.CONTENT_ENCODING)
+                .allowedHeaders(HttpHeaders.CONTENT_TYPE,
+                                HttpHeaders.CONTENT_ENCODING,
+                                HttpHeaders.ACCEPT);
     }
 
     @Override
@@ -93,7 +87,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     private View createJsonView() {
-        final MappingJackson2JsonView jsonView = new MappingJackson2JsonView();
+        MappingJackson2JsonView jsonView = new MappingJackson2JsonView();
         jsonView.setExtractValueFromSingleKeyModel(true);
         jsonView.setDisableCaching(false);
         jsonView.setObjectMapper(configureObjectMapper());
@@ -101,9 +95,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     private ObjectMapper configureObjectMapper() {
-        final ObjectMapper om = new ObjectMapper();
-        om.setSerializationInclusion(Include.NON_NULL);
-        return om;
+        return new ObjectMapper().setSerializationInclusion(Include.NON_NULL);
     }
 
 }

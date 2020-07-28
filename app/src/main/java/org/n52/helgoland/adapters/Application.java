@@ -32,7 +32,7 @@
  * and open the template in the editor.
  */
 
-package org.n52.springboot.init;
+package org.n52.helgoland.adapters;
 
 import org.n52.series.db.DatabaseConfig;
 import org.springframework.beans.factory.annotation.Value;

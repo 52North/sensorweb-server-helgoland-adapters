@@ -53,6 +53,7 @@ public class ProxyCountDataRepository extends CountValueAssembler {
 
     private Map<String, AbstractConnector> connectorMap;
 
+    @Inject
     public ProxyCountDataRepository(DataRepository<CountDataEntity> dataRepository,
             DatasetRepository datasetRepository) {
         super(dataRepository, datasetRepository);

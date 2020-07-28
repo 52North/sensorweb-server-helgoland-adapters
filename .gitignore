@@ -20,3 +20,6 @@ nbactions.xml
 versions.log
 *.springBeans
 console.log
+.idea/
+**/*.iml
+db/

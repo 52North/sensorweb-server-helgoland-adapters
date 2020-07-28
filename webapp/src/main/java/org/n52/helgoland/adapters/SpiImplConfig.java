@@ -26,7 +26,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.springboot.init;
+package org.n52.helgoland.adapters;
 
 import org.n52.io.response.CategoryOutput;
 import org.n52.io.response.FeatureOutput;
