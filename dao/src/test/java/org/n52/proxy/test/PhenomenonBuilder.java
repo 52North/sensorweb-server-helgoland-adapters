@@ -42,8 +42,7 @@ public class PhenomenonBuilder extends DescribableEntityBuilder<PhenomenonEntity
 
     @Override
     public PhenomenonEntity build() {
-        PhenomenonEntity entity = prepare(new PhenomenonEntity());
-        return entity;
+        return prepare(new PhenomenonEntity());
     }
 
 }

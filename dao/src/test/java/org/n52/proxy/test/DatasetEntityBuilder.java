@@ -39,7 +39,7 @@ import org.n52.series.db.beans.dataset.DatasetType;
 import org.n52.series.db.beans.dataset.ObservationType;
 import org.n52.series.db.beans.dataset.ValueType;
 
-public class DatasetEntityBuilder {
+public class DatasetEntityBuilder extends DescribableEntityBuilder<DatasetEntity> {
 
     private PhenomenonEntity phenomenon;
 
@@ -53,7 +53,8 @@ public class DatasetEntityBuilder {
 
     private PlatformEntity platform;
 
-    private DatasetEntityBuilder() {
+    private DatasetEntityBuilder(String identifier) {
+        super(identifier);
     }
 
     public DatasetEntity build(DatasetEntity entity) {
@@ -74,9 +75,8 @@ public class DatasetEntityBuilder {
         return build(new DatasetEntity());
     }
 
-    public static DatasetEntityBuilder newDataset() {
-        DatasetEntityBuilder builder = new DatasetEntityBuilder();
-        return builder;
+    public static DatasetEntityBuilder newDataset(String identifier) {
+        return new DatasetEntityBuilder(identifier);
     }
 
     public DatasetEntityBuilder setOffering(OfferingEntity entity) {
@@ -89,7 +89,7 @@ public class DatasetEntityBuilder {
         return this;
     }
 
-    public DatasetEntityBuilder setPhenomemon(PhenomenonEntity entity) {
+    public DatasetEntityBuilder setPhenomenon(PhenomenonEntity entity) {
         this.phenomenon = entity;
         return this;
     }
@@ -104,11 +104,9 @@ public class DatasetEntityBuilder {
         return this;
     }
 
-
     public DatasetEntityBuilder setPlatform(PlatformEntity entity) {
         this.platform = entity;
         return this;
     }
-
 
 }

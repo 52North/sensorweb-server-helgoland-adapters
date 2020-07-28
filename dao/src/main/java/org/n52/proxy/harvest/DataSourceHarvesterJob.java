@@ -68,7 +68,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -86,10 +85,10 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     private DataSourceConfiguration config;
 
-    @Inject
+    @Autowired
     private InsertRepository insertRepository;
 
-    @Inject
+    @Autowired
     private DecoderRepository decoderRepository;
 
     @Autowired(required = false)
