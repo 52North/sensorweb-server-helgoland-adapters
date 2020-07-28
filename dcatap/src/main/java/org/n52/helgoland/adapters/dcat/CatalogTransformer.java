@@ -406,7 +406,10 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
                                                                                     .orElseGet(Stream::empty);
         Stream.of(offeringStream.get().map(SosObservationOffering::getIdentifier).map(this::createResourceOrLiteral),
                   offeringStream.get().map(SosObservationOffering::getName).flatMap(List::stream)
-                                .map(name -> model.createLiteral(name.getValue(), name.getCodeSpace().toString())),
+                                .map(name -> model.createLiteral(name.getValue(),
+                                                                 Optional.ofNullable(name.getCodeSpace())
+                                                                         .map(URI::toString)
+                                                                         .orElse(null))),
                   offeringStream.get().map(SosObservationOffering::getObservableProperties).flatMap(Set::stream)
                                 .map(this::createResourceOrLiteral),
                   offeringStream.get().map(SosObservationOffering::getProcedures).flatMap(Set::stream)
