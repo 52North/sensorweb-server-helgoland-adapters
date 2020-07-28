@@ -1,0 +1,25 @@
+version: '3'
+services:
+  db:
+    image: mdillon/postgis:11-alpine 
+    ports:
+    - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: proxy
+      POSTGRES_USER: proxy
+      POSTGRES_DB: proxy
+
+  proxy:
+    build: ./
+    image: 52north/sensorweb-server-helgoland-adapters:latest
+    ports:
+      - 8081:8081
+    environment:
+      SPRING_DATASOURCE_USERNAME: proxy
+      SPRING_DATASOURCE_PASSWORD: proxy
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/proxy
+      SERVER_PORT: 8081
+      SERVER_SERVLET_CONTEXTPATH: /api
+      EXTERNAL_URL: http://localhost:8081/api/
+    depends_on:
+    - db
