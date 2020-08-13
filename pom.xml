@@ -64,7 +64,7 @@
         <arctic-sea.version>7.5.0-SNAPSHOT</arctic-sea.version>
         <series.api.version>3.4.0</series.api.version>
         <series.db.version>4.0.0-SNAPSHOT</series.db.version>
-        <series-hibernate.version>3.0.0</series-hibernate.version>
+        <series-hibernate.version>3.0.1</series-hibernate.version>
         <postgresql.version>42.2.14</postgresql.version>
         <postgis.version>2.5.0</postgis.version>
         <java.compiler.source>1.8</java.compiler.source>
