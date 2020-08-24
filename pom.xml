@@ -65,7 +65,7 @@
         <series.api.version>3.4.0</series.api.version>
         <series.db.version>4.0.0-SNAPSHOT</series.db.version>
         <series-hibernate.version>3.0.1</series-hibernate.version>
-        <postgresql.version>42.2.15</postgresql.version>
+        <postgresql.version>42.2.16</postgresql.version>
         <postgis.version>2.5.0</postgis.version>
         <java.compiler.source>1.8</java.compiler.source>
         <java.compiler.target>1.8</java.compiler.target>
