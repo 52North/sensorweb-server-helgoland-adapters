@@ -121,7 +121,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         JobKey key = context.getJobDetail().getKey();
         LOGGER.info("{} execution starts.", key);
 
