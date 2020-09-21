@@ -19,7 +19,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: proxy
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/proxy
       SERVER_PORT: 8081
-      SERVER_SERVLET_CONTEXTPATH: /api
+      SERVER_SERVLET_CONTEXTPATH: /
       EXTERNAL_URL: http://localhost:8081/api/
     depends_on:
     - db
