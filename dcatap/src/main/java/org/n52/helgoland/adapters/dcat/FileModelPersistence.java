@@ -12,10 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FileModelPersistence implements ModelPersistence {
     private static final Logger LOG = LoggerFactory.getLogger(FileModelPersistence.class);
     private final Object persistenceLock = new Object();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Path modelPath;
 
     public FileModelPersistence(Path modelPath) {
@@ -24,7 +27,8 @@ public class FileModelPersistence implements ModelPersistence {
 
     @Override
     public Optional<Model> read() {
-        synchronized (persistenceLock) {
+        this.lock.readLock().lock();
+        try {
             if (Files.isReadable(modelPath)) {
                 try (InputStream input = Files.newInputStream(modelPath)) {
                     Model model = ModelFactory.createDefaultModel();
@@ -35,17 +39,20 @@ public class FileModelPersistence implements ModelPersistence {
                 }
             }
             return Optional.empty();
+        } finally {
+            this.lock.readLock().unlock();
         }
     }
 
     @Override
     public void write(Model model) {
-        synchronized (persistenceLock) {
-            try (OutputStream output = Files.newOutputStream(modelPath)) {
-                model.write(output);
-            } catch (IOException e) {
-                LOG.error("Error writing model to disk", e);
-            }
+        this.lock.writeLock().lock();
+        try (OutputStream output = Files.newOutputStream(modelPath)) {
+            model.write(output);
+        } catch (IOException e) {
+            LOG.error("Error writing model to disk", e);
+        } finally {
+            this.lock.writeLock().unlock();
         }
     }
 }

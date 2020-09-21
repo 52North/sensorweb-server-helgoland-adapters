@@ -74,7 +74,6 @@ import java.util.LongSummaryStatistics;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -147,10 +146,10 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
 
             catalog.removeAll(DCTerms.modified);
             catalog.addProperty(DCTerms.modified,
-                                DateTimeFormatter.ISO_DATE_TIME.format(OffsetDateTime.now()),
+                                now(),
                                 XSDDatatype.XSDdateTime);
 
-            createDatasets(service, capabilities);
+            createServiceBasedDatasets(service, capabilities);
             modelPersistence.write(model);
         } catch (DecodingException e) {
             LOG.warn("could not parse SOS capabilities document", e);
@@ -159,14 +158,25 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         }
     }
 
+    private String now() {
+        return DateTimeFormatter.ISO_DATE_TIME.format(OffsetDateTime.now());
+    }
+
     private Optional<String> removeDatasets(ServiceEntity result) {
         lock.writeLock().lock();
         try {
-            Resource dataset = getDatasetResource(result);
-            Optional<String> issued = Optional.ofNullable(dataset.getProperty(DCTerms.issued))
-                                              .map(Statement::getString);
+            List<Resource> dataset = getDatasetResources(result);
+
+            // get the issued date
+            Optional<String> issued = dataset.stream()
+                                             .map(ds -> ds.getProperty(DCTerms.issued))
+                                             .filter(Objects::nonNull)
+                                             .findAny()
+                                             .map(Statement::getString);
+
             // remove the link between catalog and dataset
-            model.remove(catalog, DCAT.dataset, dataset);
+            dataset.forEach(ds -> model.remove(catalog, DCAT.dataset, ds));
+
             // remove all statements that are no longer reachable from the catalog
             model.remove(model.difference(ResourceUtils.reachableClosure(catalog)));
             return issued;
@@ -175,8 +185,10 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         }
     }
 
-    private Resource getDatasetResource(ServiceEntity result) {
-        return model.createResource(result.getUrl(), DCAT.Dataset);
+    private List<Resource> getDatasetResources(ServiceEntity result) {
+        return model.listSubjectsWithProperty(RDF.type, DCAT.Dataset)
+                    .filterKeep(r -> r.getURI().startsWith(result.getUrl()))
+                    .toList();
     }
 
     private Model createModel() {
@@ -192,18 +204,16 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         return model;
     }
 
-    private void createDatasets(ServiceEntity service, SosCapabilities capabilities) {
+    private void createServiceBasedDatasets(ServiceEntity service, SosCapabilities capabilities) {
 
         Optional<String> issued = removeDatasets(service);
 
-        String getCapabilitiesURL = getGetCapabilitiesURL(service);
-
-        Resource dataset = getDatasetResource(service)
-                                   .addProperty(DCAT.landingPage, model.createResource(getCapabilitiesURL))
-                                   // TODO review this
-                                   .addProperty(DCTerms.identifier, service.getIdentifier())
-                                   .addProperty(DCTerms.identifier, model.createTypedLiteral((long) service.getId()))
-                                   .addProperty(DCTerms.identifier, service.getUrl());
+        Resource dataset = model.createResource(service.getUrl(), DCAT.Dataset)
+                                .addProperty(DCAT.landingPage, model.createResource(getGetCapabilitiesURL(service)))
+                                // TODO review this
+                                .addProperty(DCTerms.identifier, service.getIdentifier())
+                                .addProperty(DCTerms.identifier, model.createTypedLiteral((long) service.getId()))
+                                .addProperty(DCTerms.identifier, service.getUrl());
         catalog.addProperty(DCAT.dataset, dataset);
         addTitle(capabilities, dataset);
         addDescription(capabilities, dataset);
@@ -213,47 +223,100 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         addTemporalExtent(capabilities, dataset);
         addServiceProvider(capabilities, dataset);
         addLanguages(capabilities, dataset);
+        addAccessConstraints(capabilities, dataset);
+
+        addIssuedAndModified(issued, dataset);
+
+        dataset.addProperty(DCAT.distribution, createSosDistribution(service, capabilities, dataset));
+        dataset.addProperty(DCAT.distribution, createHelgolandApiDistribution(service, dataset));
+
+    }
+
+    private void createOfferingBasedDatasets(ServiceEntity service, SosCapabilities capabilities) {
+
+        Optional<String> issued = removeDatasets(service);
+
+        capabilities.getContents().ifPresent(contents -> {
+            contents.forEach(offering -> {
+                String identifier = service.getUrl() + "#" + offering.getIdentifier();
+                Resource dataset = model.createResource(identifier, DCAT.Dataset)
+                                        .addProperty(DCAT.landingPage,
+                                                     model.createResource(getGetCapabilitiesURL(service)))
+                                        // TODO add the numeric offering id
+                                        .addProperty(DCTerms.identifier, identifier);
+                catalog.addProperty(DCAT.dataset, dataset);
+                // TODO create unique title
+                addTitle(capabilities, dataset);
+                // TODO create unique description
+                addDescription(capabilities, dataset);
+                addKeywords(capabilities, dataset);
+                addKeywordsFromOfferings(dataset, () -> Stream.of(offering));
+                addSpatialExtent(offering, dataset);
+                addTemporalExtent(offering, dataset);
+                addServiceProvider(capabilities, dataset);
+                addLanguages(capabilities, dataset);
+                addAccessConstraints(capabilities, dataset);
+                addIssuedAndModified(issued, dataset);
+                dataset.addProperty(DCAT.distribution, createSosDistribution(service, capabilities, dataset));
+                // TODO include the offering id in the URL
+                dataset.addProperty(DCAT.distribution, createHelgolandApiDistribution(service, dataset));
+            });
+        });
+
+    }
+
+    private Resource createSosDistribution(ServiceEntity service, SosCapabilities capabilities, Resource dataset) {
+        String getCapabilitiesURL = getGetCapabilitiesURL(service);
+        Resource sosDataService = createSosService(service, capabilities, dataset);
+        return model.createResource(DCAT.Distribution)
+                    .addProperty(DCTerms.title, "SOS")
+                    .addProperty(DCAT.accessURL, model.createResource(getCapabilitiesURL))
+                    .addProperty(DCAT.mediaType, "application/xml")
+                    .addProperty(DCAT.accessService, sosDataService);
+    }
+
+    private Resource createSosService(ServiceEntity service, SosCapabilities capabilities, Resource dataset) {
+        Resource sosDataService = model.createResource(DCAT.DataService)
+                                       .addProperty(DCAT.endpointURL,
+                                                    model.createResource(service.getUrl()))
+                                       .addProperty(DCAT.endpointDescription,
+                                                    model.createResource(getGetCapabilitiesURL(service)))
+                                       .addProperty(DCAT.servesDataset, dataset);
+        addProfiles(capabilities, sosDataService);
+        return sosDataService;
+    }
+
+    private void addIssuedAndModified(Optional<String> issued, Resource dataset) {
+        String now = format(DateTime.now());
+        dataset.addProperty(DCTerms.modified, now, XSDDatatype.XSDdateTime);
+        dataset.addProperty(DCTerms.issued, issued.orElse(now), XSDDatatype.XSDdateTime);
+    }
+
+    private void addAccessConstraints(SosCapabilities capabilities, Resource dataset) {
         capabilities.getServiceIdentification()
                     .map(OwsServiceIdentification::getAccessConstraints)
                     .map(Set::stream)
                     .orElseGet(Stream::empty)
                     .map(this::createResourceOrLiteral)
                     .forEach(accessConstraints -> dataset.addProperty(DCTerms.accessRights, accessConstraints));
-
-        String now = format(DateTime.now());
-        dataset.addProperty(DCTerms.modified, now, XSDDatatype.XSDdateTime);
-        dataset.addProperty(DCTerms.issued, issued.orElse(now), XSDDatatype.XSDdateTime);
-
-        Resource sosDataService = model.createResource(DCAT.DataService)
-                                       .addProperty(DCAT.endpointURL, model.createResource(service.getUrl()))
-                                       .addProperty(DCAT.endpointDescription,
-                                                    model.createResource(getGetCapabilitiesURL(service)))
-                                       .addProperty(DCAT.servesDataset, dataset);
-        addProfiles(capabilities, sosDataService);
-        dataset.addProperty(DCAT.distribution,
-                            model.createResource(DCAT.Distribution)
-                                 .addProperty(DCTerms.title, "SOS")
-                                 .addProperty(DCAT.accessURL, model.createResource(getCapabilitiesURL))
-                                 .addProperty(DCAT.mediaType, "application/xml")
-                                 .addProperty(DCAT.accessService, sosDataService));
-
-        dataset.addProperty(DCAT.distribution,
-                            model.createResource(DCAT.Distribution)
-                                 .addProperty(DCTerms.title, "Helgoland API")
-                                 .addProperty(DCAT.mediaType, "application/json")
-                                 .addProperty(DCAT.accessURL, model.createResource(getServiceURL(service)))
-                                 .addProperty(DCAT.accessService,
-                                              model.createResource(DCAT.DataService)
-                                                   .addProperty(DCAT.endpointURL,
-                                                                model.createResource(externalUrl))
-                                                   .addProperty(DCAT.endpointDescription,
-                                                                model.createResource(API_DESCRIPTION))
-                                                   .addProperty(DCAT.servesDataset, dataset)));
-
     }
 
-    private String getServiceURL(ServiceEntity result) {
-        return externalUrl + "services/" + result.getId();
+    private Resource createHelgolandApiDistribution(ServiceEntity service, Resource dataset) {
+        return model.createResource(DCAT.Distribution)
+                    .addProperty(DCTerms.title, "Helgoland API")
+                    .addProperty(DCAT.mediaType, "application/json")
+                    .addProperty(DCAT.accessURL, model.createResource(getServiceURL(service)))
+                    .addProperty(DCAT.accessService,
+                                 model.createResource(DCAT.DataService)
+                                      .addProperty(DCAT.endpointURL,
+                                                   model.createResource(externalUrl))
+                                      .addProperty(DCAT.endpointDescription,
+                                                   model.createResource(API_DESCRIPTION))
+                                      .addProperty(DCAT.servesDataset, dataset));
+    }
+
+    private String getServiceURL(ServiceEntity service) {
+        return externalUrl + "services/" + service.getId();
     }
 
     private String getGetCapabilitiesURL(ServiceEntity result) {
@@ -287,17 +350,39 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private void addSpatialExtent(SosCapabilities capabilities, Resource dataset) {
-        capabilities.getContents().map(Set::stream).orElseGet(Stream::empty)
-                    .filter(SosObservationOffering::isSetObservedArea)
-                    .map(SosObservationOffering::getObservedArea).map(ReferencedEnvelope::toGeometry)
-                    .reduce(Geometry::union)
-                    .map(geoJsonWriter::write)
-                    .map(json -> model.createResource(DCTerms.Location)
-                                      .addProperty(LOCN.geometry, json, RDFDataTypes.GEO_JSON))
-                    .ifPresent(x -> dataset.addProperty(DCTerms.spatial, x));
+        getSpatialExtent(capabilities).ifPresent(x -> dataset.addProperty(DCTerms.spatial, x));
     }
 
-    private ReferencedEnvelope getEnvelope(SortedSet<SosObservationOffering> contents) {
+    private void addSpatialExtent(SosObservationOffering offering, Resource dataset) {
+        getSpatialExtent(offering).ifPresent(x -> dataset.addProperty(DCTerms.spatial, x));
+    }
+
+    private Optional<Resource> getSpatialExtent(SosObservationOffering offering) {
+        if (offering.isSetObservedArea() && offering.getObservedArea().isSetEnvelope()) {
+            Geometry geometry = offering.getObservedArea().toGeometry();
+            if (!geometry.isEmpty()) {
+                Resource resource = model.createResource(DCTerms.Location)
+                                         .addProperty(LOCN.geometry,
+                                                      geoJsonWriter.write(geometry),
+                                                      RDFDataTypes.GEO_JSON);
+                return Optional.of(resource);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Resource> getSpatialExtent(SosCapabilities capabilities) {
+        return capabilities.getContents().map(Set::stream).orElseGet(Stream::empty)
+                           .filter(SosObservationOffering::isSetObservedArea)
+                           .map(SosObservationOffering::getObservedArea)
+                           .map(ReferencedEnvelope::toGeometry)
+                           .reduce(Geometry::union)
+                           .map(geoJsonWriter::write)
+                           .map(json -> model.createResource(DCTerms.Location)
+                                             .addProperty(LOCN.geometry, json, RDFDataTypes.GEO_JSON));
+    }
+
+    private ReferencedEnvelope getEnvelope(Set<SosObservationOffering> contents) {
         ReferencedEnvelope envelope = null;
         for (SosObservationOffering offering : contents) {
             if (offering.isSetObservedArea()) {
@@ -312,65 +397,86 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private void addTemporalExtent(SosCapabilities capabilities, Resource dataset) {
+        getTemporalExtent(capabilities).ifPresent(time -> dataset.addProperty(DCTerms.temporal, time));
+    }
+
+    private void addTemporalExtent(SosObservationOffering offering, Resource dataset) {
+        getTemporalExtent(offering).ifPresent(time -> dataset.addProperty(DCTerms.temporal, time));
+    }
+
+    private Optional<Resource> getTemporalExtent(SosObservationOffering offering) {
+        return createTime(offering.getPhenomenonTime());
+    }
+
+    private Optional<Resource> getTemporalExtent(SosCapabilities capabilities) {
         LongSummaryStatistics ss = capabilities.getContents().map(Set::stream)
                                                .orElseGet(Stream::empty)
                                                .map(SosObservationOffering::getPhenomenonTime)
-                                               .flatMap(time -> {
-                                                   if (time instanceof TimeInstant && ((TimeInstant) time)
-                                                                                              .isSetValue()) {
-                                                       return Stream.of(((TimeInstant) time)
-                                                                                .getValue());
-                                                   } else if (time instanceof TimePeriod) {
-                                                       TimePeriod period = (TimePeriod) time;
-                                                       if (period.isSetStart() && period.isSetEnd()) {
-                                                           return Stream.of(period.getStart(), period.getEnd());
-                                                       } else if (period.isSetStart()) {
-                                                           return Stream.of(period.getStart());
-                                                       } else if (period.isSetEnd()) {
-                                                           return Stream.of(period.getEnd());
-                                                       }
-                                                   }
-                                                   return Stream.empty();
-                                               })
+                                               .flatMap(this::toDateTimeStream)
                                                .mapToLong(DateTime::getMillis)
                                                .summaryStatistics();
-
-        if (ss.getCount() > 0) {
-            Resource time;
-            if (ss.getMin() == ss.getMax()) {
-                time = createTimeInstant(ss.getMin());
-            } else {
-                time = model.createResource(TIME.Interval)
-                            .addProperty(TIME.hasBeginning, createTimeInstant(ss.getMin()))
-                            .addProperty(TIME.hasEnd, createTimeInstant(ss.getMax()));
-            }
-            dataset.addProperty(DCTerms.temporal, time);
-        }
+        return Optional.of(ss).filter(x -> x.getCount() > 0).flatMap(this::createTime);
     }
 
-    private Resource createTimeInstant(long min) {
-        return model.createResource(TIME.Instant)
-                    .addProperty(TIME.inXSDDateTimeStamp,
-                                 format(new DateTime(min)));
+    private Stream<DateTime> toDateTimeStream(Time time) {
+        if (time instanceof TimeInstant && ((TimeInstant) time).isSetValue()) {
+            return Stream.of(((TimeInstant) time).getValue());
+        } else if (time instanceof TimePeriod) {
+            TimePeriod period = (TimePeriod) time;
+            if (period.isSetStart() && period.isSetEnd()) {
+                return Stream.of(period.getStart(), period.getEnd());
+            } else if (period.isSetStart()) {
+                return Stream.of(period.getStart());
+            } else if (period.isSetEnd()) {
+                return Stream.of(period.getEnd());
+            }
+        }
+        return Stream.empty();
+    }
+
+    private Optional<Resource> createTime(LongSummaryStatistics ss) {
+        if (ss.getMin() == ss.getMax()) {
+            return createTimeInstant(ss.getMin());
+        }
+        return createTimeInterval(createTimeInstant(ss.getMin()).orElse(null),
+                                  createTimeInstant(ss.getMax()).orElse(null));
+    }
+
+    private Optional<Resource> createTimeInterval(Resource begin, Resource end) {
+        if (begin == null && end == null) {
+            return Optional.empty();
+        }
+        Resource resource = model.createResource(TIME.Interval);
+        if (begin != null) {
+            resource.addProperty(TIME.hasBeginning, begin);
+        }
+        if (end != null) {
+            resource.addProperty(TIME.hasEnd, end);
+        }
+        return Optional.of(resource);
+    }
+
+    private Optional<Resource> createTimeInstant(long time) {
+        return createTimeInstant(new DateTime(time));
+    }
+
+    private Optional<Resource> createTimeInstant(DateTime value) {
+        if (value == null) {
+            return Optional.empty();
+        }
+        Resource resource = model.createResource(TIME.Instant);
+        resource.addProperty(TIME.inXSDDateTimeStamp, format(value));
+        return Optional.of(resource);
     }
 
     private Optional<Resource> createTime(Time time) {
         if (time instanceof TimePeriod) {
             TimePeriod timePeriod = (TimePeriod) time;
-            return Optional.of(model.createResource(TIME.Interval)
-                                    .addProperty(TIME.hasBeginning,
-                                                 model.createResource(TIME.Instant)
-                                                      .addProperty(TIME.inXSDDateTimeStamp,
-                                                                   format(timePeriod.getStart())))
-                                    .addProperty(TIME.hasEnd,
-                                                 model.createResource(TIME.Instant)
-                                                      .addProperty(TIME.inXSDDateTimeStamp,
-                                                                   format(timePeriod.getEnd()))));
+            return createTimeInterval(createTimeInstant(timePeriod.getStart()).orElse(null),
+                                      createTimeInstant(timePeriod.getEnd()).orElse(null));
         } else if (time instanceof TimeInstant) {
             TimeInstant instant = (TimeInstant) time;
-            return Optional.of(model.createResource(TIME.Instant)
-                                    .addProperty(TIME.inXSDDateTimeStamp,
-                                                 format(instant.getValue())));
+            return createTimeInstant(instant.getValue());
         }
         return Optional.empty();
     }
@@ -381,6 +487,12 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private void addTitle(SosCapabilities capabilities, Resource dataset) {
+        addLocalizedStrings(dataset, capabilities.getServiceIdentification()
+                                                 .flatMap(OwsServiceIdentification::getTitle)
+                                                 .orElse(null), DCTerms.title);
+    }
+
+    private void addTitle(SosCapabilities capabilities, SosObservationOffering offering, Resource dataset) {
         addLocalizedStrings(dataset, capabilities.getServiceIdentification()
                                                  .flatMap(OwsServiceIdentification::getTitle)
                                                  .orElse(null), DCTerms.title);
@@ -404,6 +516,11 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     private void addKeywordsFromContents(SosCapabilities capabilities, Resource dataset) {
         Supplier<Stream<SosObservationOffering>> offeringStream = () -> capabilities.getContents().map(Set::stream)
                                                                                     .orElseGet(Stream::empty);
+        addKeywordsFromOfferings(dataset, offeringStream);
+
+    }
+
+    private void addKeywordsFromOfferings(Resource dataset, Supplier<Stream<SosObservationOffering>> offeringStream) {
         Stream.of(offeringStream.get().map(SosObservationOffering::getIdentifier).map(this::createResourceOrLiteral),
                   offeringStream.get().map(SosObservationOffering::getName).flatMap(List::stream)
                                 .map(name -> model.createLiteral(name.getValue(),
@@ -418,7 +535,6 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
                                 .map(this::createResourceOrLiteral))
               .flatMap(Function.identity())
               .forEach(feature -> dataset.addProperty(DCAT.keyword, feature));
-
     }
 
     private void addKeywords(SosCapabilities capabilities, Resource dataset) {
@@ -538,7 +654,11 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private Optional<Resource> findCatalog() {
-        ResIterator iter = model.listSubjectsWithProperty(RDF.type, DCAT.Catalog);
+        return findResource(DCAT.Catalog);
+    }
+
+    private Optional<Resource> findResource(Resource type) {
+        ResIterator iter = model.listSubjectsWithProperty(RDF.type, type);
         if (iter.hasNext()) {
             return Optional.of(iter.nextResource());
         }
@@ -561,7 +681,7 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         if (UriUtil.isAbsoluteURI(catalogProperties.getHomepage())) {
             catalog.addProperty(FOAF.homepage, model.createResource(catalogProperties.getHomepage()));
         }
-        String now = DateTimeFormatter.ISO_DATE_TIME.format(OffsetDateTime.now());
+        String now = now();
         catalog.addProperty(DCTerms.modified, now, XSDDatatype.XSDdateTime)
                .addProperty(DCTerms.issued, now, XSDDatatype.XSDdateTime);
         if (UriUtil.isAbsoluteURI(catalogProperties.getLicense())) {

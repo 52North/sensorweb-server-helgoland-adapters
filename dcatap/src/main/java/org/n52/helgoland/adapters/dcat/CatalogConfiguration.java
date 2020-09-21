@@ -1,6 +1,7 @@
 package org.n52.helgoland.adapters.dcat;
 
 import org.apache.jena.rdf.model.Model;
+import org.locationtech.jts.io.WKTWriter;
 import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,6 +21,11 @@ public class CatalogConfiguration implements WebMvcConfigurer {
         GeoJsonWriter writer = new GeoJsonWriter();
         writer.setEncodeCRS(true);
         return writer;
+    }
+
+    @Bean
+    public WKTWriter wktWriter() {
+        return new WKTWriter();
     }
 
     @Bean
