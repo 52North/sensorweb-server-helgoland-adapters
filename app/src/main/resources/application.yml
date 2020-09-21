@@ -99,8 +99,8 @@ service:
   dcat:
     catalog:
       language: en
-      title: Example Catalog
-      description: Example Catalog
+      title: Sensor Observation Service Catalog
+      description: Catalog of Sensor Observation Service datasets
       homepage: https://52north.org
       publisher: https://52north.org
       license: https://creativecommons.org/licenses/by/4.0/
