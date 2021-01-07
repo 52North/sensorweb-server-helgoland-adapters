@@ -35,6 +35,9 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import org.n52.proxy.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.db.old.dao.DbQueryFactory;
+import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
+import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.series.db.assembler.core.CategoryAssembler;
 import org.n52.series.db.assembler.core.DatasetAssembler;
 import org.n52.series.db.assembler.core.FeatureAssembler;
@@ -55,9 +58,6 @@ import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
-import org.n52.series.db.old.dao.DbQueryFactory;
-import org.n52.series.db.query.DatasetQuerySpecifications;
-import org.n52.series.db.repositories.core.DataRepository;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -92,10 +92,10 @@ public class InsertRepository {
     private DatasetAssembler<?> datasetAssembler;
 
     @Inject
-    private org.n52.series.db.repositories.core.DatasetRepository datasetRepository;
+    private org.n52.sensorweb.server.db.repositories.core.DatasetRepository datasetRepository;
 
     @Inject
-    private org.n52.series.db.repositories.core.UnitRepository unitRepository;
+    private org.n52.sensorweb.server.db.repositories.core.UnitRepository unitRepository;
 
     @Inject
     private DataRepository dataRepository;

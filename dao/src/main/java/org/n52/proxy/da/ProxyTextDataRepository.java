@@ -39,14 +39,14 @@ import javax.inject.Inject;
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.text.TextValue;
 import org.n52.proxy.connector.AbstractConnector;
+import org.n52.sensorweb.server.db.old.dao.DbQuery;
+import org.n52.sensorweb.server.db.repositories.core.DataRepository;
+import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
 import org.n52.series.db.ValueAssemblerComponent;
 import org.n52.series.db.assembler.value.TextValueAssembler;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.TextDataEntity;
-import org.n52.series.db.old.dao.DbQuery;
-import org.n52.series.db.repositories.core.DataRepository;
-import org.n52.series.db.repositories.core.DatasetRepository;
 
 @ValueAssemblerComponent(value = "text", datasetEntityType = DatasetEntity.class)
 public class ProxyTextDataRepository extends TextValueAssembler {

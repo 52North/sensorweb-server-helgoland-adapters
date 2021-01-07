@@ -28,9 +28,9 @@
  */
 package org.n52.proxy.dao;
 
+import org.n52.sensorweb.server.db.repositories.ParameterDataRepository;
 import org.n52.series.db.assembler.InsertAssembler;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.series.db.repositories.ParameterDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

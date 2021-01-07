@@ -52,19 +52,19 @@
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
 
-        <org.springframework.version>5.2.8.RELEASE</org.springframework.version>
-        <spring-boot.version>2.3.3.RELEASE</spring-boot.version>
+        <org.springframework.version>5.3.2</org.springframework.version>
+        <spring-boot.version>2.4.1</spring-boot.version>
         <logback.version>1.2.3</logback.version>
         <jackson.version>2.11.2</jackson.version>
         <geotools.version>23.2</geotools.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <hibernate.version>5.4.19.Final</hibernate.version>
+        <hibernate.version>5.4.27.Final</hibernate.version>
         <geolatte.version>1.6.0</geolatte.version>
-        <arctic-sea.version>7.5.0-SNAPSHOT</arctic-sea.version>
-        <series.api.version>3.4.0</series.api.version>
-        <series.db.version>4.0.0-SNAPSHOT</series.db.version>
-        <series-hibernate.version>3.0.2</series-hibernate.version>
+        <arctic-sea.version>8.1.0</arctic-sea.version>
+        <version.sensorweb-server-helgoland>3.5.0-PR.1</version.sensorweb-server-helgoland>
+        <series.db.version>4.0.0-PR.1</series.db.version>
+        <version.sensorweb-server-db-model>4.0.0-PR.1</version.sensorweb-server-db-model>
         <postgresql.version>42.2.16</postgresql.version>
         <postgis.version>2.5.0</postgis.version>
         <java.compiler.source>1.8</java.compiler.source>
@@ -95,7 +95,7 @@
             <dependency>
                 <groupId>org.n52.sensorweb-server.helgoland</groupId>
                 <artifactId>helgoland-spi</artifactId>
-                <version>${series.api.version}</version>
+                <version>${version.sensorweb-server-helgoland}</version>
                 <exclusions>
                   <exclusion>
                     <groupId>org.n52.arctic-sea</groupId>
@@ -106,12 +106,12 @@
             <dependency>
                 <groupId>org.n52.sensorweb-server.helgoland</groupId>
                 <artifactId>helgoland-io</artifactId>
-                <version>${series.api.version}</version>
+                <version>${version.sensorweb-server-helgoland}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.sensorweb-server.helgoland</groupId>
                 <artifactId>helgoland-rest</artifactId>
-                <version>${series.api.version}</version>
+                <version>${version.sensorweb-server-helgoland}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.sensorweb-server.dao-impl</groupId>
@@ -121,23 +121,23 @@
             <dependency>
                 <groupId>org.n52.sensorweb-server.helgoland</groupId>
                 <artifactId>helgoland-xml-pdf-format</artifactId>
-                <version>${series.api.version}</version>
+                <version>${version.sensorweb-server-helgoland}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.n52.sensorweb-server.db-model</groupId>
                 <artifactId>db-model-entities</artifactId>
-                <version>${series-hibernate.version}</version>
+                <version>${version.sensorweb-server-db-model}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.sensorweb-server.db-model</groupId>
                 <artifactId>db-model-mappings</artifactId>
-                <version>${series-hibernate.version}</version>
+                <version>${version.sensorweb-server-db-model}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.sensorweb-server.db-model</groupId>
                 <artifactId>db-model-types</artifactId>
-                <version>${series-hibernate.version}</version>
+                <version>${version.sensorweb-server-db-model}</version>
             </dependency>
             
 

@@ -28,10 +28,10 @@
  */
 package org.n52.proxy.dao;
 
+import org.n52.sensorweb.server.db.repositories.ParameterDataRepository;
 import org.n52.series.db.assembler.ClearAssembler;
 import org.n52.series.db.assembler.InsertAssembler;
 import org.n52.series.db.beans.DataEntity;
-import org.n52.series.db.repositories.ParameterDataRepository;
 
 public class ProxyDataDao<T extends DataEntity<?>>
 //extends DataDao<T>

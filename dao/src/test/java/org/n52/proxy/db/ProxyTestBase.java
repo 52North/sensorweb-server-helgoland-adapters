@@ -33,9 +33,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.n52.series.db.old.dao.DbQuery;
-import org.n52.series.db.old.dao.DefaultDbQueryFactory;
-import org.n52.series.db.query.DatasetQuerySpecifications;
+import org.n52.sensorweb.server.db.old.dao.DbQuery;
+import org.n52.sensorweb.server.db.old.dao.DefaultDbQueryFactory;
+import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
 
 public abstract class ProxyTestBase {
 
