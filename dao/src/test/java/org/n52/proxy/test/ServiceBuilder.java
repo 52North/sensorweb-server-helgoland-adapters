@@ -32,9 +32,9 @@ import org.n52.series.db.beans.ServiceEntity;
 
 public class ServiceBuilder extends DescribableEntityBuilder<ServiceEntity> {
 
-    private String name;
-    private String url;
-    private String type;
+    private final String name;
+    private final String url;
+    private final String type;
 
     public ServiceBuilder(String name, String url, String type) {
        super(name);

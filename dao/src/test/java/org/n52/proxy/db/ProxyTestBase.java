@@ -28,21 +28,21 @@
  */
 package org.n52.proxy.db;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.db.old.dao.DefaultDbQueryFactory;
 import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 public abstract class ProxyTestBase {
 
     @PersistenceContext
     protected EntityManager entityManager;
 
-    @Inject
+    @Autowired
     protected ProxyTestRepositories testRepositories;
 
     protected DatasetQuerySpecifications defaultFilterSpec;

@@ -16,7 +16,7 @@
         API Web layer. Custom implementation has to be defined by bean descriptions using the ref-ids associated below. -->
 
     <bean class="org.n52.web.ctrl.ResourcesController">
-        <property name="metadataService" ref="metadataService" />
+        <constructor-arg name="metadataService" ref="metadataService" />
     </bean>
 
     <bean class="org.n52.web.ctrl.SearchController">

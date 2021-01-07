@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.proxy.connector.constellations.DatasetConstellation;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.FeatureEntity;
@@ -44,6 +45,7 @@ import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
+import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.util.JTSHelper;
 
 public class ServiceConstellation {

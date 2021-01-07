@@ -28,12 +28,6 @@
  */
 package org.n52.proxy.da;
 
-import static java.util.stream.Collectors.toSet;
-
-import java.util.Set;
-
-import javax.inject.Inject;
-
 import org.n52.proxy.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.db.old.dao.DbQueryFactory;
 import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
@@ -58,46 +52,51 @@ import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 @Component
 public class InsertRepository {
 
-    @Inject
+    @Autowired
     private DbQueryFactory dbQueryFactory;
 
-    @Inject
+    @Autowired
     private CategoryAssembler categoryAssembler;
 
-    @Inject
+    @Autowired
     private FeatureAssembler featureAssembler;
 
-    @Inject
+    @Autowired
     private OfferingAssembler offeringAssembler;
 
-    @Inject
+    @Autowired
     private PhenomenonAssembler phenomenonAssembler;
 
-    @Inject
+    @Autowired
     private ProcedureAssembler procedureAssembler;
 
-    @Inject
+    @Autowired
     private PlatformAssembler platformAssembler;
 
-    @Inject
+    @Autowired
     private ServiceAssembler serviceAssembler;
 
-    @Inject
+    @Autowired
     private DatasetAssembler<?> datasetAssembler;
 
-    @Inject
+    @Autowired
     private org.n52.sensorweb.server.db.repositories.core.DatasetRepository datasetRepository;
 
-    @Inject
+    @Autowired
     private org.n52.sensorweb.server.db.repositories.core.UnitRepository unitRepository;
 
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
     public synchronized Set<Long> getIdsForService(ServiceEntity service) {
@@ -120,7 +119,7 @@ public class InsertRepository {
 
     public void removeNonMatchingServices(Set<DataSourceConfiguration> configuredServices) {
         serviceAssembler.getParameterRepository().findAll().stream()
-                .filter(service -> !isConfigured(configuredServices, service)).forEach(this::removeService);
+                        .filter(service -> !isConfigured(configuredServices, service)).forEach(this::removeService);
     }
 
     private void removeService(ServiceEntity service) {
@@ -154,8 +153,9 @@ public class InsertRepository {
     }
 
     private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
-            OfferingEntity offering, AbstractFeatureEntity<?> feature, PhenomenonEntity phenomenon,
-            PlatformEntity platform, UnitEntity unit) {
+                                        OfferingEntity offering, AbstractFeatureEntity<?> feature,
+                                        PhenomenonEntity phenomenon,
+                                        PlatformEntity platform, UnitEntity unit) {
         dataset.setCategory(category);
         dataset.setProcedure(procedure);
         dataset.setOffering(offering);
@@ -234,7 +234,7 @@ public class InsertRepository {
 
     protected boolean equals(DataSourceConfiguration configuration, ServiceEntity service) {
         return configuration.getUrl().equals(service.getUrl())
-                && configuration.getItemName().equals(service.getName());
+               && configuration.getItemName().equals(service.getName());
     }
 
     public DataEntity<?> insertData(DatasetEntity dataset, DataEntity<?> data) {
@@ -243,13 +243,13 @@ public class InsertRepository {
         boolean minChanged = false;
         boolean maxChanged = false;
         if (!dataset.isSetFirstValueAt() || (dataset.isSetFirstValueAt()
-                && dataset.getFirstValueAt().after(insertedData.getSamplingTimeStart()))) {
+                                             && dataset.getFirstValueAt().after(insertedData.getSamplingTimeStart()))) {
             minChanged = true;
             dataset.setFirstValueAt(insertedData.getSamplingTimeStart());
             dataset.setFirstObservation(insertedData);
         }
         if (!dataset.isSetLastValueAt() || (dataset.isSetLastValueAt()
-                && dataset.getLastValueAt().before(insertedData.getSamplingTimeEnd()))) {
+                                            && dataset.getLastValueAt().before(insertedData.getSamplingTimeEnd()))) {
             maxChanged = true;
             dataset.setLastValueAt(insertedData.getSamplingTimeEnd());
             dataset.setLastObservation(insertedData);

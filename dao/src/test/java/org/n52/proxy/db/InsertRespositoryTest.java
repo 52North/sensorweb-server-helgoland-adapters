@@ -28,20 +28,6 @@
  */
 package org.n52.proxy.db;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import javax.inject.Inject;
-
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,6 +57,7 @@ import org.n52.series.db.beans.TextDataEntity;
 import org.n52.series.db.beans.dataset.DatasetType;
 import org.n52.series.db.beans.dataset.ObservationType;
 import org.n52.series.db.beans.dataset.ValueType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -78,24 +65,40 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Supplier;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @DataJpaTest
 @ExtendWith(SpringExtension.class)
 @ImportResource("classpath:artic-sea-test.xml")
 public class InsertRespositoryTest extends ProxyTestBase {
 
-    @Inject
+    @Autowired
     private InsertRepository insertRespository;
 
-    @Inject
+    @Autowired
     private ServiceRepository serviceRespository;
 
-    @Inject
+    @Autowired
     private DatasetRepository datasetRepository;
 
-    @Inject
-    private DataRepository dataRepository;
+    @Autowired
+    private DataRepository<?> dataRepository;
 
-    @Inject
+    @Autowired
     private FormatRepository formatRepository;
 
     @Test
@@ -171,38 +174,38 @@ public class InsertRespositoryTest extends ProxyTestBase {
         DatasetEntity insertedDataset = insertRespository.insertDataset(dataset);
         assertAll("Inserted dataset", () -> {
             Optional<DatasetEntity> optional = datasetRepository.findById(insertedDataset.getId());
-            assertThat(optional.isPresent());
+            assertTrue(optional.isPresent());
             DatasetEntity datasetEntity = optional.get();
 
             assertThat(insertRespository.getIdsForService(service).contains(insertedDataset.getId()));
 
-            assertTrue(datasetEntity.getCategory() != null);
+            assertNotNull(datasetEntity.getCategory());
             assertTrue(datasetEntity.getCategory().isSetIdentifier());
-            assertTrue(datasetEntity.getCategory().getIdentifier().equals("category"));
+            assertEquals("category", datasetEntity.getCategory().getIdentifier());
 
-            assertTrue(datasetEntity.getFeature() != null);
+            assertNotNull(datasetEntity.getFeature());
             assertTrue(datasetEntity.getFeature().isSetIdentifier());
-            assertTrue(datasetEntity.getFeature().getIdentifier().equals("feature"));
+            assertEquals("feature", datasetEntity.getFeature().getIdentifier());
 
-            assertTrue(datasetEntity.getOffering() != null);
+            assertNotNull(datasetEntity.getOffering());
             assertTrue(datasetEntity.getOffering().isSetIdentifier());
-            assertTrue(datasetEntity.getOffering().getIdentifier().equals("offering"));
+            assertEquals("offering", datasetEntity.getOffering().getIdentifier());
 
-            assertTrue(datasetEntity.getPhenomenon() != null);
+            assertNotNull(datasetEntity.getPhenomenon());
             assertTrue(datasetEntity.getPhenomenon().isSetIdentifier());
-            assertTrue(datasetEntity.getPhenomenon().getIdentifier().equals("phenomenon"));
+            assertEquals("phenomenon", datasetEntity.getPhenomenon().getIdentifier());
 
-            assertTrue(datasetEntity.getPlatform() != null);
+            assertNotNull(datasetEntity.getPlatform());
             assertTrue(datasetEntity.getPlatform().isSetIdentifier());
-            assertTrue(datasetEntity.getPlatform().getIdentifier().equals("platform"));
+            assertEquals("platform", datasetEntity.getPlatform().getIdentifier());
 
-            assertTrue(datasetEntity.getProcedure() != null);
+            assertNotNull(datasetEntity.getProcedure());
             assertTrue(datasetEntity.getProcedure().isSetIdentifier());
-            assertTrue(datasetEntity.getProcedure().getIdentifier().equals("procedure"));
+            assertEquals("procedure", datasetEntity.getProcedure().getIdentifier());
 
             assertTrue(datasetEntity.hasService());
             assertTrue(datasetEntity.getService().isSetIdentifier());
-            assertTrue(datasetEntity.getService().getIdentifier().equals("service"));
+            assertEquals("service", datasetEntity.getService().getIdentifier());
         });
     }
 
@@ -249,15 +252,15 @@ public class InsertRespositoryTest extends ProxyTestBase {
                 ServiceBuilder.newService("service", "https://52north.org/service", "SOS 2.0.0").build());
         DatasetEntity dataset = createQuantityDatasetEntity(service);
         DatasetEntity insertedDataset = insertRespository.insertDataset(dataset);
-        DataEntity<?> insertedData = insertRespository.insertData(insertedDataset, createQuantityData(dataset));
+        insertRespository.insertData(insertedDataset, createQuantityData(dataset));
         assertAll("Deleted dataset", () -> {
             Optional<DatasetEntity> optional = datasetRepository.findById(insertedDataset.getId());
             assertTrue(optional.isPresent());
-            List<DataEntity> datas = dataRepository.findAllByDataset(insertedDataset);
-            assertThat(!datas.isEmpty());
-            assertThat(datas.size() == 1);
+            List<? extends DataEntity<?>> dataEntities = dataRepository.findAllByDataset(insertedDataset);
+            assertThat(!dataEntities.isEmpty());
+            assertThat(dataEntities.size() == 1);
             assertThat(dataset.getFirstObservation() != null);
-            DataEntity data = datas.iterator().next();
+            DataEntity<?> data = dataEntities.iterator().next();
             assertThat(data.getId().equals(dataset.getFirstObservation().getId()));
             assertThat(data.getSamplingTimeStart().equals(dataset.getFirstValueAt()));
             assertThat(data.getValue().equals(dataset.getFirstQuantityValue()));
@@ -275,15 +278,15 @@ public class InsertRespositoryTest extends ProxyTestBase {
                 ServiceBuilder.newService("service", "https://52north.org/service", "SOS 2.0.0").build());
         DatasetEntity dataset = createTextDatasetEntity(service);
         DatasetEntity insertedDataset = insertRespository.insertDataset(dataset);
-        DataEntity<?> insertedData = insertRespository.insertData(insertedDataset, createTextData(dataset));
+        insertRespository.insertData(insertedDataset, createTextData(dataset));
         assertAll("Deleted dataset", () -> {
             Optional<DatasetEntity> optional = datasetRepository.findById(insertedDataset.getId());
             assertTrue(optional.isPresent());
-            List<DataEntity> datas = dataRepository.findAllByDataset(insertedDataset);
-            assertThat(!datas.isEmpty());
-            assertThat(datas.size() == 1);
+            List<? extends DataEntity<?>> dataEntities = dataRepository.findAllByDataset(insertedDataset);
+            assertThat(!dataEntities.isEmpty());
+            assertThat(dataEntities.size() == 1);
             assertThat(dataset.getFirstObservation() != null);
-            DataEntity data = datas.iterator().next();
+            DataEntity<?> data = dataEntities.iterator().next();
             assertThat(data.getId().equals(dataset.getFirstObservation().getId()));
             assertThat(data.getSamplingTimeStart().equals(dataset.getFirstValueAt()));
             assertThat(dataset.getFirstQuantityValue() == null);
@@ -301,15 +304,15 @@ public class InsertRespositoryTest extends ProxyTestBase {
                 ServiceBuilder.newService("service", "https://52north.org/service", "SOS 2.0.0").build());
         DatasetEntity dataset = createCountDatasetEntity(service);
         DatasetEntity insertedDataset = insertRespository.insertDataset(dataset);
-        DataEntity<?> insertedData = insertRespository.insertData(insertedDataset, createCountData(dataset));
+        insertRespository.insertData(insertedDataset, createCountData(dataset));
         assertAll("Deleted dataset", () -> {
             Optional<DatasetEntity> optional = datasetRepository.findById(insertedDataset.getId());
             assertTrue(optional.isPresent());
-            List<DataEntity> datas = dataRepository.findAllByDataset(insertedDataset);
-            assertThat(!datas.isEmpty());
-            assertThat(datas.size() == 1);
+            List<? extends DataEntity<?>> dataEntities = dataRepository.findAllByDataset(insertedDataset);
+            assertThat(!dataEntities.isEmpty());
+            assertThat(dataEntities.size() == 1);
             assertThat(dataset.getFirstObservation() != null);
-            DataEntity data = datas.iterator().next();
+            DataEntity<?> data = dataEntities.iterator().next();
             assertThat(data.getId().equals(dataset.getFirstObservation().getId()));
             assertThat(data.getSamplingTimeStart().equals(dataset.getFirstValueAt()));
             assertThat(dataset.getFirstQuantityValue() == null);
@@ -322,17 +325,20 @@ public class InsertRespositoryTest extends ProxyTestBase {
 
     private DatasetEntity createQuantityDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                .setObservationType(ObservationType.simple).setValueType(ValueType.quantity);
+                                           .setObservationType(ObservationType.simple)
+                                           .setValueType(ValueType.quantity);
     }
 
     private DatasetEntity createTextDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                .setObservationType(ObservationType.simple).setValueType(ValueType.text);
+                                           .setObservationType(ObservationType.simple)
+                                           .setValueType(ValueType.text);
     }
 
     private DatasetEntity createCountDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                .setObservationType(ObservationType.simple).setValueType(ValueType.count);
+                                           .setObservationType(ObservationType.simple)
+                                           .setValueType(ValueType.count);
     }
 
     private DatasetEntity createDatasetEntity(ServiceEntity service) {
@@ -341,53 +347,43 @@ public class InsertRespositoryTest extends ProxyTestBase {
 
     private DatasetEntity createDatasetEntity() {
         FormatEntity format = formatRepository.saveAndFlush(FormatBuilder.newFormat("format").build());
-        return DatasetEntityBuilder.newDataset().setCategory(CategoryBuilder.newCategory("category").build())
-                .setFeature(FeatureBuilder.newFeature("feature").setFormat(format)
-                        .build())
-                .setOffering(OfferingBuilder.newOffering("offering").build())
-                .setPhenomemon(PhenomenonBuilder.newPhenomenon("phenomenon").build())
-                .setPlatform(PlatformBuilder.newFeature("platform").build()).setProcedure(ProcedureBuilder
-                        .newProcedure("procedure").setFormat(format).build())
-                .build();
+        return DatasetEntityBuilder.newDataset("dataset").setCategory(CategoryBuilder.newCategory("category").build())
+                                   .setFeature(FeatureBuilder.newFeature("feature").setFormat(format).build())
+                                   .setOffering(OfferingBuilder.newOffering("offering").build())
+                                   .setPhenomenon(PhenomenonBuilder.newPhenomenon("phenomenon").build())
+                                   .setPlatform(PlatformBuilder.newFeature("platform").build())
+                                   .setProcedure(ProcedureBuilder.newProcedure("procedure").setFormat(format).build())
+                                   .build();
     }
 
     private DataEntity<?> createQuantityData(DatasetEntity dataset) {
-        QuantityDataEntity data = new QuantityDataEntity();
-        data.setDataset(dataset);
-        Date date = DateTime.now().toDate();
-        data.setSamplingTimeStart(date);
-        data.setSamplingTimeEnd(date);
-        data.setResultTime(date);
-        data.setValue(new BigDecimal(52.7));
-        return data;
+        return createData(dataset, QuantityDataEntity::new, new BigDecimal("52.7"));
     }
 
     private DataEntity<?> createTextData(DatasetEntity dataset) {
-        TextDataEntity data = new TextDataEntity();
-        data.setDataset(dataset);
-        Date date = DateTime.now().toDate();
-        data.setSamplingTimeStart(date);
-        data.setSamplingTimeEnd(date);
-        data.setResultTime(date);
-        data.setValue("52N");
-        return data;
+        return createData(dataset, TextDataEntity::new, "52N");
     }
 
     private DataEntity<?> createCountData(DatasetEntity dataset) {
-        CountDataEntity data = new CountDataEntity();
+        return createData(dataset, CountDataEntity::new, 52);
+    }
+
+    private <V, T extends DataEntity<? super V>> T createData(DatasetEntity dataset, Supplier<T> dataFactory, V value) {
+        T data = dataFactory.get();
+        data.setIdentifier(UUID.randomUUID().toString());
         data.setDataset(dataset);
         Date date = DateTime.now().toDate();
         data.setSamplingTimeStart(date);
         data.setSamplingTimeEnd(date);
         data.setResultTime(date);
-        data.setValue(52);
+        data.setValue(value);
         return data;
     }
 
     @SpringBootConfiguration
     @EnableJpaRepositories(basePackageClasses = {DatasetRepository.class})
-    @ComponentScan({ "org.n52.series.db.repository.core", "org.n52.series.db.old",
-            "org.n52.series.db.assembler.core", "org.n52.proxy" })
+    @ComponentScan({"org.n52.series.db.repository.core", "org.n52.series.db.old",
+                    "org.n52.series.db.assembler.core", "org.n52.proxy"})
     static class Config extends ProxyTestRepositoryConfig<DatasetEntity> {
         public Config() {
             super("/mapping/proxy/persistence.xml");

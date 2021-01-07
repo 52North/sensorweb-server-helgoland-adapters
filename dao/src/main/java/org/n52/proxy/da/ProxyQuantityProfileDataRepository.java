@@ -33,15 +33,6 @@
  */
 package org.n52.proxy.da;
 
-import static java.util.stream.Collectors.toMap;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.inject.Inject;
-
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.profile.ProfileValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -53,6 +44,14 @@ import org.n52.series.db.assembler.value.QuantityProfileValueAssembler;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Jan Schulte
@@ -67,7 +66,7 @@ public class ProxyQuantityProfileDataRepository extends QuantityProfileValueAsse
         super(profileDataRepository, datasetRepository);
     }
 
-    @Inject
+    @Autowired
     public void setConnectors(List<AbstractConnector> connectors) {
         this.connectorMap =
                 connectors.stream().collect(toMap(AbstractConnector::getConnectorName, Function.identity()));

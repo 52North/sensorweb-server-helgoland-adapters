@@ -28,14 +28,6 @@
  */
 package org.n52.proxy.harvest;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import javax.inject.Inject;
-
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
@@ -73,8 +65,16 @@ import org.quartz.JobKey;
 import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
 public class DataSourceHarvesterJob extends ScheduledJob implements Job {
@@ -85,14 +85,17 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     private DataSourceConfiguration config;
 
-    @Inject
+    @Autowired
     private InsertRepository insertRepository;
 
-    @Inject
+    @Autowired
     private DecoderRepository decoderRepository;
 
-    @Inject
+    @Autowired(required = false)
     private Set<AbstractConnector> connectors;
+
+    @Autowired(required = false)
+    private Set<HarvestingListener> listeners;
 
     public DataSourceHarvesterJob() {
     }
@@ -110,7 +113,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
         JobDataMap dataMap = new JobDataMap();
         dataMap.put(JOB_CONFIG, config);
         return JobBuilder.newJob(DataSourceHarvesterJob.class).withIdentity(getJobName()).usingJobData(dataMap)
-                .build();
+                         .build();
     }
 
     private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
@@ -118,19 +121,27 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         JobKey key = context.getJobDetail().getKey();
         LOGGER.info("{} execution starts.", key);
 
         DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
 
-        ServiceConstellation constellation;
         try {
-            constellation = determineConstellation(dataSource);
-            if (constellation == null) {
+            ServiceConstellation result = determineConstellation(dataSource);
+            if (result == null) {
                 LOGGER.warn("No connector found for {}", dataSource);
             } else {
-                saveConstellation(constellation);
+                saveConstellation(result);
+                if (listeners != null) {
+                    for (HarvestingListener listener : listeners) {
+                        try {
+                            listener.onResult(result);
+                        } catch (Throwable t) {
+                            LOGGER.warn("error executing listener " + listener, t);
+                        }
+                    }
+                }
             }
 
             LOGGER.info("{} execution ends.", key);
@@ -156,17 +167,18 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     private ServiceConstellation determineSOSConstellation(DataSourceConfiguration dataSource,
-            GetCapabilitiesResponse capabilities) {
+                                                           GetCapabilitiesResponse capabilities) {
         return this.connectors.stream().filter(connector -> connector instanceof AbstractSosConnector)
-                .map(connector -> (AbstractSosConnector) connector)
-                .filter(connector -> connector.matches(dataSource, capabilities))
-                .map(connector -> connector.getConstellation(dataSource, capabilities)).findFirst().orElse(null);
+                              .map(connector -> (AbstractSosConnector) connector)
+                              .filter(connector -> connector.matches(dataSource, capabilities))
+                              .map(connector -> connector.getConstellation(dataSource, capabilities)).findFirst()
+                              .orElse(null);
     }
 
     private ServiceConstellation determineSensorThingsConstellation(DataSourceConfiguration dataSource) {
         return this.connectors.stream().filter(connector -> connector instanceof SensorThingsConnector)
-                .map(connector -> (SensorThingsConnector) connector)
-                .map(connector -> connector.getConstellation(dataSource)).findFirst().orElse(null);
+                              .map(connector -> (SensorThingsConnector) connector)
+                              .map(connector -> connector.getConstellation(dataSource)).findFirst().orElse(null);
     }
 
     public void init(DataSourceConfiguration initConfig) {
@@ -181,7 +193,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    private void saveConstellation(ServiceConstellation constellation) {
+    protected void saveConstellation(ServiceConstellation constellation) {
         // serviceEntity
         ServiceEntity service = insertRepository.insertService(constellation.getService());
         Set<Long> datasetIds = insertRepository.getIdsForService(service);
@@ -201,7 +213,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             if (entities.stream().allMatch(Objects::nonNull)) {
                 entities.stream().forEach(x -> x.setService(service));
                 DatasetEntity ds = insertRepository.insertDataset(dataset.createDatasetEntity(procedure, category,
-                        feature, offering, phenomenon, platform, service));
+                                                                                              feature, offering, phenomenon, platform, service));
                 if (ds != null) {
                     datasetIds.remove(ds.getId());
 
@@ -230,10 +242,11 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
                 url += "?";
             }
             HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities"
-                    + (dataSource.isDisableHumanReadableName() ? "&returnHumanReadableIdentifier=false" : ""));
+                                                                + (dataSource.isDisableHumanReadableName()
+                                                                   ? "&returnHumanReadableIdentifier=false" : ""));
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
             return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
-                    .decode(xmlResponse);
+                                                              .decode(xmlResponse);
         } catch (XmlException ex) {
             throw new DecodingException(ex);
         }

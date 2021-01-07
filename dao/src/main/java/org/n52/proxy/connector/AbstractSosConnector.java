@@ -105,6 +105,7 @@ import org.n52.svalbard.encode.exception.NoEncoderForKeyException;
 import org.n52.svalbard.util.CodingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractSosConnector extends AbstractConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSosConnector.class);
@@ -125,7 +126,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         return decoderRepository;
     }
 
-    @Inject
+    @Autowired
     public void setDecoderRepository(DecoderRepository decoderRepository) {
         this.decoderRepository = decoderRepository;
     }
@@ -134,7 +135,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
         return encoderRepository;
     }
 
-    @Inject
+    @Autowired
     public void setEncoderRepository(EncoderRepository encoderRepository) {
         this.encoderRepository = encoderRepository;
     }

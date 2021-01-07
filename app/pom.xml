@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
@@ -26,6 +26,17 @@
         <dependency>
             <groupId>org.n52.sensorweb-server.helgoland</groupId>
             <artifactId>helgoland-io</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.n52.arctic-sea</groupId>
+                    <artifactId>faroe-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>faroe-annotations</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.n52.sensorweb-server.dao-impl</groupId>
@@ -41,7 +52,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>helgoland-adapters-dao</artifactId>
             <scope>runtime</scope>
@@ -69,7 +80,7 @@
             <groupId>org.n52.arctic-sea</groupId>
             <artifactId>janmayen</artifactId>
         </dependency>
-        
+
         <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -98,14 +109,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        
+
         <dependency>
-            <groupId> javax.persistence</groupId>
+            <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
             <scope>provided</scope>
         </dependency>
-         <dependency>
-            <groupId> org.hibernate.javax.persistence</groupId>
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
             <artifactId>hibernate-jpa-2.1-api</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -124,7 +135,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
+
 
         <!-- Spring -->
         <dependency>
@@ -167,7 +178,7 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-jpa</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -283,7 +294,61 @@
         </dependency>
          -->
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>exec</classifier>
+                                    <outputDirectory>${project.build.directory}/unpacked</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
+        </plugins>
+    </build>
 
+    <profiles>
+        <profile>
+            <id>dcat</id>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>dcatap</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>
 

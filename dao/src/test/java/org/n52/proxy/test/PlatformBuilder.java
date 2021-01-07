@@ -43,8 +43,7 @@ public class PlatformBuilder extends DescribableEntityBuilder<PlatformEntity> {
 
     @Override
     public PlatformEntity build() {
-        PlatformEntity entity = prepare(new PlatformEntity());
-        return entity;
+        return prepare(new PlatformEntity());
     }
 
 }

@@ -56,16 +56,6 @@ package org.n52.proxy;
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-import static org.apache.xmlbeans.XmlObject.Factory.parse;
-import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
-import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
-import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.inject.Inject;
 
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
@@ -73,11 +63,6 @@ import org.apache.xmlbeans.XmlObject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import org.n52.proxy.web.SimpleHttpClient;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesRequest;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -90,6 +75,19 @@ import org.n52.svalbard.encode.Encoder;
 import org.n52.svalbard.encode.EncoderKey;
 import org.n52.svalbard.encode.EncoderRepository;
 import org.n52.svalbard.encode.exception.EncodingException;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.apache.xmlbeans.XmlObject.Factory.parse;
+import static org.n52.shetland.ogc.sos.Sos2Constants.NS_SOS_20;
+import static org.n52.svalbard.util.CodingHelper.getDecoderKey;
+import static org.n52.svalbard.util.CodingHelper.getEncoderKey;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Disabled
 @ExtendWith(SpringExtension.class)
@@ -101,10 +99,10 @@ public class GetCapabilitiesTest {
     private String uri = "http://sensorweb.demo.52north.org/sensorwebtestbed/service";
 //    private String uri = "http://sensorweb.demo.52north.org/52n-sos-webapp/service";
 
-    @Inject
+    @Autowired
     private EncoderRepository encoderRepository;
 
-    @Inject
+    @Autowired
     private DecoderRepository decoderRepository;
 
     @Test
@@ -142,8 +140,7 @@ public class GetCapabilitiesTest {
         GetCapabilitiesRequest request = new GetCapabilitiesRequest("SOS");
         EncoderKey encoderKey = getEncoderKey(NS_SOS_20, request);
         Encoder<Object, Object> encoder = encoderRepository.getEncoder(encoderKey);
-        XmlObject xml = (XmlObject) encoder.encode(request);
-        return xml;
+        return (XmlObject) encoder.encode(request);
     }
 
 }

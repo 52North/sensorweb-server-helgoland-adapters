@@ -28,15 +28,6 @@
  */
 package org.n52.proxy.db;
 
-import static org.n52.proxy.test.DatasetEntityBuilder.newDataset;
-import static org.n52.proxy.test.FeatureBuilder.newFeature;
-import static org.n52.proxy.test.FormatBuilder.newFormat;
-import static org.n52.proxy.test.OfferingBuilder.newOffering;
-import static org.n52.proxy.test.PhenomenonBuilder.newPhenomenon;
-import static org.n52.proxy.test.ProcedureBuilder.newProcedure;
-
-import javax.inject.Inject;
-
 import org.n52.proxy.test.CategoryBuilder;
 import org.n52.proxy.test.FeatureBuilder;
 import org.n52.proxy.test.ProcedureBuilder;
@@ -55,71 +46,84 @@ import org.n52.series.db.beans.FormatEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.ProcedureEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.n52.proxy.test.DatasetEntityBuilder.newDataset;
+import static org.n52.proxy.test.FeatureBuilder.newFeature;
+import static org.n52.proxy.test.FormatBuilder.newFormat;
+import static org.n52.proxy.test.OfferingBuilder.newOffering;
+import static org.n52.proxy.test.PhenomenonBuilder.newPhenomenon;
+import static org.n52.proxy.test.ProcedureBuilder.newProcedure;
 
 @Component
 public class ProxyTestRepositories {
 
-    @Inject
+    @Autowired
     private PhenomenonRepository phenomenonRepository;
 
-    @Inject
+    @Autowired
     private FeatureRepository featureRepository;
 
-    @Inject
+    @Autowired
     private OfferingRepository offeringRepository;
 
-    @Inject
+    @Autowired
     private ProcedureRepository procedureRepository;
 
-    @Inject
+    @Autowired
     private CategoryRepository categoryRepository;
 
-    @Inject
+    @Autowired
     private FormatRepository formatRepository;
 
-    @Inject
+    @Autowired
     private DatasetRepository datasetRepository;
 
-    public DatasetEntity persistSimpleDataset(final String phenomenonIdentifier,
-                                  final String offeringIdentifier,
-                                  final String procedureIdentifier,
-                                  final String procedureFormat,
-                                  final DatasetEntity emptyDatasetEntity) {
-        final DatasetEntity dataset = buildNewDataset(procedureFormat,
-                                    procedureIdentifier,
-                                    phenomenonIdentifier,
-                                    offeringIdentifier,
-                                    emptyDatasetEntity);
+    public DatasetEntity persistSimpleDataset(final String datasetIdentifier,
+                                              final String phenomenonIdentifier,
+                                              final String offeringIdentifier,
+                                              final String procedureIdentifier,
+                                              final String procedureFormat,
+                                              final DatasetEntity emptyDatasetEntity) {
+        final DatasetEntity dataset = buildNewDataset(datasetIdentifier,
+                                                      procedureFormat,
+                                                      procedureIdentifier,
+                                                      phenomenonIdentifier,
+                                                      offeringIdentifier,
+                                                      emptyDatasetEntity);
         return save(dataset);
     }
 
-    public DatasetEntity persistSimpleDataset(final String phenomenonIdentifier,
-                                  final String offeringIdentifier,
-                                  final String procedureIdentifier,
-                                  final String procedureFormat,
-                                  final String featureIdentifier,
-                                  final String featureFormat,
-                                  final DatasetEntity emptyDatasetEntity) {
-        final DatasetEntity dataset = buildNewDataset(procedureFormat,
-                                    procedureIdentifier,
-                                    phenomenonIdentifier,
-                                    offeringIdentifier,
-                                    emptyDatasetEntity);
+    public DatasetEntity persistSimpleDataset(final String datasetIdentifier,
+                                              final String phenomenonIdentifier,
+                                              final String offeringIdentifier,
+                                              final String procedureIdentifier,
+                                              final String procedureFormat,
+                                              final String featureIdentifier,
+                                              final String featureFormat,
+                                              final DatasetEntity emptyDatasetEntity) {
+        final DatasetEntity dataset = buildNewDataset(datasetIdentifier,
+                                                      procedureFormat,
+                                                      procedureIdentifier,
+                                                      phenomenonIdentifier,
+                                                      offeringIdentifier,
+                                                      emptyDatasetEntity);
         dataset.setFeature(upsertSimpleFeature(featureIdentifier, featureFormat));
         return save(dataset);
     }
 
-    private DatasetEntity buildNewDataset(final String procedureFormat,
-                              final String procedureIdentifier,
-                              final String phenomenonIdentifier,
-                              final String offeringIdentifier,
-                              final DatasetEntity emptyDatasetEntity) {
-        return newDataset().setOffering(upsertSimpleOffering(offeringIdentifier))
-                           .setPhenomemon(upsertSimplePhenomenon(phenomenonIdentifier))
-                           .setProcedure(upsertSimpleProcedure(procedureIdentifier, procedureFormat))
-                           .setCategory(upsertSimpleCategory(phenomenonIdentifier))
-                           .build(emptyDatasetEntity);
+    private DatasetEntity buildNewDataset(final String datasetIdentifier,
+                                          final String procedureFormat,
+                                          final String procedureIdentifier,
+                                          final String phenomenonIdentifier,
+                                          final String offeringIdentifier,
+                                          final DatasetEntity emptyDatasetEntity) {
+        return newDataset(datasetIdentifier).setOffering(upsertSimpleOffering(offeringIdentifier))
+                                            .setPhenomenon(upsertSimplePhenomenon(phenomenonIdentifier))
+                                            .setProcedure(upsertSimpleProcedure(procedureIdentifier, procedureFormat))
+                                            .setCategory(upsertSimpleCategory(phenomenonIdentifier))
+                                            .build(emptyDatasetEntity);
     }
 
     public ProcedureEntity upsertSimpleProcedure(final String procedureIdentifier, final String format) {
@@ -131,7 +135,7 @@ public class ProxyTestRepositories {
         final FormatEntity formatEntity = upsertFormat(format);
         final ProcedureBuilder builder = newProcedure(procedureIdentifier);
         final ProcedureEntity entity = builder.setFormat(formatEntity)
-                                        .build();
+                                              .build();
         return save(entity);
     }
 
@@ -146,7 +150,7 @@ public class ProxyTestRepositories {
 
     public CategoryEntity upsertSimpleCategory(final String categoryIdentifier) {
         return categoryRepository.findByIdentifier(categoryIdentifier)
-                                   .orElseGet(() -> persistSimpleCategory(categoryIdentifier));
+                                 .orElseGet(() -> persistSimpleCategory(categoryIdentifier));
     }
 
     public CategoryEntity persistSimpleCategory(final String categoryIdentifier) {
@@ -162,14 +166,14 @@ public class ProxyTestRepositories {
         final FormatEntity formatEntity = upsertFormat(format);
         final FeatureBuilder builder = newFeature(featureIdentifier);
         final FeatureEntity entity = builder.setFormat(formatEntity)
-                                      .build();
+                                            .build();
         return save(entity);
     }
 
     private FormatEntity upsertFormat(final String format) {
         return formatRepository.existsByFormat(format)
-            ? formatRepository.findByFormat(format)
-            : save(newFormat(format).build());
+               ? formatRepository.findByFormat(format)
+               : save(newFormat(format).build());
     }
 
     public OfferingEntity upsertSimpleOffering(final String offeringIdentifier) {

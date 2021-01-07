@@ -87,7 +87,7 @@ public class SOS2Connector extends AbstractSosConnector {
         addBindingUrls(sosCaps, config);
         addServiceConfig(config);
         addDatasets(serviceConstellation, sosCaps, config);
-        LOGGER.info("{} requests were sended to harvest the service {}", counter, config.getItemName());
+        LOGGER.info("{} requests were send to harvest the service {}", counter, config.getItemName());
         return serviceConstellation;
     }
 
@@ -117,8 +117,7 @@ public class SOS2Connector extends AbstractSosConnector {
 
     @Override
     public UnitEntity getUom(DatasetEntity dataset) {
-        GetObservationResponse response = getObservation(dataset,
-                                                                    createFirstTimefilter(dataset));
+        GetObservationResponse response = getObservation(dataset, createFirstTimefilter(dataset));
         return response.getObservationCollection().toStream()
                 .findFirst().map(o -> o.getValue().getValue().getUnit())
                 .map(unit -> EntityBuilder.createUnit(unit, null, dataset.getService()))

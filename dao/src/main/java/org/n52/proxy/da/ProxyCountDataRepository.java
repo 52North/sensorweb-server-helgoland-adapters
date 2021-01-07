@@ -28,14 +28,6 @@
  */
 package org.n52.proxy.da;
 
-import static java.util.stream.Collectors.toMap;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.inject.Inject;
-
 import org.n52.io.response.dataset.Data;
 import org.n52.io.response.dataset.count.CountValue;
 import org.n52.proxy.connector.AbstractConnector;
@@ -47,18 +39,26 @@ import org.n52.series.db.assembler.value.CountValueAssembler;
 import org.n52.series.db.beans.CountDataEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import static java.util.stream.Collectors.toMap;
 
 @ValueAssemblerComponent(value = "count", datasetEntityType = DatasetEntity.class)
 public class ProxyCountDataRepository extends CountValueAssembler {
 
     private Map<String, AbstractConnector> connectorMap;
 
+    @Autowired
     public ProxyCountDataRepository(DataRepository<CountDataEntity> dataRepository,
             DatasetRepository datasetRepository) {
         super(dataRepository, datasetRepository);
     }
 
-    @Inject
+    @Autowired
     public void setConnectors(List<AbstractConnector> connectors) {
         this.connectorMap =
                 connectors.stream().collect(toMap(AbstractConnector::getConnectorName, Function.identity()));

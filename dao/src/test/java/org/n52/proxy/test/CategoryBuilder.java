@@ -42,8 +42,7 @@ public class CategoryBuilder extends DescribableEntityBuilder<CategoryEntity> {
 
     @Override
     public CategoryEntity build() {
-        CategoryEntity entity = prepare(new CategoryEntity());
-        return entity;
+        return prepare(new CategoryEntity());
     }
 
 }
