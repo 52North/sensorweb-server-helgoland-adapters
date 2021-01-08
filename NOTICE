@@ -18,6 +18,7 @@ This project includes:
   Apache Ant Launcher under The Apache Software License, Version 2.0
   Apache Commons CLI under Apache License, Version 2.0
   Apache Commons Codec under Apache License, Version 2.0
+  Apache Commons Compress under Apache License, Version 2.0
   Apache Commons CSV under Apache License, Version 2.0
   Apache Commons IO under Apache License, Version 2.0
   Apache Commons Lang under Apache License, Version 2.0
@@ -94,6 +95,7 @@ This project includes:
   jackson-databind under The Apache Software License, Version 2.0
   Jackson-module-parameter-names under The Apache Software License, Version 2.0
   Jakarta Activation under EDL 1.0
+  Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
   Jakarta Expression Language 3.0 under EPL 2.0 or GPL2 w/ CPE
   Jakarta Persistence API under Eclipse Public License v. 2.0 or Eclipse Distribution License v. 1.0
   Jakarta Servlet under EPL 2.0 or GPL2 w/ CPE
@@ -137,6 +139,7 @@ This project includes:
   Jetty :: XML utilities under Apache Software License - Version 2.0 or Eclipse Public License - Version 1.0
   JFreeChart under GNU Lesser General Public Licence
   Joda-Time under Apache License, Version 2.0
+  JSON.simple under The Apache Software License, Version 2.0
   JSONLD Java :: Core under Revised BSD License
   LatencyUtils under Public Domain, per Creative Commons CC0
   Log4j Implemented Over SLF4J under Apache Software Licenses
@@ -210,7 +213,8 @@ This project includes:
   org.apache.xmlgraphics:batik-transcoder under The Apache Software License, Version 2.0
   org.apache.xmlgraphics:batik-util under The Apache Software License, Version 2.0
   org.apache.xmlgraphics:batik-xml under The Apache Software License, Version 2.0
-  org.locationtech.jts:jts-core under Eclipse Public License, Version 2.0 or Eclipse Distribution License - v 1.0
+  org.locationtech.jts.io:jts-io-common under Eclipse Publish License, Version 1.0 or Eclipse Distribution License - v 1.0
+  org.locationtech.jts:jts-core under Eclipse Publish License, Version 1.0 or Eclipse Distribution License - v 1.0
   Portele Schape Change schema (spec. v3.0) under The Apache Software License, Version 2.0
   QDox under The Apache Software License, Version 2.0
   quartz under The Apache Software License, Version 2.0
@@ -226,9 +230,10 @@ This project includes:
   Sensor Web Server Helgoland - SPI module under GNU General Public License, Version 2.0
   Series REST API - SOS Proxy App Module under GNU General Public License, Version 2.0
   Series REST API - SOS Proxy Dao Module under GNU General Public License, Version 2.0
+  Series REST API - SOS Proxy DCAT-AP Module under GNU General Public License, Version 2.0
   Series REST API - SOS Proxy Webapp under GNU General Public License, Version 2.0
   SI Quantities under BSD
-  SI Units for Java SE 8 under BSD
+  SI Units under BSD
   SLF4J API Module under MIT License
   SpotBugs Annotations under GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1
   Spring AOP under Apache License, Version 2.0
@@ -249,20 +254,22 @@ This project includes:
   spring-boot-actuator under Apache License, Version 2.0
   spring-boot-actuator-autoconfigure under Apache License, Version 2.0
   spring-boot-autoconfigure under Apache License, Version 2.0
+  spring-boot-configuration-processor under Apache License, Version 2.0
   spring-boot-starter-actuator under Apache License, Version 2.0
   spring-boot-starter-aop under Apache License, Version 2.0
   spring-boot-starter-data-jpa under Apache License, Version 2.0
   spring-boot-starter-jdbc under Apache License, Version 2.0
   spring-boot-starter-jetty under Apache License, Version 2.0
   spring-boot-starter-json under Apache License, Version 2.0
+  spring-boot-starter-tomcat under Apache License, Version 2.0
   spring-boot-starter-web under Apache License, Version 2.0
   StAX API under The Apache Software License, Version 2.0
+  tomcat-embed-core under Apache License, Version 2.0
+  tomcat-embed-websocket under Apache License, Version 2.0
   TXW2 Runtime under Eclipse Distribution License - v 1.0
   Units of Measurement API under BSD 3-Clause
-  Units of Measurement Common Library under BSD
   Units of Measurement Common Library for Java under BSD
-  Units of Measurement Common Unit Systems for Java 8 under BSD
-  Units of Measurement Implementation for Java SE under BSD
+  Units of Measurement Common Unit Systems under BSD
   Units of Measurement Reference Implementation under BSD 3-Clause
   W3C SOAP specification recommondation (v1.1) under The Apache Software License, Version 2.0
   W3C SOAP specification recommondation (v1.2 part 1) under The Apache Software License, Version 2.0
