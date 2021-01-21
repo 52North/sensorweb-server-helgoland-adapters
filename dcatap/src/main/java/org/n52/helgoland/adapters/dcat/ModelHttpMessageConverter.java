@@ -3,7 +3,6 @@ package org.n52.helgoland.adapters.dcat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
 import org.springframework.http.HttpInputMessage;
@@ -99,7 +98,13 @@ public class ModelHttpMessageConverter extends AbstractHttpMessageConverter<Mode
     @SuppressWarnings("deprecation")
     private void write(Model model, OutputStream stream, Lang lang, Charset charset) throws IOException {
         try (OutputStreamWriter writer = new OutputStreamWriter(stream, charset)) {
-            RDFWriter.create().lang(lang).source(model).build().output(writer);
+            String subType = lang.getContentType().getSubType();
+            if ((subType.equals("xml") || subType.endsWith("+xml"))
+                && (charset.equals(StandardCharsets.UTF_8) || charset.equals(StandardCharsets.UTF_16))) {
+                writer.write(String.format("<?xml version=\"1.0\" encoding=\"%s\" ?>\n", charset.name()));
+            }
+            RDFWriter build = RDFWriter.create().lang(lang).source(model).build();
+            build.output(writer);
         }
     }
 
