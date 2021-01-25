@@ -300,7 +300,7 @@ public abstract class AbstractSosConnector extends AbstractConnector {
                 QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
                 builder.add(OWSConstants.RequestParams.service, SosConstants.SOS);
                 builder.add(OWSConstants.RequestParams.version, Sos2Constants.SERVICEVERSION);
-                builder.add(OWSConstants.RequestParams.request, SosConstants.Operations.GetFeatureOfInterest);
+                builder.add(OWSConstants.RequestParams.request, SosConstants.Operations.DescribeSensor);
                 builder.add(Sos2Constants.DescribeSensorParams.procedureDescriptionFormat, format);
                 builder.add(SosConstants.DescribeSensorParams.procedure, procedureId);
                 checkHumanReadableName(config, builder);

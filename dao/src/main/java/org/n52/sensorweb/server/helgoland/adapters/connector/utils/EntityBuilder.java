@@ -137,6 +137,13 @@ public final class EntityBuilder {
         return phenomenon;
     }
 
+    public static PhenomenonEntity createPhenomenon(String identifier, String name, String description,
+            ServiceEntity service) {
+        PhenomenonEntity phenomenon = createPhenomenon(identifier, name, service);
+        phenomenon.setDescription(description);
+        return phenomenon;
+    }
+
     public static UnitEntity createUnit(String unit, String unitDescription, ServiceEntity service) {
         UnitEntity entity = new UnitEntity();
         entity.setName(unit);

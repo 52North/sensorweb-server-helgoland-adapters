@@ -1,6 +1,21 @@
 package org.n52.helgoland.adapters.dcat;
 
-import com.google.common.base.Strings;
+import java.net.URI;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.LongSummaryStatistics;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -25,10 +40,10 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.n52.janmayen.Optionals;
 import org.n52.janmayen.i18n.MultilingualString;
-import org.n52.proxy.connector.utils.ServiceConstellation;
-import org.n52.proxy.harvest.HarvestingListener;
+import org.n52.sensorweb.server.db.repositories.core.ServiceRepository;
+import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.HarvestingListener;
 import org.n52.series.db.beans.ServiceEntity;
-import org.n52.series.db.repositories.core.ServiceRepository;
 import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
@@ -65,20 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.net.URI;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.LongSummaryStatistics;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
+import com.google.common.base.Strings;
 
 @Service
 public class CatalogTransformer implements HarvestingListener, CatalogProvider {
@@ -492,11 +494,11 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
                                                  .orElse(null), DCTerms.title);
     }
 
-    private void addTitle(SosCapabilities capabilities, SosObservationOffering offering, Resource dataset) {
-        addLocalizedStrings(dataset, capabilities.getServiceIdentification()
-                                                 .flatMap(OwsServiceIdentification::getTitle)
-                                                 .orElse(null), DCTerms.title);
-    }
+//    private void addTitle(SosCapabilities capabilities, SosObservationOffering offering, Resource dataset) {
+//        addLocalizedStrings(dataset, capabilities.getServiceIdentification()
+//                                                 .flatMap(OwsServiceIdentification::getTitle)
+//                                                 .orElse(null), DCTerms.title);
+//    }
 
     private void addDescription(SosCapabilities capabilities, Resource dataset) {
         addLocalizedStrings(dataset, capabilities.getServiceIdentification()
@@ -521,20 +523,20 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private void addKeywordsFromOfferings(Resource dataset, Supplier<Stream<SosObservationOffering>> offeringStream) {
-        Stream.of(offeringStream.get().map(SosObservationOffering::getIdentifier).map(this::createResourceOrLiteral),
-                  offeringStream.get().map(SosObservationOffering::getName).flatMap(List::stream)
-                                .map(name -> model.createLiteral(name.getValue(),
-                                                                 Optional.ofNullable(name.getCodeSpace())
-                                                                         .map(URI::toString)
-                                                                         .orElse(null))),
-                  offeringStream.get().map(SosObservationOffering::getObservableProperties).flatMap(Set::stream)
-                                .map(this::createResourceOrLiteral),
-                  offeringStream.get().map(SosObservationOffering::getProcedures).flatMap(Set::stream)
-                                .map(this::createResourceOrLiteral),
-                  offeringStream.get().map(SosObservationOffering::getFeatureOfInterest).flatMap(Set::stream)
-                                .map(this::createResourceOrLiteral))
-              .flatMap(Function.identity())
-              .forEach(feature -> dataset.addProperty(DCAT.keyword, feature));
+//        Stream.of(offeringStream.get().map(SosObservationOffering::getIdentifier).map(this::createResourceOrLiteral),
+//                  offeringStream.get().map(SosObservationOffering::getName).flatMap(List::stream)
+//                                .map(name -> model.createLiteral(name.getValue(),
+//                                                                 Optional.ofNullable(name.getCodeSpace())
+//                                                                         .map(URI::toString)
+//                                                                         .orElse(null))),
+//                  offeringStream.get().map(SosObservationOffering::getObservableProperties).flatMap(Set::stream)
+//                                .map(this::createResourceOrLiteral),
+//                  offeringStream.get().map(SosObservationOffering::getProcedures).flatMap(Set::stream)
+//                                .map(this::createResourceOrLiteral),
+//                  offeringStream.get().map(SosObservationOffering::getFeatureOfInterest).flatMap(Set::stream)
+//                                .map(this::createResourceOrLiteral))
+//              .flatMap(Function.identity())
+//              .forEach(feature -> dataset.addProperty(DCAT.keyword, feature));
     }
 
     private void addKeywords(SosCapabilities capabilities, Resource dataset) {

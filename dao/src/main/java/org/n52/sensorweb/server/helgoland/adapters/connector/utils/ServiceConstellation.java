@@ -85,6 +85,10 @@ public class ServiceConstellation {
         return putPhenomenon(EntityBuilder.createPhenomenon(id, name, service));
     }
 
+    public PhenomenonEntity putPhenomenon(String id, String name, String description) {
+        return putPhenomenon(EntityBuilder.createPhenomenon(id, name, description, service));
+    }
+
     public ProcedureEntity putProcedure(ProcedureEntity procedure) {
         procedures.put(procedure.getIdentifier(), procedure);
         return procedure;
@@ -119,9 +123,17 @@ public class ServiceConstellation {
                                                       service));
     }
 
+    public boolean containsFeature(String id) {
+        return features.containsKey(id);
+    }
+
     public PlatformEntity putPlatform(PlatformEntity platform) {
         platforms.put(platform.getIdentifier(), platform);
         return platform;
+    }
+
+    public PlatformEntity putPlatform(String id, String name) {
+        return putPlatform(id, name, null);
     }
 
     public PlatformEntity putPlatform(String id, String name, String description) {

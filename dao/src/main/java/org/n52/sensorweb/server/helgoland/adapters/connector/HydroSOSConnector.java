@@ -62,11 +62,6 @@ public class HydroSOSConnector extends SOS2Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
 
     @Override
-    protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
-        return false;
-    }
-
-    @Override
     public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
