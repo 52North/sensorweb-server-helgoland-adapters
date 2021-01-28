@@ -26,6 +26,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
+
 package org.n52.sensorweb.server.helgoland.adapters.config;
 
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ public class DataSourceConfiguration {
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private List<String> allowedOfferings;
+    private List<String> allowedSensors;
     private Map<String, String> getUrls = new LinkedHashMap<>();
     private Map<String, String> postUrls = new LinkedHashMap<>();
 
@@ -119,10 +121,18 @@ public class DataSourceConfiguration {
         this.allowedOfferings = allowedOfferings;
     }
 
+    public List<String> getAllowedSensors() {
+        return allowedSensors;
+    }
+
+    public void setAllowedSensors(List<String> allowedSensors) {
+        this.allowedSensors = allowedSensors;
+    }
+
     @Override
     public String toString() {
         return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url
-                + ", version=" + version + ", connector=" + connector + ", type=" + type + "}";
+            + ", version=" + version + ", connector=" + connector + ", type=" + type + "}";
     }
 
     public void addGetUrls(String key, String value) {
