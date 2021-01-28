@@ -246,10 +246,13 @@ public class UfzSos2Connector extends SOS2Connector {
         if (phenomenonTime instanceof TimePeriod) {
             constellation.setSamplingTimeStart(((TimePeriod) phenomenonTime).getStart().toDate());
             constellation.setSamplingTimeEnd(((TimePeriod) phenomenonTime).getEnd().toDate());
-        } else {
+        } else if (phenomenonTime instanceof TimeInstant) {
             Date date = ((TimeInstant) phenomenonTime).getValue().toDate();
             constellation.setSamplingTimeStart(date);
             constellation.setSamplingTimeEnd(date);
+        } else {
+            constellation.setSamplingTimeStart(new Date());
+            constellation.setSamplingTimeEnd(new Date());
         }
     }
 

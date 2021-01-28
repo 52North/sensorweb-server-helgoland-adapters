@@ -127,6 +127,7 @@ public abstract class DatasetConstellation {
         datasetEntity.setPublished(true);
         datasetEntity.setDeleted(false);
         datasetEntity.setService(service);
+        datasetEntity.setGeometryEntity(offering.getGeometryEntity());
 
         FormatEntity omObservationType = new FormatEntity();
         omObservationType.setId(5L);
