@@ -54,7 +54,7 @@
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
 
         <org.springframework.version>5.3.4</org.springframework.version>
-        <spring-boot.version>2.4.2</spring-boot.version>
+        <spring-boot.version>2.4.3</spring-boot.version>
         <logback.version>1.2.3</logback.version>
         <jackson.version>2.12.1</jackson.version>
         <geotools.version>24.2</geotools.version>
