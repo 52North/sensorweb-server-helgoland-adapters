@@ -64,7 +64,7 @@
         <geolatte.version>1.8.0</geolatte.version>
         <arctic-sea.version>8.1.0</arctic-sea.version>
         <version.sensorweb-server-helgoland>3.5.0-SNAPSHOT</version.sensorweb-server-helgoland>
-        <version.sensorweb-server-dao-impl>4.0.0-SNAPSHOT</version.sensorweb-server-dao-impl>
+        <version.sensorweb-server-dao-impl>4.0.0-PR.2</version.sensorweb-server-dao-impl>
         <version.sensorweb-server-db-model>4.0.0-SNAPSHOT</version.sensorweb-server-db-model>
         <postgresql.version>42.2.19</postgresql.version>
         <postgis.version>2.5.0</postgis.version>
