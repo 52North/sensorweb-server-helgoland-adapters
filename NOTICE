@@ -14,8 +14,6 @@ This project includes:
   52°North Svalbard XmlBeans under The Apache Software License, Version 2.0
   ANTLR 4 Runtime under The BSD License
   AntLR Parser Generator under BSD License
-  Apache Ant Core under The Apache Software License, Version 2.0
-  Apache Ant Launcher under The Apache Software License, Version 2.0
   Apache Commons CLI under Apache License, Version 2.0
   Apache Commons Codec under Apache License, Version 2.0
   Apache Commons Compress under Apache License, Version 2.0
@@ -71,6 +69,7 @@ This project includes:
   Hibernate ORM - hibernate-ehcache under GNU Library General Public License v2.1 or later
   Hibernate ORM - hibernate-spatial under GNU Library General Public License v2.1 or later
   HikariCP under The Apache Software License, Version 2.0
+  HTTP Clients under Lesser General Public License (LGPL)
   HyperSQL Database under HSQLDB License, a BSD open source license
   INSPIRE Addresses schema (spec. v4.0) under The Apache Software License, Version 2.0
   INSPIRE Administrative Units schema (spec. v4.0) under The Apache Software License, Version 2.0
@@ -213,8 +212,8 @@ This project includes:
   org.apache.xmlgraphics:batik-transcoder under The Apache Software License, Version 2.0
   org.apache.xmlgraphics:batik-util under The Apache Software License, Version 2.0
   org.apache.xmlgraphics:batik-xml under The Apache Software License, Version 2.0
-  org.locationtech.jts.io:jts-io-common under Eclipse Publish License, Version 1.0 or Eclipse Distribution License - v 1.0
-  org.locationtech.jts:jts-core under Eclipse Publish License, Version 1.0 or Eclipse Distribution License - v 1.0
+  org.locationtech.jts.io:jts-io-common under Eclipse Public License, Version 2.0 or Eclipse Distribution License - v 1.0
+  org.locationtech.jts:jts-core under Eclipse Public License, Version 2.0 or Eclipse Distribution License - v 1.0
   Portele Schape Change schema (spec. v3.0) under The Apache Software License, Version 2.0
   QDox under The Apache Software License, Version 2.0
   quartz under The Apache Software License, Version 2.0

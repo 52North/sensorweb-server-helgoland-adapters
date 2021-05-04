@@ -21,8 +21,8 @@ database:
 
 spring:
   datasource:
-    username: proxy
-    password: proxy
+    username: postrges
+    password: postrges
     url: jdbc:postgresql://localhost:5432/proxy
     #url: jdbc:h2:mem:testdb;MODE=PostgreSQL
     #data: classpath:/META-INF/data-${spring.datasource.platform}.sql
@@ -32,7 +32,7 @@ spring:
       hibernate: 
         hbm2ddl:
           # hbm2ddl values: validate | update | create | create-drop
-          auto: update
+          auto: create-drop
         jdbc:
           time_zone: UTC
           # https://hibernate.atlassian.net/browse/HHH-12368

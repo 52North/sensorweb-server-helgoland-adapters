@@ -56,9 +56,16 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @EnableWebMvc
 @Configuration
-@EnableJpaRepositories(basePackages = {"org.n52.sensorweb.server.db.repositories.core"})
-@ComponentScan(basePackages = { "org.n52.sensorweb.server.db.repositories.core", "org.n52.series.db.assembler.core",
-        "org.n52.series.db.assembler.mapper", "org.n52.sensorweb.server.srv"})
+@EnableJpaRepositories(basePackages = {
+    "org.n52.sensorweb.server.db.repositories.core"
+})
+@ComponentScan(basePackages = {
+    "org.n52.sensorweb.server.db.repositories.core",
+    "org.n52.sensorweb.server.db.assembler.core",
+    "org.n52.sensorweb.server.db.assembler.mapper",
+    "org.n52.sensorweb.server.srv",
+    "org.n52.sensorweb.server.db.factory"
+})
 public class SpiImplConfig {
 
     @Bean

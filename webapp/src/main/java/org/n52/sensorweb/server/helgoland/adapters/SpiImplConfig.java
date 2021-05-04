@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2020 52°North Initiative for Geospatial Open Source
+ * Copyright (C) 2015-2021 52°North Initiative for Geospatial Open Source
  * Software GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -35,16 +35,16 @@ import org.n52.io.response.ParameterOutput;
 import org.n52.io.response.PhenomenonOutput;
 import org.n52.io.response.ProcedureOutput;
 import org.n52.io.response.ServiceOutput;
-import org.n52.series.db.AnnotationBasedDataRepositoryFactory;
-import org.n52.series.db.DataRepositoryTypeFactory;
+import org.n52.sensorweb.server.db.factory.AnnotationBasedDataRepositoryFactory;
+import org.n52.sensorweb.server.db.factory.DataRepositoryTypeFactory;
+import org.n52.sensorweb.server.srv.AccessService;
+import org.n52.sensorweb.server.srv.CategoryService;
+import org.n52.sensorweb.server.srv.FeatureService;
+import org.n52.sensorweb.server.srv.OfferingService;
+import org.n52.sensorweb.server.srv.PhenomenonService;
+import org.n52.sensorweb.server.srv.ProcedureService;
+import org.n52.sensorweb.server.srv.ServiceService;
 import org.n52.series.spi.srv.ParameterService;
-import org.n52.series.srv.AccessService;
-import org.n52.series.srv.CategoryService;
-import org.n52.series.srv.FeatureService;
-import org.n52.series.srv.OfferingService;
-import org.n52.series.srv.PhenomenonService;
-import org.n52.series.srv.ProcedureService;
-import org.n52.series.srv.ServiceService;
 import org.n52.web.ctrl.ParameterBackwardsCompatibilityAdapter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -56,9 +56,16 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @EnableWebMvc
 @Configuration
-@EnableJpaRepositories(basePackages = { "org.n52.sensorweb.server.db.repositories.core" })
-@ComponentScan(basePackages = { "org.n52.sensorweb.server.db.repositories.core", "org.n52.series.db.assembler.core",
-        "org.n52.series.db.assembler.mapper", "org.n52.series.srv", "org.n52.series.db" })
+@EnableJpaRepositories(basePackages = {
+    "org.n52.sensorweb.server.db.repositories.core"
+})
+@ComponentScan(basePackages = {
+    "org.n52.sensorweb.server.db.repositories.core",
+    "org.n52.sensorweb.server.db.assembler.core",
+    "org.n52.sensorweb.server.db.assembler.mapper",
+    "org.n52.sensorweb.server.srv",
+    "org.n52.sensorweb.server.db.factory"
+})
 public class SpiImplConfig {
 
     @Bean
