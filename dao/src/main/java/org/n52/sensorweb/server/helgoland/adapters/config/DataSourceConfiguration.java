@@ -42,6 +42,7 @@ public class DataSourceConfiguration {
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private List<String> allowedOfferings;
+    private List<String> allowedSensors;
     private Map<String, String> getUrls = new LinkedHashMap<>();
     private Map<String, String> postUrls = new LinkedHashMap<>();
 
@@ -117,6 +118,14 @@ public class DataSourceConfiguration {
 
     public void setAllowedOfferings(List<String> allowedOfferings) {
         this.allowedOfferings = allowedOfferings;
+    }
+
+    public List<String> getAllowedSensors() {
+        return allowedSensors;
+    }
+
+    public void setAllowedSensors(List<String> allowedSensors) {
+        this.allowedSensors = allowedSensors;
     }
 
     @Override

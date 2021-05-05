@@ -35,6 +35,7 @@ import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.FeatureEntity;
+import org.n52.series.db.beans.FormatEntity;
 import org.n52.series.db.beans.OfferingEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
@@ -126,6 +127,12 @@ public abstract class DatasetConstellation {
         datasetEntity.setPublished(true);
         datasetEntity.setDeleted(false);
         datasetEntity.setService(service);
+        datasetEntity.setGeometryEntity(offering.getGeometryEntity());
+
+        FormatEntity omObservationType = new FormatEntity();
+        omObservationType.setId(5L);
+        omObservationType.setFormat("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement");
+        datasetEntity.setOMObservationType(omObservationType);
 
         getFirst().map(DataEntity::getSamplingTimeStart).ifPresent(datasetEntity::setFirstValueAt);
         getLatest().map(DataEntity::getSamplingTimeEnd).ifPresent(datasetEntity::setLastValueAt);

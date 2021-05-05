@@ -214,6 +214,12 @@ public abstract class AbstractConnector implements ValueConnector {
         return phenomenonId;
     }
 
+    protected String addPhenomenon(String phenomenonId, String phenomenonName, String description,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putPhenomenon(phenomenonId, phenomenonName, description);
+        return phenomenonId;
+    }
+
     protected String addPhenomenon(DataAvailability dataAval, ServiceConstellation serviceConstellation) {
         String phenomenonId = dataAval.getObservedProperty().getHref();
         String phenomenonName = dataAval.getObservedProperty().getTitle();
@@ -238,6 +244,17 @@ public abstract class AbstractConnector implements ValueConnector {
         return categoryId;
     }
 
+    protected String addPlatform(String id, String name, ServiceConstellation serviceConstellation) {
+        serviceConstellation.putPlatform(id, name);
+        return id;
+    }
+
+    protected String addPlatform(String id, String name, String description,
+            ServiceConstellation serviceConstellation) {
+        serviceConstellation.putPlatform(id, name, description);
+        return id;
+    }
+
     protected void addFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
         if (feature instanceof AbstractSamplingFeature) {
             addFeature((AbstractSamplingFeature) feature, serviceConstellation);
@@ -248,15 +265,18 @@ public abstract class AbstractConnector implements ValueConnector {
 
     protected String addFeature(AbstractSamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
         String featureId = samplingfeature.getIdentifier();
-        String featureDescription = samplingfeature.getDescription();
-        String featureName =
-                samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
-        if (samplingfeature.getGeometry() != null) {
-            serviceConstellation.putFeature(featureId, featureName, featureDescription, samplingfeature.getGeometry());
-        } else {
-            LOGGER.warn("No geometry found");
+        if (!serviceConstellation.containsFeature(featureId)) {
+            String featureDescription = samplingfeature.getDescription();
+            String featureName =
+                    samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
+            if (samplingfeature.getGeometry() != null) {
+                serviceConstellation.putFeature(featureId, featureName, featureDescription,
+                        samplingfeature.getGeometry());
+            } else {
+                LOGGER.warn("No geometry found");
+            }
+            serviceConstellation.putPlatform(featureId, featureName, featureDescription);
         }
-        serviceConstellation.putPlatform(featureId, featureName, featureDescription);
         return featureId;
     }
 
