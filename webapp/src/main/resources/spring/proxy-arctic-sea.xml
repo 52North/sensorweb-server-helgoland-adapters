@@ -52,6 +52,7 @@
     <bean class="org.n52.svalbard.decode.GetObservationResponseDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.GetObservationByIdResponseDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.GetFeatureOfInterestResponseDocumentDecoder"/>
+    <bean class="org.n52.svalbard.decode.DescribeSensorResponseSwesDocumentDecoder"/>
     <!--<bean class="org.n52.svalbard.decode.GeologyLogCoverageDecoder"/>-->
     <bean class="org.n52.proxy.decode.SamplingFeatureDecoder"/>
 

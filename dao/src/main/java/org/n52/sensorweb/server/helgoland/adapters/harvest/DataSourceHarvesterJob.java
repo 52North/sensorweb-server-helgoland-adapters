@@ -203,7 +203,7 @@ public class DataSourceHarvesterJob extends ScheduledJob implements Job {
             ProcedureEntity procedure = constellation.getProcedures().get(dataset.getProcedure());
             CategoryEntity category = new CategoryEntity();
             category.setId(1L);
-            category.setIdentifier("DEFAULT_STA_CATEGORY");
+            category.setIdentifier("DEFAULT_PROXY_CATEGORY");
             FeatureEntity feature = constellation.getFeatures().get(dataset.getFeature());
             OfferingEntity offering = constellation.getOfferings().get(dataset.getOffering());
             PhenomenonEntity phenomenon = constellation.getPhenomena().get(dataset.getPhenomenon());
