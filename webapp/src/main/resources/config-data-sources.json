@@ -1,16 +1,84 @@
 {
-    "dataSources": [
-        {
-            "itemName": "sensorwebtestbed",
-            "url": "http://sensorweb.demo.52north.org/sensorwebtestbed/service",
-            "version": "2.0.0",
-            "type": "SOS",
-            "supportsFirstLast": true,
-            "job": {
-                "cronExpression": "0 0 0/1 * * ?",
-                "enabled": true,
-                "triggerAtStartup": true
-            }
-        }
-    ]
+	"dataSources": [
+		{
+			"itemName": "fluggs",
+			"url": "https://fluggs.wupperverband.de/sos2/service",
+			"version": "2.0.0",
+			"type": "SOS",
+			"supportsFirstLast": true,
+			"job": {
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true
+			}
+		},
+		{
+			"itemName": "irceline",
+			"url": "https://geo.irceline.be/sos/service",
+			"version": "2.0.0",
+			"type": "SOS",
+			"supportsFirstLast": true,
+			"disableHumanReadableName": true,
+			"job": {
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": false,
+				"triggerAtStartup": false
+			}
+		},
+		{
+			"itemName": "ufz-tereno",
+			"url": "https://sos.ufz.de/tereno-public/service",
+			"version": "2.0.0",
+			"type": "SOS",
+			"supportsFirstLast": false,
+			"connector": "UfzSos2Connector",
+			"allowedSensors": [
+				665,
+				735,
+				736,
+				737,
+				738,
+				739,
+				740,
+				741,
+				743,
+				744,
+				745,
+				746,
+				748,
+				749,
+				752,
+				753,
+				754,
+				756,
+				757,
+				758,
+				759,
+				760,
+				761,
+				762,
+				763,
+				764,
+				765,
+				766,
+				767,
+				768,
+				769,
+				770,
+				773,
+				774,
+				775,
+				776,
+				777,
+				778,
+				779,
+				533
+			],
+			"job": {
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": false,
+				"triggerAtStartup": false
+			}
+		}
+	]
 }

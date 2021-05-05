@@ -92,8 +92,6 @@
     <bean class="org.n52.svalbard.decode.WsaDecoder"/>
     <bean class="org.n52.svalbard.decode.XlinkDecoderv1999"/>
 
-
-
     <!-- encoder -->
     <bean class="org.n52.svalbard.encode.AqdDescribeSensorResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.AqdEncoder"/>

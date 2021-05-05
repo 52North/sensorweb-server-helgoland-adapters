@@ -46,7 +46,7 @@ import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 @EnableWebMvc
 @Configuration
 // @ImportResource({"classpath*:/spring/dispatcher-servlet.xml"})
-@ImportResource({"classpath*:/spring/application-context.xml"})
+@ImportResource({"classpath*:/spring/proxy.xml"})
 public class WebConfig implements WebMvcConfigurer {
 
     private static final String CSV = "csv";
