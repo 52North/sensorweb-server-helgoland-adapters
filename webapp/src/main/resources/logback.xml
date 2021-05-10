@@ -2,9 +2,11 @@
 
     <!-- refer to http://logback.qos.ch/manual/appenders.html -->
 
-    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}auth-proxy.log}"/>
+    <!--<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}auth-proxy.log}"/>-->
+    <property name="logFile" value="${catalina.base}/logs/helgoland-adapters-webapp"/>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_FILE}</file>
+        <!--<file>${LOG_FILE}</file>-->
+    <file>${logFile}.log</file>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${logFile}/%d{yyyy-MM-dd}.log</fileNamePattern>

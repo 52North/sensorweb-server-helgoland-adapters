@@ -4,7 +4,7 @@
 
 server:
   servlet:
-    context-path: /api
+    context-path: /helgoland-adapters-webapp/api
   tomcat:
     uri-encoding: UTF-8
 
@@ -12,7 +12,11 @@ server:
 ## DATABASE SETTINGS
 ##
 
-database.jpa.persistence-location: classpath:META-INF/persistence.xml
+database:
+  # what CRS persisted geometries do have
+  srid: EPSG:4326
+  jpa:
+    persistence-location: classpath:/META-INF/persistence.xml
 
 spring:
   datasource:
@@ -46,7 +50,6 @@ spring:
 debug: false
 logging:
   config: classpath:logback.xml
-  file: target/logs/dao-series-api.log
   level:
     org.n52: WARN
     ## Spring
@@ -67,9 +70,11 @@ logging:
 ##
 
 ## Deployments behind a Proxy need to know the external URL
-external.url: http://localhost:8081/api/
+external:
+  url: http://localhost:8081/api/
 
-docs.context: docs
+docs:
+  context: docs
 
 ##
 ## IO DEFAULTS
@@ -78,9 +83,9 @@ docs.context: docs
 ## TBD
 
 # gracefully match leap years (P1Y)
-request.interval.restriction: P370D
-# what CRS persisted geometries do have
-database.srid: EPSG:4326
+request:
+  interval:
+    restriction: P370D
 
 ## Service Configuration
 
@@ -88,11 +93,32 @@ service.name: My RESTful Dataset Service
 # NO_DATA values in database which will return null values
 service.nodata.values: -9999.0,99999,NO_DATA
 
+## Service Configuration
+service:
+  name: My RESTful Dataset Service
+  nodata:
+    # NO_DATA values in database which will return null values
+    values: -9999.0,99999,NO_DATA
+  dcat:
+    catalog:
+      language: en
+      title: Sensor Observation Service Catalog
+      description: Catalog of Sensor Observation Service datasets
+      homepage: https://52north.org
+      publisher: https://52north.org
+      license: https://creativecommons.org/licenses/by/4.0/
+    persistence:
+      path: /tmp/catalog.rdf
+      enabled: false
 
 ##
 ## Job Scheduler and Tasks
 ##
 
 # disables all jobs
-job.scheduler.enabled: false
-job.scheduler.task.prerendering.enabled: true
+job:
+  scheduler:
+    enabled: false
+  task:
+    prerendering:
+      enabled: true
