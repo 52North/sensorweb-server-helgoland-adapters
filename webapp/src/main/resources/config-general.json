@@ -1,7 +1,21 @@
 {
     "timeformat": "YYYY-MM-dd, HH:mm",
-    "generalizer": {
-        "defaultGeneralizer": "lttb",
-        "noDataGapThreshold": 5
+    "generalizing_algorithm": "lttb",
+    "noDataGapThreshold": 5,
+    "outputTimezone" : "UTC",
+    "expandWithNextValuesBeyondInterval": true,
+    "cache" : {
+       "categories": 1440,
+       "features": 1440,
+       "offerings": 1440,
+       "phenomena": 1440,
+       "platforms": 1440,
+       "procedures": 1440,
+       "services": 1440,
+       "datasets": 2,
+       "timeseries": 2,
+       "trajectories": 2,
+       "individualObservations": 2,
+       "data": 0
     }
 }
