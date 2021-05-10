@@ -42,6 +42,7 @@ public class DataSourceConfiguration {
     private String type;
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
+    private boolean supportsGDA;
     private List<String> allowedOfferings;
     private List<String> allowedSensors;
     private Map<String, String> getUrls = new LinkedHashMap<>();
@@ -103,6 +104,14 @@ public class DataSourceConfiguration {
 
     public void setSupportsFirstLast(boolean supportsFirstLast) {
         this.supportsFirstLast = supportsFirstLast;
+    }
+
+    public boolean isSupportsGDA() {
+        return supportsGDA;
+    }
+
+    public void setSupportsGDA(boolean supportsGDA) {
+        this.supportsGDA = supportsGDA;
     }
 
     public boolean isDisableHumanReadableName() {

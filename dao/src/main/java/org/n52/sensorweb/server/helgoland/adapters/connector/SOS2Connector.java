@@ -36,6 +36,7 @@ import java.util.Optional;
 import org.n52.janmayen.function.Functions;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.DatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.EntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
@@ -43,7 +44,12 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceMetada
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
+import org.n52.shetland.ogc.gml.AbstractFeature;
+import org.n52.shetland.ogc.gml.time.Time;
+import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
+import org.n52.shetland.ogc.om.features.FeatureCollection;
+import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
 import org.n52.shetland.ogc.ows.OwsCapabilities;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
@@ -66,24 +72,28 @@ public class SOS2Connector extends AbstractSosConnector {
     /**
      * Matches when the provider name is equal "52North" and service version is 2.0.0
      *
-     * @param config       the config
-     * @param response the cababilities
+     * @param config
+     *            the config
+     * @param response
+     *            the cababilities
      */
     @Override
     protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse response) {
         OwsCapabilities capabilities = response.getCapabilities();
-        return capabilities.getVersion().equals(Sos2Constants.SERVICEVERSION) &&
-               capabilities.getServiceProvider().isPresent() &&
-               supportsGDA(capabilities);
+        return capabilities.getVersion().equals(Sos2Constants.SERVICEVERSION)
+                && capabilities.getServiceProvider().isPresent();
     }
 
     @Override
-    public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
+    public ServiceConstellation getConstellation(DataSourceConfiguration config,
+            GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
+        addService(config, serviceConstellation,
+                ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
+        config.setSupportsGDA(supportsGDA(sosCaps));
         addBindingUrls(sosCaps, config);
         addServiceConfig(config);
         addDatasets(serviceConstellation, sosCaps, config);
@@ -93,45 +103,39 @@ public class SOS2Connector extends AbstractSosConnector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
-                .getObservationCollection().toStream()
-                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
-                .collect(toList());
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query)).getObservationCollection()
+                .toStream().map(Functions.currySecond(this::createDataEntity, seriesEntity)).collect(toList());
         LOGGER.info("Found {} Entries", data.size());
         return data;
     }
 
     @Override
     public Optional<DataEntity<?>> getFirstObservation(DatasetEntity dataset) {
-        return getObservation(dataset, createFirstTimefilter(dataset))
-                .getObservationCollection().toStream().findFirst()
-                .map(obs -> createDataEntity(obs, dataset));
+        return getObservation(dataset, createFirstTimefilter(dataset)).getObservationCollection().toStream()
+                .findFirst().map(obs -> createDataEntity(obs, dataset));
     }
 
     @Override
     public Optional<DataEntity<?>> getLastObservation(DatasetEntity dataset) {
-        return getObservation(dataset, createLatestTimefilter(dataset))
-                .getObservationCollection().toStream().findFirst()
-                .map(obs -> createDataEntity(obs, dataset));
+        return getObservation(dataset, createLatestTimefilter(dataset)).getObservationCollection().toStream()
+                .findFirst().map(obs -> createDataEntity(obs, dataset));
     }
 
     @Override
     public UnitEntity getUom(DatasetEntity dataset) {
         GetObservationResponse response = getObservation(dataset, createFirstTimefilter(dataset));
-        return response.getObservationCollection().toStream()
-                .findFirst().map(o -> o.getValue().getValue().getUnit())
-                .map(unit -> EntityBuilder.createUnit(unit, null, dataset.getService()))
-                .orElse(null);
+        return response.getObservationCollection().toStream().findFirst().map(o -> o.getValue().getValue().getUnit())
+                .map(unit -> EntityBuilder.createUnit(unit, null, dataset.getService())).orElse(null);
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-                               DataSourceConfiguration config) {
-        sosCaps.getContents().ifPresent(contents -> contents
-                .forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
+            DataSourceConfiguration config) {
+        sosCaps.getContents().ifPresent(
+                contents -> contents.forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
-                                 DataSourceConfiguration config) {
+            DataSourceConfiguration config) {
         LOGGER.debug("Harvest data for offering '{}'", offering.getIdentifier());
         String offeringId = addOffering(offering, serviceConstellation);
 
@@ -140,28 +144,71 @@ public class SOS2Connector extends AbstractSosConnector {
                 addProcedure(procedureId, true, false, serviceConstellation);
                 GetFeatureOfInterestResponse foiResponse =
                         getFeatureOfInterestByProcedure(procedureId, config.getUrl());
-                addFeature(foiResponse.getAbstractFeature(), serviceConstellation);
-                GetDataAvailabilityResponse gdaResponse = getDataAvailabilityByProcedure(procedureId, config.getUrl());
-                if (gdaResponse != null) {
-                    gdaResponse.getDataAvailabilities().forEach(dataAval -> {
-                        String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
-                        String categoryId = addCategory(dataAval, serviceConstellation);
-                        String featureId = dataAval.getFeatureOfInterest().getHref();
-                        TimePeriod phenomenonTime = dataAval.getPhenomenonTime();
+                AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
+                addFeature(abstractFeature, serviceConstellation);
+                if (config.isSupportsGDA()) {
+                    GetDataAvailabilityResponse gdaResponse =
+                            getDataAvailabilityByProcedure(procedureId, config.getUrl());
+                    if (gdaResponse != null) {
+                        gdaResponse.getDataAvailabilities().forEach(dataAval -> {
+                            String phenomenonId = addPhenomenon(dataAval, serviceConstellation);
+                            String categoryId = addCategory(dataAval, serviceConstellation);
+                            String featureId = dataAval.getFeatureOfInterest().getHref();
+                            TimePeriod phenomenonTime = dataAval.getPhenomenonTime();
 
-                        UnitEntity unit = getUom(procedureId, offeringId, phenomenonId, featureId,
-                                serviceConstellation.getService().getSupportsFirstLast(), phenomenonTime.getEnd(),
-                                config.getUrl());
-                        serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                phenomenonId, featureId, featureId).setUnit(unit)
-                                        .setSamplingTimeStart(phenomenonTime.getStart().toDate())
-                                        .setSamplingTimeEnd(phenomenonTime.getEnd().toDate()));
+                            UnitEntity unit = getUom(procedureId, offeringId, phenomenonId, featureId,
+                                    serviceConstellation.getService().getSupportsFirstLast(), phenomenonTime.getEnd(),
+                                    config.getUrl());
+                            serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId,
+                                    categoryId, phenomenonId, featureId, featureId).setUnit(unit)
+                                            .setSamplingTimeStart(phenomenonTime.getStart().toDate())
+                                            .setSamplingTimeEnd(phenomenonTime.getEnd().toDate()));
+                        });
+                    }
+                } else {
+                    offering.getObservableProperties().forEach(phenomenonId -> {
+                        addPhenomenon(phenomenonId, serviceConstellation);
+                        String categoryId = addCategory(phenomenonId, serviceConstellation);
+
+                        if (abstractFeature instanceof FeatureCollection) {
+                            FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
+                            featureCollection.getMembers().forEach((key, feature) -> {
+                                String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
+                                // TODO maybe not only QuantityDatasetConstellation
+                                serviceConstellation.add(
+                                        addPhenomenonTime(new QuantityDatasetConstellation(procedureId, offeringId,
+                                                categoryId, phenomenonId, featureId, featureId), offering));
+                            });
+                        } else {
+                            String featureId =
+                                    addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
+                            // TODO maybe not only QuantityDatasetConstellation
+                            serviceConstellation.add(addPhenomenonTime(new QuantityDatasetConstellation(procedureId,
+                                    offeringId, categoryId, phenomenonId, featureId, featureId), offering));
+                        }
                     });
                 }
             } catch (Exception e) {
                 LOGGER.debug(String.format("Error while processing offering '%s'", offeringId), e);
             }
         });
+    }
+
+    private DatasetConstellation addPhenomenonTime(QuantityDatasetConstellation quantityDatasetConstellation,
+            SosObservationOffering offering) {
+        if (offering.isSetPhenomenonTime()) {
+            Time phenomenonTime = offering.getPhenomenonTime();
+            if (phenomenonTime instanceof TimePeriod) {
+                TimePeriod tp = (TimePeriod) phenomenonTime;
+                quantityDatasetConstellation.setSamplingTimeStart(tp.getStart().toDate());
+                quantityDatasetConstellation.setSamplingTimeEnd(tp.getEnd().toDate());
+            } else if (phenomenonTime instanceof TimeInstant) {
+                TimeInstant ti = (TimeInstant) phenomenonTime;
+                quantityDatasetConstellation.setSamplingTimeStart(ti.getValue().toDate());
+                quantityDatasetConstellation.setSamplingTimeEnd(ti.getValue().toDate());
+            }
+        }
+        return quantityDatasetConstellation;
     }
 
 }

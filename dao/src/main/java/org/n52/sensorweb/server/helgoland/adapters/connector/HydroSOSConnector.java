@@ -36,19 +36,13 @@ import java.util.Optional;
 import org.n52.janmayen.function.Functions;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
-import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceMetadata;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
-import org.n52.shetland.ogc.gml.AbstractFeature;
-import org.n52.shetland.ogc.om.features.FeatureCollection;
-import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosCapabilities;
-import org.n52.shetland.ogc.sos.SosObservationOffering;
-import org.n52.shetland.ogc.sos.response.GetFeatureOfInterestResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -76,6 +70,7 @@ public class HydroSOSConnector extends SOS2Connector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
+        // TODO set responseFormat and fix response enoding
         List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
                 .getObservationCollection().toStream()
                 .map(Functions.currySecond(this::createDataEntity, seriesEntity))
@@ -90,35 +85,4 @@ public class HydroSOSConnector extends SOS2Connector {
                 .map(obs -> createDataEntity(obs, entity));
     }
 
-    @Override
-    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
-                                 DataSourceConfiguration config) {
-        String offeringId = addOffering(obsOff, serviceConstellation);
-
-        obsOff.getProcedures().forEach(procedureId -> {
-            addProcedure(procedureId, true, false, serviceConstellation);
-            obsOff.getObservableProperties().forEach(phenomenonId -> {
-                addPhenomenon(phenomenonId, serviceConstellation);
-                String categoryId = addCategory(phenomenonId, serviceConstellation);
-
-                GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
-                                                                                           config.getUrl());
-                AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                if (abstractFeature instanceof FeatureCollection) {
-                    FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
-                    featureCollection.getMembers().forEach((key, feature) -> {
-                        String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
-                        // TODO maybe not only QuantityDatasetConstellation
-                        serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                                                                  phenomenonId, featureId, featureId));
-                    });
-                } else {
-                    String featureId = addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
-                    // TODO maybe not only QuantityDatasetConstellation
-                    serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                                                              phenomenonId, featureId, featureId));
-                }
-            });
-        });
-    }
 }
