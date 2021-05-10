@@ -37,15 +37,17 @@ package org.n52.sensorweb.server.helgoland.adapters;
 import org.n52.sensorweb.server.db.DatabaseConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
 @Import(DatabaseConfig.class)
 @EnableConfigurationProperties
 @SuppressWarnings("uncommentedmain")
-public class Application {
+public class Application extends SpringBootServletInitializer {
     @Value("${service.name:52North Helgoland server}")
     private String name;
 
@@ -56,4 +58,8 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
 }
