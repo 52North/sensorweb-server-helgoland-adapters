@@ -33,6 +33,9 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Set;
 
 import org.n52.io.request.IoParameters;
+import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
+import org.n52.sensorweb.server.db.repositories.core.UnitRepository;
+import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.db.assembler.core.CategoryAssembler;
 import org.n52.sensorweb.server.db.assembler.core.DatasetAssembler;
 import org.n52.sensorweb.server.db.assembler.core.FeatureAssembler;
@@ -43,7 +46,6 @@ import org.n52.sensorweb.server.db.assembler.core.ProcedureAssembler;
 import org.n52.sensorweb.server.db.assembler.core.ServiceAssembler;
 import org.n52.sensorweb.server.db.old.dao.DbQueryFactory;
 import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
-import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.series.db.beans.AbstractFeatureEntity;
 import org.n52.series.db.beans.CategoryEntity;
@@ -92,10 +94,10 @@ public class InsertRepository {
     private DatasetAssembler<?> datasetAssembler;
 
     @Autowired
-    private org.n52.sensorweb.server.db.repositories.core.DatasetRepository datasetRepository;
+    private DatasetRepository datasetRepository;
 
     @Autowired
-    private org.n52.sensorweb.server.db.repositories.core.UnitRepository unitRepository;
+    private UnitRepository unitRepository;
 
     @Autowired
     private DataRepository dataRepository;

@@ -112,6 +112,11 @@ public class HydroSOSConnector extends SOS2Connector {
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
                                                                                   phenomenonId, featureId, featureId));
                     });
+                } else {
+                    String featureId = addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
+                    // TODO maybe not only QuantityDatasetConstellation
+                    serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
+                                                                              phenomenonId, featureId, featureId));
                 }
             });
         });
