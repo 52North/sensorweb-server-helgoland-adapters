@@ -60,7 +60,7 @@
         <slf4j.version>1.7.30</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hibernate.version>5.4.27.Final</hibernate.version>
-        <geolatte.version>1.8.0</geolatte.version>
+        <geolatte.version>1.8.1</geolatte.version>
         <arctic-sea.version>8.2.0</arctic-sea.version>
         <version.sensorweb-server-helgoland>3.5.0-PR.2</version.sensorweb-server-helgoland>
         <version.sensorweb-server-dao-impl>4.0.0-PR.3</version.sensorweb-server-dao-impl>
