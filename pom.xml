@@ -64,7 +64,7 @@
         <arctic-sea.version>8.2.0</arctic-sea.version>
         <version.sensorweb-server-helgoland>3.5.0-PR.4</version.sensorweb-server-helgoland>
         <version.sensorweb-server-dao-impl>4.0.0-PR.3</version.sensorweb-server-dao-impl>
-        <version.sensorweb-server-db-model>4.0.0-PR.2</version.sensorweb-server-db-model>
+        <version.sensorweb-server-db-model>4.0.0-PR.5</version.sensorweb-server-db-model>
         <postgresql.version>42.2.24</postgresql.version>
         <postgis.version>2.5.1</postgis.version>
         <xml-commons.version>2.7.0</xml-commons.version>
