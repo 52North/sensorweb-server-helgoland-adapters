@@ -62,14 +62,14 @@
         <hibernate.version>5.4.27.Final</hibernate.version>
         <geolatte.version>1.8.2</geolatte.version>
         <arctic-sea.version>8.2.0</arctic-sea.version>
-        <version.sensorweb-server-helgoland>3.5.0-PR.2</version.sensorweb-server-helgoland>
+        <version.sensorweb-server-helgoland>3.5.0-PR.4</version.sensorweb-server-helgoland>
         <version.sensorweb-server-dao-impl>4.0.0-PR.3</version.sensorweb-server-dao-impl>
         <version.sensorweb-server-db-model>4.0.0-PR.2</version.sensorweb-server-db-model>
         <postgresql.version>42.2.24</postgresql.version>
         <postgis.version>2.5.0</postgis.version>
         <xml-commons.version>2.7.0</xml-commons.version>
         <jena.version>3.17.0</jena.version>
-        <jts.version>1.18.1</jts.version>
+        <jts.version>1.18.2</jts.version>
         <java.compiler.source>1.8</java.compiler.source>
         <java.compiler.target>1.8</java.compiler.target>
         <timestamp>${maven.build.timestamp}</timestamp>
@@ -224,7 +224,7 @@
             <dependency>
                 <groupId>org.checkerframework</groupId>
                 <artifactId>checker-qual</artifactId>
-                <version>3.15.0</version>
+                <version>3.18.1</version>
             </dependency>
             
 
@@ -696,7 +696,7 @@
             <dependency>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-annotations</artifactId>
-                <version>4.2.3</version>
+                <version>4.4.2</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.jena</groupId>
