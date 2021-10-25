@@ -52,7 +52,7 @@
 
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
-        <org.springframework.version>5.3.11</org.springframework.version>
+        <org.springframework.version>5.3.12</org.springframework.version>
         <spring-boot.version>2.5.6</spring-boot.version>
         <logback.version>1.2.6</logback.version>
         <jackson.version>2.13.0</jackson.version>
