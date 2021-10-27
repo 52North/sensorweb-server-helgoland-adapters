@@ -8,8 +8,7 @@
     </parent>
     <artifactId>helgoland-adapters-webapp</artifactId>
     <packaging>war</packaging>
-    <name>Series REST API - SOS Proxy Webapp</name>
-    <description>RESTful Sensor Web Client API as template Web application.</description>
+    <name>Sensor Web Server Helgoland Adapters - Webapp</name>
 
     <properties>
         <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>

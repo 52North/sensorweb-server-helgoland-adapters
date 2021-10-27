@@ -35,18 +35,18 @@ This project includes:
   Apache Jena - Shadowed external libraries under The Apache Software License, Version 2.0
   Apache Thrift under The Apache Software License, Version 2.0
   Apache XML Graphics Commons under The Apache Software License, Version 2.0
-  asm under BSD-3-Clause
   asm-analysis under BSD-3-Clause
   asm-commons under BSD-3-Clause
   asm-tree under BSD-3-Clause
-  AspectJ runtime under Eclipse Public License - v 1.0
-  AspectJ tools under Eclipse Public License - v 1.0
-  AspectJ weaver under Eclipse Public License - v 1.0
+  AspectJ Runtime under Eclipse Public License - v 2.0
+  AspectJ Tools (Compiler) under Eclipse Public License - v 2.0
+  AspectJ Weaver under Eclipse Public License - v 2.0
   Byte Buddy (without dependencies) under Apache License, Version 2.0
   c3p0 under GNU Lesser General Public License, Version 2.1 or Eclipse Public License, Version 1.0
   Checker Qual under The MIT License
   ClassMate under Apache License, Version 2.0
   Commons Lang under The Apache Software License, Version 2.0
+  Commons Pool under The Apache Software License, Version 2.0
   Cross-Origin Resource Sharing (CORS) Filter under The Apache Software License, Version 2.0
   dexx under MIT License
   dom4j under BSD 3-clause New License
@@ -87,15 +87,12 @@ This project includes:
   ISO 19139 CV_DiscreteCoverage model (spec. v0.2.2) under The Apache Software License, Version 2.0
   istack common utility code runtime under Eclipse Distribution License - v 1.0
   J2ObjC Annotations under The Apache Software License, Version 2.0
-  Jackson datatype: jdk8 under The Apache Software License, Version 2.0
-  Jackson datatype: JSR310 under The Apache Software License, Version 2.0
+  Jackson datatype: Joda under The Apache Software License, Version 2.0
   Jackson-annotations under The Apache Software License, Version 2.0
   Jackson-core under The Apache Software License, Version 2.0
   jackson-databind under The Apache Software License, Version 2.0
-  Jackson-module-parameter-names under The Apache Software License, Version 2.0
   Jakarta Activation under EDL 1.0
   Jakarta Annotations API under EPL 2.0 or GPL2 w/ CPE
-  Jakarta Expression Language 3.0 under EPL 2.0 or GPL2 w/ CPE
   Jakarta Persistence API under Eclipse Public License v. 2.0 or Eclipse Distribution License v. 1.0
   Jakarta Servlet under EPL 2.0 or GPL2 w/ CPE
   Jakarta WebSocket - Server API under Eclipse Public License 2.0 or GNU General Public License, version 2 with the GNU Classpath Exception
@@ -227,11 +224,11 @@ This project includes:
   Sensor Web Server Helgoland - PDF report structure under GNU General Public License, Version 2.0
   Sensor Web Server Helgoland - REST module under GNU General Public License, Version 2.0
   Sensor Web Server Helgoland - SPI module under GNU General Public License, Version 2.0
-  Series REST API - SOS Proxy App Module under GNU General Public License, Version 2.0
-  Series REST API - SOS Proxy Dao Module under GNU General Public License, Version 2.0
-  Series REST API - SOS Proxy DCAT-AP Module under GNU General Public License, Version 2.0
-  Series REST API - SOS Proxy Webapp under GNU General Public License, Version 2.0
-  SI Quantities under BSD
+  Sensor Web Server Helgoland Adapters - App Module under GNU General Public License, Version 2.0
+  Sensor Web Server Helgoland Adapters - Dao Module under GNU General Public License, Version 2.0
+  Sensor Web Server Helgoland Adapters - DCAT-AP Module under GNU General Public License, Version 2.0
+  Sensor Web Server Helgoland Adapters - Webapp under GNU General Public License, Version 2.0
+  SI Quantities under BSD 3-Clause
   SI Units under BSD
   SLF4J API Module under MIT License
   SpotBugs Annotations under GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1
@@ -248,7 +245,6 @@ This project includes:
   Spring Object/Relational Mapping under Apache License, Version 2.0
   Spring Object/XML Marshalling under Apache License, Version 2.0
   Spring Transaction under Apache License, Version 2.0
-  Spring Web MVC under Apache License, Version 2.0
   spring-boot under Apache License, Version 2.0
   spring-boot-actuator under Apache License, Version 2.0
   spring-boot-actuator-autoconfigure under Apache License, Version 2.0
@@ -259,12 +255,7 @@ This project includes:
   spring-boot-starter-data-jpa under Apache License, Version 2.0
   spring-boot-starter-jdbc under Apache License, Version 2.0
   spring-boot-starter-jetty under Apache License, Version 2.0
-  spring-boot-starter-json under Apache License, Version 2.0
-  spring-boot-starter-tomcat under Apache License, Version 2.0
-  spring-boot-starter-web under Apache License, Version 2.0
   StAX API under The Apache Software License, Version 2.0
-  tomcat-embed-core under Apache License, Version 2.0
-  tomcat-embed-websocket under Apache License, Version 2.0
   TXW2 Runtime under Eclipse Distribution License - v 1.0
   Units of Measurement API under BSD 3-Clause
   Units of Measurement Common Library for Java under BSD

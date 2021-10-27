@@ -8,8 +8,7 @@
     </parent>
     <artifactId>helgoland-adapters-dao</artifactId>
     <packaging>jar</packaging>
-    <name>Series REST API - SOS Proxy Dao Module</name>
-    <description>REST SPI Implementation for SOS Proxy.</description>
+    <name>Sensor Web Server Helgoland Adapters - Dao Module</name>
     <url>https://52north.org/communities/sensorweb/</url>
 
     <dependencies>
@@ -336,6 +335,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
             <scope>test</scope>
         </dependency>
 

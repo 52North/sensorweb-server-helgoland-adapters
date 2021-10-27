@@ -8,8 +8,7 @@
     </parent>
     <artifactId>helgoland-adapters-app</artifactId>
     <packaging>jar</packaging>
-    <name>Series REST API - SOS Proxy App Module</name>
-    <description>REST SPI Implementation for SOS Proxy.</description>
+    <name>Sensor Web Server Helgoland Adapters - App Module</name>
     <url>https://52north.org/communities/sensorweb/</url>
 
     <dependencies>
