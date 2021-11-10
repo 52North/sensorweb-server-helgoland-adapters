@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -112,7 +111,7 @@ import com.google.common.base.Strings;
 @Service
 public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     private static final String API_DESCRIPTION =
-            "http://52north.github.io/sensorweb-server-helgoland/version_3.x/api.html";
+            "http://52north.github.io/sensorweb-server-helgoland/develop/api.html";
     private static final Logger LOG = LoggerFactory.getLogger(CatalogTransformer.class);
     private static final String PREFIX_XSD = "xsd";
     private static final String PREFIX_RDF = "rdf";
@@ -562,7 +561,8 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
                         .map(this::createResourceOrLiteral),
                 offeringStream.get().map(SosObservationOffering::getFeatureOfInterest).flatMap(Set::stream)
                         .map(this::createResourceOrLiteral))
-                .flatMap(Function.identity()).forEach(feature -> dataset.addProperty(DCAT.keyword, feature));
+                .forEach(node -> dataset.addProperty(DCAT.keyword, (RDFNode) node));
+        // .flatMap(Function.identity()).forEach(feature -> dataset.addProperty(DCAT.keyword, feature));
     }
 
     private void addKeywords(SosCapabilities capabilities, Resource dataset) {

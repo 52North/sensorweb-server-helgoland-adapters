@@ -49,7 +49,6 @@ This project includes:
   Commons Pool under The Apache Software License, Version 2.0
   Cross-Origin Resource Sharing (CORS) Filter under The Apache Software License, Version 2.0
   dexx under MIT License
-  dom4j under BSD 3-clause New License
   ehcache under The Apache Software License, Version 2.0
   EPSG Authority Service using HSQL database under Lesser General Public License (LGPL) or EPSG database distribution license or BSD License for HSQL
   error-prone annotations under Apache 2.0
@@ -103,7 +102,6 @@ This project includes:
   JavaBeans Activation Framework API jar under CDDL/GPLv2+CE
   javaee-api under CDDL + GPLv2 with classpath exception
   JavaMail API under CDDL/GPLv2+CE
-  Javassist under MPL 1.1 or LGPL 2.1 or Apache License 2.0
   javax.annotation API under CDDL + GPLv2 with classpath exception
   javax.inject under The Apache Software License, Version 2.0
   javax.persistence-api under Eclipse Public License v1.0 or Eclipse Distribution License v. 1.0
@@ -240,7 +238,6 @@ This project includes:
   Spring Context Support under Apache License, Version 2.0
   Spring Core under Apache License, Version 2.0
   Spring Data JPA under Apache License, Version 2.0
-  Spring Expression Language (SpEL) under Apache License, Version 2.0
   Spring JDBC under Apache License, Version 2.0
   Spring Object/Relational Mapping under Apache License, Version 2.0
   Spring Object/XML Marshalling under Apache License, Version 2.0
