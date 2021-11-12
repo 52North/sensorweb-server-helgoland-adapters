@@ -292,14 +292,14 @@
                     <version>3.3.2</version>
                     <configuration>
                         <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
-                        <webappDirectory>${webappDirectory}</webappDirectory>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
                         <webResources>
                             <resource>
-                                <directory>src/main/webapp</directory>
+                                <directory>src/main/resources</directory>
                                 <filtering>true</filtering>
+                                <targetPath>WEB-INF/classes</targetPath>
                             </resource>
                         </webResources>
-                        <failOnMissingWebXml>false</failOnMissingWebXml>
                     </configuration>
                 </plugin>
                 <plugin>
