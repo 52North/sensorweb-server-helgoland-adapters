@@ -47,6 +47,7 @@ This project includes:
   ClassMate under Apache License, Version 2.0
   Commons Lang under The Apache Software License, Version 2.0
   Commons Pool under The Apache Software License, Version 2.0
+  commons-compiler under BSD-3-Clause
   Cross-Origin Resource Sharing (CORS) Filter under The Apache Software License, Version 2.0
   dexx under MIT License
   ehcache under The Apache Software License, Version 2.0
@@ -96,6 +97,7 @@ This project includes:
   Jakarta Servlet under EPL 2.0 or GPL2 w/ CPE
   Jakarta WebSocket - Server API under Eclipse Public License 2.0 or GNU General Public License, version 2 with the GNU Classpath Exception
   Jakarta XML Binding API under Eclipse Distribution License - v 1.0
+  janino under BSD-3-Clause
   Java Annotation Indexer under Apache License, Version 2.0
   Java Property Utility under The Apache Software License, Version 2.0
   Java Transaction API under Common Development and Distribution License or GNU General Public License, Version 2 with the Classpath Exception
@@ -135,6 +137,7 @@ This project includes:
   Joda-Time under Apache License, Version 2.0
   JSON.simple under The Apache Software License, Version 2.0
   JSONLD Java :: Core under Revised BSD License
+  JUL to SLF4J bridge under MIT License
   LatencyUtils under Public Domain, per Creative Commons CC0
   Log4j Implemented Over SLF4J under Apache Software Licenses
   Logback Classic Module under Eclipse Public License - v 1.0 or GNU Lesser General Public License
