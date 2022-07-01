@@ -67,6 +67,8 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -383,7 +385,8 @@ public class InsertRespositoryTest extends ProxyTestBase {
     }
 
     @SpringBootConfiguration
-    @EnableJpaRepositories(basePackageClasses = {DatasetRepository.class})
+    @EnableJpaRepositories(basePackageClasses = {DatasetRepository.class},
+            repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class)
     @ComponentScan({ "org.n52.sensorweb.server.db.repository.core", "org.n52.sensorweb.server.db.old",
             "org.n52.sensorweb.server.db.assembler.core", "org.n52.sensorweb.server.db.assembler.mapper",
             "org.n52.sensorweb.server.db.factory", "org.n52.sensorweb.server.db.old.dao",

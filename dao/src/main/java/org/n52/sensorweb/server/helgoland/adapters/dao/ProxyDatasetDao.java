@@ -45,6 +45,11 @@ implements InsertAssembler<T> {
         return null;
     }
 
+    @Override
+    public T refresh(T entity) {
+        return entity;
+    }
+
 //    public ProxyDatasetDao(Session session) {
 //        super(session);
 //    }

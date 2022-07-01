@@ -42,6 +42,11 @@ implements ClearAssembler<T>, InsertAssembler<T> {
         return null;
     }
 
+    @Override
+    public T refresh(T entity) {
+        return entity;
+    }
+
 //    public ProxyDataDao(Session session) {
 //        super(session);
 //    }
