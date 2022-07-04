@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2021 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -61,6 +61,7 @@ import org.n52.series.db.beans.dataset.ValueType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
@@ -87,7 +88,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @ExtendWith(SpringExtension.class)
-@ImportResource("classpath:artic-sea-test.xml")
+@ImportResource("classpath:arctic-sea-test.xml")
 public class InsertRespositoryTest extends ProxyTestBase {
 
     @Autowired

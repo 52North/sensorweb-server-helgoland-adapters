@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2021 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -244,14 +244,14 @@ public class InsertRepository {
         DataEntity<?> insertedData = (DataEntity<?>) dataRepository.saveAndFlush(data);
         boolean minChanged = false;
         boolean maxChanged = false;
-        if (!dataset.isSetFirstValueAt() || (dataset.isSetFirstValueAt()
-                && dataset.getFirstValueAt().after(insertedData.getSamplingTimeStart()))) {
+        if (!dataset.isSetFirstValueAt() || dataset.isSetFirstValueAt()
+                && dataset.getFirstValueAt().after(insertedData.getSamplingTimeStart())) {
             minChanged = true;
             dataset.setFirstValueAt(insertedData.getSamplingTimeStart());
             dataset.setFirstObservation(insertedData);
         }
-        if (!dataset.isSetLastValueAt() || (dataset.isSetLastValueAt()
-                && dataset.getLastValueAt().before(insertedData.getSamplingTimeEnd()))) {
+        if (!dataset.isSetLastValueAt() || dataset.isSetLastValueAt()
+                && dataset.getLastValueAt().before(insertedData.getSamplingTimeEnd())) {
             maxChanged = true;
             dataset.setLastValueAt(insertedData.getSamplingTimeEnd());
             dataset.setLastObservation(insertedData);

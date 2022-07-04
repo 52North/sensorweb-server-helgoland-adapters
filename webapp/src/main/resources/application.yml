@@ -19,13 +19,17 @@ database:
     persistence-location: classpath:/META-INF/persistence.xml
 
 spring:
+  main:
+    allow-circular-references: true
   datasource:
     username: postgres
     password: postgres
     url: jdbc:postgresql://localhost:5432/proxy
     #url: jdbc:h2:mem:testdb;MODE=PostgreSQL
     #data: classpath:/META-INF/data-${spring.datasource.platform}.sql
-    initialization-mode: always
+  sql:
+    init:
+      mode: always
   jpa:
     properties:
       hibernate: 

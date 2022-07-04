@@ -1,10 +1,14 @@
 
 spring:
+  main:
+    allow-circular-references: true
   datasource:
     username: 
     password: 
-    initialization-mode: always
-    platform: geodb 
+  sql:
+    init:
+      mode: always
+      platform: geodb
   jpa:
     properties:
       hibernate: 

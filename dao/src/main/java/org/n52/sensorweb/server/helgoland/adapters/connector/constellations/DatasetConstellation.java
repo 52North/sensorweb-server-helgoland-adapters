@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2021 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -41,9 +41,12 @@ import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * @author Jan Schulte
  */
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public abstract class DatasetConstellation {
 
     private final String procedure;

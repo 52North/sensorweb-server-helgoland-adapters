@@ -20,6 +20,8 @@ database:
     persistence-location: "classpath:META-INF/persistence.xml"
 
 spring:
+  main:
+    allow-circular-references: true
   datasource:
     username: postgres
     password: postgres

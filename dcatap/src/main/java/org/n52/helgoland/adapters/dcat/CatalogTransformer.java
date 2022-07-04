@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2021 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -108,7 +108,10 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 @Service
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     private static final String API_DESCRIPTION =
             "http://52north.github.io/sensorweb-server-helgoland/develop/api.html";

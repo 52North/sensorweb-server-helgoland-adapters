@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2021 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -67,6 +67,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -76,6 +78,7 @@ import java.util.Set;
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class DataSourceHarvesterJob extends ScheduledJob implements Job {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
