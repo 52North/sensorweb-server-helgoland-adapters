@@ -53,7 +53,7 @@
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
         <org.springframework.version>5.3.22</org.springframework.version>
-        <spring-boot.version>2.7.1</spring-boot.version>
+        <spring-boot.version>2.7.2</spring-boot.version>
         <spring-data-entity-graph.version>2.6.2</spring-data-entity-graph.version>
         <logback.version>1.2.11</logback.version>
         <geotools.version>27.0</geotools.version>
