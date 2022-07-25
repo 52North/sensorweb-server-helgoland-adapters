@@ -42,7 +42,17 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>helgoland-adapters-dao</artifactId>
+            <artifactId>helgoland-adapters-harvest</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-common</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-connector</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>

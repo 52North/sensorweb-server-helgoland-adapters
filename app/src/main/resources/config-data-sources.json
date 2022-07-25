@@ -1,5 +1,17 @@
 {
 	"dataSources": [
+	{
+			"itemName": "demo",
+			"url": "http://sensorweb.demo.52north.org/52n-sos-webapp/service",
+			"version": "2.0.0",
+			"type": "SOS",
+			"supportsFirstLast": true,
+			"job": {
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true
+			}
+		},
 		{
 			"itemName": "fluggs",
 			"url": "https://fluggs.wupperverband.de/sos2/service",
@@ -9,7 +21,7 @@
 			"job": {
 				"cronExpression": "0 0 0/1 * * ?",
 				"enabled": true,
-				"triggerAtStartup": true
+				"triggerAtStartup": false
 			}
 		},
 		{

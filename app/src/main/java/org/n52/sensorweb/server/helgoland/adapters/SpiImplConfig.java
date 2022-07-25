@@ -36,11 +36,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
+
 @EnableWebMvc
 @Configuration
-@EnableJpaRepositories(basePackages = {
-    "org.n52.sensorweb.server.db.repositories.core"
-})
+@EnableJpaRepositories(repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class,
+        basePackages = { "org.n52.sensorweb.server.db.repositories.core" })
 @ComponentScan(basePackages = {
     "org.n52.sensorweb.server.db.repositories.core",
     "org.n52.sensorweb.server.db.assembler.core",

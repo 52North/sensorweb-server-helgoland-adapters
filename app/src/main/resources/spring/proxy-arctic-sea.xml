@@ -20,6 +20,19 @@
     <bean id="xmlOptionsHelper" class="org.n52.svalbard.util.XmlOptionsHelper" />
     <bean id="sweHelper" class="org.n52.svalbard.util.SweHelper" />
 
+	<bean id="defaultJobConfiguration" class="org.n52.bjornoya.schedule.DefaultJobConfiguration" />
+    <bean id="harvesterJobHandler" class="org.n52.bjornoya.schedule.JobHandler" />
+    <bean id="dataSourceHarvesterScheduler" class="org.n52.bjornoya.schedule.Scheduler" init-method="init" destroy-method="shutdown">
+        <property name="scheduler">
+            <bean  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+                <property name="jobFactory">
+                    <bean class="org.n52.bjornoya.schedule.AutowiringSpringBeanJobFactory" />
+                </property>
+                <property name="transactionManager" ref="transactionManager"/>
+            </bean>
+        </property>
+    </bean>
+
     <!-- decoder -->
     <!-- <bean class="org.n52.proxy.decode.SamplingFeatureDecoder"/>-->
     <bean class="org.n52.svalbard.decode.SamplingDecoderv20"/>

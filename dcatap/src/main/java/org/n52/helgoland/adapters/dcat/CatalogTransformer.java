@@ -67,7 +67,7 @@ import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.n52.janmayen.Optionals;
 import org.n52.janmayen.i18n.MultilingualString;
 import org.n52.sensorweb.server.db.repositories.core.ServiceRepository;
-import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.HarvestingListener;
 import org.n52.series.db.beans.ServiceEntity;
 import org.n52.shetland.ogc.gml.time.Time;
@@ -159,7 +159,7 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     @Override
-    public void onResult(ServiceConstellation result) {
+    public void onResult(AbstractServiceConstellation result) {
         if (result == null) {
             return;
         }
@@ -602,7 +602,7 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
         }
     }
 
-    private SosCapabilities getCapabilities(ServiceConstellation result) throws DecodingException {
+    private SosCapabilities getCapabilities(AbstractServiceConstellation result) throws DecodingException {
         XmlObject xmlResponse;
         try {
             xmlResponse = XmlObject.Factory.parse(result.getService().getServiceMetadata().getMetadata());

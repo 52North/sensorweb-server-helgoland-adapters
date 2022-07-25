@@ -102,7 +102,7 @@
         </dependency>
         <dependency>
             <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
-            <artifactId>helgoland-adapters-dao</artifactId>
+            <artifactId>helgoland-adapters-harvest</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

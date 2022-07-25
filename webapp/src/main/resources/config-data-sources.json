@@ -7,7 +7,7 @@
 			"type": "SOS",
 			"supportsFirstLast": true,
 			"job": {
-				"cronExpression": "0 0 0/1 * * ?",
+				"fullCronExpression": "0 0 0/1 * * ?",
 				"enabled": true,
 				"triggerAtStartup": true
 			}
@@ -20,7 +20,7 @@
 			"supportsFirstLast": true,
 			"disableHumanReadableName": true,
 			"job": {
-				"cronExpression": "0 0 0/1 * * ?",
+				"fullCronExpression": "0 0 0/1 * * ?",
 				"enabled": false,
 				"triggerAtStartup": false
 			}
@@ -75,7 +75,7 @@
 				533
 			],
 			"job": {
-				"cronExpression": "0 0 0/1 * * ?",
+				"fullCronExpression": "0 0 0/1 * * ?",
 				"enabled": false,
 				"triggerAtStartup": false
 			}
