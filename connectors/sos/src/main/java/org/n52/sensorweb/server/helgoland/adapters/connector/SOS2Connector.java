@@ -34,11 +34,11 @@ import java.util.Optional;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.DatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceMetadata;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -68,7 +68,8 @@ public class SOS2Connector extends AbstractSosConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(SOS2Connector.class);
 
     /**
-     * Matches when the provider name is equal "52North" and service version is 2.0.0
+     * Matches when the provider name is equal "52North" and service version is
+     * 2.0.0
      *
      * @param config
      *            the config
@@ -76,14 +77,14 @@ public class SOS2Connector extends AbstractSosConnector {
      *            the cababilities
      */
     @Override
-    protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse response) {
+    protected boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse response) {
         OwsCapabilities capabilities = response.getCapabilities();
         return capabilities.getVersion().equals(Sos2Constants.SERVICEVERSION)
                 && capabilities.getServiceProvider().isPresent();
     }
 
     @Override
-    public ServiceConstellation getConstellation(DataSourceConfiguration config,
+    public ServiceConstellation getConstellation(DataSourceJobConfiguration config,
             GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
@@ -127,13 +128,13 @@ public class SOS2Connector extends AbstractSosConnector {
     }
 
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-            DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         sosCaps.getContents().ifPresent(
                 contents -> contents.forEach(sosObsOff -> doForOffering(sosObsOff, serviceConstellation, config)));
     }
 
     protected void doForOffering(SosObservationOffering offering, ServiceConstellation serviceConstellation,
-            DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         LOGGER.debug("Harvest data for offering '{}'", offering.getIdentifier());
         String offeringId = addOffering(offering, serviceConstellation);
 
@@ -172,7 +173,8 @@ public class SOS2Connector extends AbstractSosConnector {
                             FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
                             featureCollection.getMembers().forEach((key, feature) -> {
                                 String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
-                                // TODO maybe not only QuantityDatasetConstellation
+                                // TODO maybe not only
+                                // QuantityDatasetConstellation
                                 serviceConstellation.add(
                                         addPhenomenonTime(new QuantityDatasetConstellation(procedureId, offeringId,
                                                 categoryId, phenomenonId, featureId, featureId), offering));

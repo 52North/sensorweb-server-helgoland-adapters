@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.quartz.JobExecutionException;
 import org.springframework.stereotype.Component;
 
@@ -35,12 +35,12 @@ import org.springframework.stereotype.Component;
 public class SensorThingsConfigurationFactory implements ConnectorConfigurationFactory {
 
     @Override
-    public boolean checkDatasource(DataSourceConfiguration dataSource) {
+    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
         return dataSource.getType().equalsIgnoreCase("SensorThings");
     }
 
     @Override
-    public ConnectorConfiguration createConfiguration(DataSourceConfiguration dataSource)
+    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
             throws JobExecutionException {
         return new ConnectorConfiguration(dataSource);
     }

@@ -53,7 +53,7 @@ import org.n52.sensorweb.server.db.query.DatasetQuerySpecifications;
 import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
 import org.n52.sensorweb.server.db.repositories.core.UnitRepository;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.AbstractFeatureEntity;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -118,7 +118,7 @@ public class CRUDRepository {
     @Inject
     private DataRepository dataRepository;
 
-    public synchronized void removeNonMatchingServices(Set<DataSourceConfiguration> configuredServices) {
+    public synchronized void removeNonMatchingServices(Set<DataSourceJobConfiguration> configuredServices) {
         serviceAssembler.getParameterRepository().findAll().stream()
                 .filter(service -> !isConfigured(configuredServices, service)).forEach(this::removeService);
     }
@@ -130,11 +130,11 @@ public class CRUDRepository {
         return datasetRepository.findAll(specification).stream().map(DescribableEntity::getId).collect(toSet());
     }
 
-    protected boolean isConfigured(Set<DataSourceConfiguration> configuredServices, ServiceEntity service) {
+    protected boolean isConfigured(Set<DataSourceJobConfiguration> configuredServices, ServiceEntity service) {
         return configuredServices.stream().anyMatch(configuration -> equals(configuration, service));
     }
 
-    protected boolean equals(DataSourceConfiguration configuration, ServiceEntity service) {
+    protected boolean equals(DataSourceJobConfiguration configuration, ServiceEntity service) {
         return configuration.getUrl().equals(service.getUrl())
                 && configuration.getItemName().equals(service.getName());
     }

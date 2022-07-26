@@ -27,13 +27,13 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.quartz.JobExecutionException;
 
 public interface ConnectorConfigurationFactory {
 
-    boolean checkDatasource(DataSourceConfiguration dataSource);
+    boolean checkDatasource(DataSourceJobConfiguration dataSource);
 
-    ConnectorConfiguration createConfiguration(DataSourceConfiguration dataSource) throws JobExecutionException;
+    ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource) throws JobExecutionException;
 
 }

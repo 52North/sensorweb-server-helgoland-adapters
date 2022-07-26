@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlObject;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.web.SimpleHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public abstract class AbstractConnector {
     private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     private static final long SOCKET_TIMEOUT = TimeUnit.MINUTES.toMillis(30);
 
-    private Map<String, DataSourceConfiguration> dataSourceConfigurations = new LinkedHashMap<>();
+    private Map<String, DataSourceJobConfiguration> dataSourceConfigurations = new LinkedHashMap<>();
     private final SimpleHttpClient httpClient;
 
     public AbstractConnector() {
@@ -66,10 +66,21 @@ public abstract class AbstractConnector {
         return getClass().getName();
     }
 
-    public boolean matches(DataSourceConfiguration config) {
+    public boolean matches(ConnectorConfiguration configuration) {
+        return matches(configuration.getDataSourceJobConfiguration());
+    }
+
+    public boolean matches(DataSourceJobConfiguration config) {
         if (config.getConnector() != null) {
-            return getClass().getSimpleName().equals(config.getConnector())
-                    || getClass().getName().equals(config.getConnector());
+            return matches(config.getConnector());
+        }
+        return false;
+    }
+
+    public boolean matches(String name) {
+        if (name != null) {
+            return getClass().getSimpleName().equals(name)
+                    || getClass().getName().equals(name);
         }
         return false;
     }
@@ -84,11 +95,11 @@ public abstract class AbstractConnector {
         return httpClient.executePost(uri, request);
     }
 
-    protected void addServiceConfig(DataSourceConfiguration config) {
+    protected void addServiceConfig(DataSourceJobConfiguration config) {
         this.dataSourceConfigurations.put(config.getUrl(), config);
     }
 
-    protected DataSourceConfiguration getServiceConfig(String key) {
+    protected DataSourceJobConfiguration getServiceConfig(String key) {
         return this.dataSourceConfigurations.get(key);
     }
 }

@@ -39,9 +39,9 @@ import java.util.Set;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.ProfileDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.ProfileDataEntity;
@@ -89,9 +89,8 @@ public class OceanotronSosConnector extends SOS2Connector {
      * Matches when the provider name is equal "Geomatys"
      */
     @Override
-    public boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
-        return capabilities.getCapabilities().getServiceProvider()
-                .map(OwsServiceProvider::getProviderName)
+    public boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse capabilities) {
+        return capabilities.getCapabilities().getServiceProvider().map(OwsServiceProvider::getProviderName)
                 .filter(name -> name.equals("Geomatys")).isPresent();
     }
 
@@ -99,8 +98,7 @@ public class OceanotronSosConnector extends SOS2Connector {
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         GetObservationResponse observationResponse = getObservation(seriesEntity, null, OM_2_MIMETYPE);
         return observationResponse.getObservationCollection().toStream()
-                .map(observation -> createProfileDataEntity(observation, seriesEntity))
-                .collect(toList());
+                .map(observation -> createProfileDataEntity(observation, seriesEntity)).collect(toList());
     }
 
     @Override
@@ -132,28 +130,21 @@ public class OceanotronSosConnector extends SOS2Connector {
         dataEntity.setSamplingTimeStart(timestamp);
         dataEntity.setSamplingTimeEnd(timestamp);
         ServiceEntity service = seriesEntity.getService();
-        Optional<Set<DataEntity<?>>> values = Optional.ofNullable(obsValue)
-                .map(ObservationValue::getValue)
-                .flatMap(Functions.castIfInstanceOf(SweDataArrayValue.class))
-                .map(SweDataArrayValue::getValue)
+        Optional<Set<DataEntity<?>>> values = Optional.ofNullable(obsValue).map(ObservationValue::getValue)
+                .flatMap(Functions.castIfInstanceOf(SweDataArrayValue.class)).map(SweDataArrayValue::getValue)
                 .map(dataArray -> {
                     SweAbstractDataComponent elementType = dataArray.getElementType();
-                    UnitEntity verticalUnit = Optional.ofNullable(elementType)
-                            .flatMap(Functions.castIfInstanceOf(SweDataRecord.class))
-                            .map(SweDataRecord::getFields)
-                            .filter(fields -> fields.size() == 2)
-                            .map(fields -> createUnitEntity(fields.get(0), service))
-                            .orElse(null);
-//TODO VerticalMetadataEntity
-                    return dataArray.getValues().stream()
-                            .map(valueEntry -> {
-                                BigDecimal measurement = new BigDecimal(valueEntry.get(1));
-                                BigDecimal verticalValue = new BigDecimal(valueEntry.get(0));
-                                LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
-                                return createVerticalEntry(measurement, timestamp, verticalValue);
-                            })
-                            .map(x -> (DataEntity<?>) x)
-                            .collect(toSet());
+                    UnitEntity verticalUnit =
+                            Optional.ofNullable(elementType).flatMap(Functions.castIfInstanceOf(SweDataRecord.class))
+                                    .map(SweDataRecord::getFields).filter(fields -> fields.size() == 2)
+                                    .map(fields -> createUnitEntity(fields.get(0), service)).orElse(null);
+                    // TODO VerticalMetadataEntity
+                    return dataArray.getValues().stream().map(valueEntry -> {
+                        BigDecimal measurement = new BigDecimal(valueEntry.get(1));
+                        BigDecimal verticalValue = new BigDecimal(valueEntry.get(0));
+                        LOGGER.info("Value: {}, VerticalValue: {}", measurement, verticalValue);
+                        return createVerticalEntry(measurement, timestamp, verticalValue);
+                    }).map(x -> (DataEntity<?>) x).collect(toSet());
                 });
         dataEntity.setValue(values.orElseGet(HashSet::new));
         return dataEntity;
@@ -169,21 +160,21 @@ public class OceanotronSosConnector extends SOS2Connector {
         return createUnit(uom, description, service);
     }
 
-    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp,
-                                                   BigDecimal verticalValue) {
+    private QuantityDataEntity createVerticalEntry(BigDecimal measurement, Date timestamp, BigDecimal verticalValue) {
         QuantityDataEntity quantityDataEntity = new QuantityDataEntity();
         quantityDataEntity.setValue(measurement);
         quantityDataEntity.setSamplingTimeStart(timestamp);
         quantityDataEntity.setSamplingTimeEnd(timestamp);
         quantityDataEntity.setVerticalFrom(verticalValue);
         quantityDataEntity.setVerticalFrom(verticalValue);
-//        Set<ParameterEntity<?>> parameters = new HashSet<>(1);
-//        ParameterQuantityEntity parameterQuantity = new ParameterQuantityEntity();
-//        parameterQuantity.setUnit(verticalUnit);
-//        parameterQuantity.setName("depth");
-//        parameterQuantity.setValue(verticalValue);
-//        parameters.add(parameterQuantity);
-//        quantityDataEntity.setParameters(parameters);
+        // Set<ParameterEntity<?>> parameters = new HashSet<>(1);
+        // ParameterQuantityEntity parameterQuantity = new
+        // ParameterQuantityEntity();
+        // parameterQuantity.setUnit(verticalUnit);
+        // parameterQuantity.setName("depth");
+        // parameterQuantity.setValue(verticalValue);
+        // parameters.add(parameterQuantity);
+        // quantityDataEntity.setParameters(parameters);
         return quantityDataEntity;
     }
 
@@ -201,12 +192,12 @@ public class OceanotronSosConnector extends SOS2Connector {
 
     @Override
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-                               DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         if (sosCaps != null) {
             sosCaps.getContents().ifPresent(obsOffs -> {
                 obsOffs.stream()
-                        .filter(obsOff -> config.getAllowedOfferings() == null ||
-                                          config.getAllowedOfferings().contains(obsOff.getIdentifier()))
+                        .filter(obsOff -> config.getAllowedOfferings() == null
+                                || config.getAllowedOfferings().contains(obsOff.getIdentifier()))
                         .forEach(obsOff -> addElem(obsOff, serviceConstellation, config.getUrl()));
             });
         }
@@ -218,7 +209,7 @@ public class OceanotronSosConnector extends SOS2Connector {
         addMetadata(servConst.putOffering(offeringId, offeringId), obsOff);
 
         LOGGER.info("Harvest for Offering {} with {} procedure(s), {} observableProperperties", offeringId,
-                    obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
+                obsOff.getProcedures().size(), obsOff.getObservableProperties().size());
         obsOff.getProcedures().forEach((String procedureId) -> {
             LOGGER.info("Harvest Procedure {}", procedureId);
             SensorML sensorML = getDescribeSensorResponse(procedureId, url);
@@ -238,26 +229,24 @@ public class OceanotronSosConnector extends SOS2Connector {
         });
     }
 
-    private void addElem(SmlComponent component, String obsProp, String offeringId,
-                         ServiceConstellation servConst, String url) {
+    private void addElem(SmlComponent component, String obsProp, String offeringId, ServiceConstellation servConst,
+            String url) {
         final String procedureComponentId = component.getName();
         servConst.putProcedure(procedureComponentId, procedureComponentId, true, false);
         servConst.putPhenomenon(obsProp, obsProp);
         servConst.putCategory(obsProp, obsProp);
 
         LOGGER.info("Send getFOI request with procedure component {} and observedProperty {}", procedureComponentId,
-                    obsProp);
+                obsProp);
         GetFeatureOfInterestResponse response = getFeatureOfInterest(null, procedureComponentId, obsProp, url);
         if (response.getAbstractFeature() instanceof FeatureCollection) {
-            ((FeatureCollection) response.getAbstractFeature())
-                    .getMembers().forEach((String key, AbstractFeature feature) -> {
+            ((FeatureCollection) response.getAbstractFeature()).getMembers()
+                    .forEach((String key, AbstractFeature feature) -> {
                         String foiId = addAbstractFeature(feature, servConst);
                         // TODO maybe not only QuantityDatasetConstellation
                         if (foiId != null) {
-                            ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
-                                    procedureComponentId, offeringId,
-                                    obsProp,
-                                    foiId);
+                            ProfileDatasetConstellation profileDatasetConstellation =
+                                    new ProfileDatasetConstellation(procedureComponentId, offeringId, obsProp, foiId);
                             servConst.add(profileDatasetConstellation);
                         }
                     });
@@ -265,10 +254,8 @@ public class OceanotronSosConnector extends SOS2Connector {
             String foiId = addAbstractFeature(response.getAbstractFeature(), servConst);
             // TODO maybe not only QuantityDatasetConstellation
             if (foiId != null) {
-                ProfileDatasetConstellation profileDatasetConstellation = new ProfileDatasetConstellation(
-                        procedureComponentId, offeringId,
-                        obsProp,
-                        foiId);
+                ProfileDatasetConstellation profileDatasetConstellation =
+                        new ProfileDatasetConstellation(procedureComponentId, offeringId, obsProp, foiId);
                 servConst.add(profileDatasetConstellation);
             }
 

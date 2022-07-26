@@ -44,7 +44,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Datastream;
 import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Datastreams;
@@ -56,6 +55,7 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Observ
 import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Sensor;
 import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Thing;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -97,11 +97,10 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
         return Optional.of(createObservationBounds(entity, "desc"));
     }
 
-
     @Override
     public AbstractServiceConstellation getConstellation(ConnectorConfiguration connectorConfig) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
-        DataSourceConfiguration config = connectorConfig.getDataSourceConfiguration();
+        DataSourceJobConfiguration config = connectorConfig.getDataSourceJobConfiguration();
         config.setConnector(getConnectorName());
         serviceConstellation.setService(createService(config.getItemName(), "here goes description",
                 config.getConnector(), config.getUrl(), config.getVersion(), config.isSupportsFirstLast(), null));
@@ -132,16 +131,11 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
         Locations locations = (Locations) doGetRequest(datastream.getThing().getLocationsLink(), Locations.class);
         if (locations != null) {
             String featureId = addFeature(locations.getValue().get(0), serviceConstellation);
-            QuantityDatasetConstellation constellation = new QuantityDatasetConstellation(procedureId,
-                                                                                          offeringId,
-                                                                                          categoryId,
-                                                                                          phenomenonId,
-                                                                                          featureId,
-                                                                                          offeringId);
+            QuantityDatasetConstellation constellation = new QuantityDatasetConstellation(procedureId, offeringId,
+                    categoryId, phenomenonId, featureId, offeringId);
             constellation.setIdentifier(Integer.toString(datastream.getIotID()));
             constellation.setUnit(createUnit(datastream.getUnitOfMeasurement().getSymbol(),
-                                                           datastream.getUnitOfMeasurement().getDefinition(),
-                                                           serviceConstellation.getService()));
+                    datastream.getUnitOfMeasurement().getDefinition(), serviceConstellation.getService()));
             serviceConstellation.add(constellation);
         }
     }
@@ -169,15 +163,12 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
     }
 
     private List<DataEntity<?>> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
-        String entity = String.format("Datastreams(%s)/Observations?$filter=" +
-                                      "phenomenonTime%%20gt%%20'%s'" +
-                                      "%%20and%%20" +
-                                      "phenomenonTime%%20lt%%20'%s'",
-                                      seriesEntity.getIdentifier(),
-                                      start.toString(formatter),
-                                      end.toString(formatter));
-        Observations observations = (Observations) doGetRequest(seriesEntity.getService().getUrl(),
-                                                                entity, Observations.class);
+        String entity = String.format(
+                "Datastreams(%s)/Observations?$filter=" + "phenomenonTime%%20gt%%20'%s'" + "%%20and%%20"
+                        + "phenomenonTime%%20lt%%20'%s'",
+                seriesEntity.getIdentifier(), start.toString(formatter), end.toString(formatter));
+        Observations observations =
+                (Observations) doGetRequest(seriesEntity.getService().getUrl(), entity, Observations.class);
         List<DataEntity<?>> list = new LinkedList<>();
         addObservationsToList(observations, list);
         while (observations.getNextLink() != null) {
@@ -193,7 +184,7 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
 
     private DataEntity<?> createObservationBounds(DatasetEntity entity, String order) {
         String e = String.format("Datastreams(%s)/Observations?$orderby=phenomenonTime%%20%s&$top=1",
-                                 entity.getIdentifier(), order);
+                entity.getIdentifier(), order);
         Observations observations = (Observations) doGetRequest(entity.getService().getUrl(), e, Observations.class);
         if (observations.getValue().size() == 1) {
             return createObservation(observations.getValue().get(0));
@@ -224,8 +215,7 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
     private String addFeature(Location location, ServiceConstellation serviceConstellation) {
         String featureId = Integer.toString(location.getIotID());
         serviceConstellation.putFeature(featureId, location.getName(), null,
-                                        location.getLocation().getCoordinates().get(1),
-                                        location.getLocation().getCoordinates().get(0), 4326);
+                location.getLocation().getCoordinates().get(1), location.getLocation().getCoordinates().get(0), 4326);
         return featureId;
     }
 

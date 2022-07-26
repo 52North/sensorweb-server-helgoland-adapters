@@ -27,20 +27,20 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
 public class ConnectorConfiguration {
 
-    private DataSourceConfiguration dataSource;
+    private DataSourceJobConfiguration dataSource;
 
-    public ConnectorConfiguration(DataSourceConfiguration dataSource) {
+    public ConnectorConfiguration(DataSourceJobConfiguration dataSource) {
         this.dataSource = dataSource;
     }
 
-    public DataSourceConfiguration getDataSourceConfiguration() {
+    public DataSourceJobConfiguration getDataSourceJobConfiguration() {
         return dataSource;
     }
 }

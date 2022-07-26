@@ -34,9 +34,9 @@ import java.util.Optional;
 
 import org.n52.janmayen.function.Functions;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceMetadata;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -55,11 +55,13 @@ public class HydroSOSConnector extends SOS2Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
 
     @Override
-    public ServiceConstellation getConstellation(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
+    public ServiceConstellation getConstellation(DataSourceJobConfiguration config,
+            GetCapabilitiesResponse capabilities) {
         ServiceConstellation serviceConstellation = new ServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
-        addService(config, serviceConstellation, ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
+        addService(config, serviceConstellation,
+                ServiceMetadata.createXmlServiceMetadata(capabilities.getXmlString()));
         SosCapabilities sosCaps = (SosCapabilities) capabilities.getCapabilities();
         addBindingUrls(sosCaps, config);
         addServiceConfig(config);
@@ -70,10 +72,8 @@ public class HydroSOSConnector extends SOS2Connector {
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         // TODO set responseFormat and fix response enoding
-        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
-                .getObservationCollection().toStream()
-                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
-                .collect(toList());
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query)).getObservationCollection()
+                .toStream().map(Functions.currySecond(this::createDataEntity, seriesEntity)).collect(toList());
         LOGGER.info("Found {} Entries", data.size());
         return data;
     }

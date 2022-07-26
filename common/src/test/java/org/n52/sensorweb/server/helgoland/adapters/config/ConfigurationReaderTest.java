@@ -25,25 +25,32 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.config;
 
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
+import javax.inject.Inject;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP" })
-public class SosConnectorConfiguration extends ConnectorConfiguration {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {ConfigurationReader.class})
+public class ConfigurationReaderTest {
 
-    private GetCapabilitiesResponse capabilities;
+    @Inject
+    private ConfigurationReader reader;
 
-    public SosConnectorConfiguration(DataSourceJobConfiguration dataSource,
-            GetCapabilitiesResponse capabilitiesResponse) {
-        super(dataSource);
-        this.capabilities = capabilitiesResponse;
-    }
-
-    public GetCapabilitiesResponse getCapabilities() {
-        return capabilities;
+    @Test
+    public void test_configuration() {
+        Assertions.assertNotNull(reader.getDataSources());
+        Assertions.assertEquals(4, reader.getDataSources().size());
+        DataSourceConfiguration dsc = reader.getDataSources().get(0);
+        Assertions.assertNotNull(dsc.getJobs());
+        Assertions.assertEquals(2, dsc.getJobs().size());
+        DataSourceConfiguration dsc2 = reader.getDataSources().get(1);
+        Assertions.assertNotNull(dsc2.getJobs());
+        Assertions.assertEquals(1, dsc2.getJobs().size());
     }
 }

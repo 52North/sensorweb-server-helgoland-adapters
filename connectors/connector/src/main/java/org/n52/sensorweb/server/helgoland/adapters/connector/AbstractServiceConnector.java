@@ -33,9 +33,9 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceMetadata;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.OfferingEntity;
@@ -72,7 +72,7 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
         super();
     }
 
-    protected void addService(DataSourceConfiguration config, ServiceConstellation serviceConstellation,
+    protected void addService(DataSourceJobConfiguration config, ServiceConstellation serviceConstellation,
             ServiceMetadata serviceMetadata) {
         ServiceMetadataEntity serviceMetadataEntity = null;
         if (serviceMetadata != null) {

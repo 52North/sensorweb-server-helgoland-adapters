@@ -25,20 +25,19 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.config;
+package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.n52.bjornoya.schedule.JobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
-public class DataSourceConfiguration {
+public class DataSourceJobConfiguration extends JobConfiguration {
 
     private String itemName;
     private String url;
@@ -48,35 +47,10 @@ public class DataSourceConfiguration {
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private boolean supportsGDA;
-    private List<String> allowedOfferings;
-    private List<String> allowedSensors;
+    private Set<String> allowedOfferings = new LinkedHashSet<>();
+    private Set<String> allowedSensors = new LinkedHashSet<>();
     private Map<String, String> getUrls = new LinkedHashMap<>();
     private Map<String, String> postUrls = new LinkedHashMap<>();
-
-    private Set<JobConfiguration> jobs = new LinkedHashSet<>();
-
-    public Set<JobConfiguration> getJobs() {
-        return jobs;
-    }
-
-    public void setJobs(Set<JobConfiguration> jobs) {
-        this.jobs.clear();
-        if (jobs != null) {
-            this.jobs.addAll(jobs);
-        }
-    }
-
-    public void addJobs(Set<JobConfiguration> jobs) {
-        if (jobs != null) {
-            this.jobs.addAll(jobs);
-        }
-    }
-
-    public void addJobs(JobConfiguration job) {
-        if (job != null) {
-            this.jobs.add(job);
-        }
-    }
 
     public String getItemName() {
         return itemName;
@@ -142,26 +116,39 @@ public class DataSourceConfiguration {
         this.disableHumanReadableName = disableHumanReadableName;
     }
 
-    public List<String> getAllowedOfferings() {
-        return allowedOfferings;
+    public Set<String> getAllowedOfferings() {
+        return Collections.unmodifiableSet(allowedOfferings);
     }
 
-    public void setAllowedOfferings(List<String> allowedOfferings) {
-        this.allowedOfferings = allowedOfferings;
+    public void setAllowedOfferings(Collection<String> allowedOfferings) {
+        this.allowedOfferings.clear();
+        if (allowedOfferings != null) {
+            this.allowedOfferings.addAll(allowedOfferings);
+        }
     }
 
-    public List<String> getAllowedSensors() {
-        return allowedSensors;
+    public Set<String> getAllowedSensors() {
+        return Collections.unmodifiableSet(allowedSensors);
     }
 
-    public void setAllowedSensors(List<String> allowedSensors) {
-        this.allowedSensors = allowedSensors;
+    public void setAllowedSensors(Collection<String> allowedSensors) {
+        this.allowedSensors.clear();
+        if (allowedSensors != null) {
+            this.allowedSensors.addAll(allowedSensors);
+        }
     }
 
     @Override
     public String toString() {
-        return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url + ", version=" + version
+        return "DataSourceJobConfiguration{" + "itemName=" + itemName + ", url=" + url + ", version=" + version
                 + ", connector=" + connector + ", type=" + type + "}";
+    }
+
+    public void setGetUrls(Map<String, String> getUrls) {
+        this.getUrls.clear();
+        if (getUrls != null) {
+            this.getUrls.putAll(getUrls);
+        }
     }
 
     public void addGetUrls(String key, String value) {
@@ -169,7 +156,14 @@ public class DataSourceConfiguration {
     }
 
     public Map<String, String> getGetUrls() {
-        return getUrls;
+        return Collections.unmodifiableMap(getUrls);
+    }
+
+    public void setPostUrls(Map<String, String> postUrls) {
+        this.postUrls.clear();
+        if (postUrls != null) {
+            this.postUrls.putAll(postUrls);
+        }
     }
 
     public void addPostUrls(String key, String value) {
@@ -177,7 +171,30 @@ public class DataSourceConfiguration {
     }
 
     public Map<String, String> getPostUrls() {
-        return postUrls;
+        return Collections.unmodifiableMap(postUrls);
+    }
+
+    public static DataSourceJobConfiguration of(DataSourceConfiguration config, JobConfiguration job) {
+        DataSourceJobConfiguration dataSourceJobConfiguration = new DataSourceJobConfiguration();
+        dataSourceJobConfiguration.setItemName(config.getItemName());
+        dataSourceJobConfiguration.setUrl(config.getUrl());
+        dataSourceJobConfiguration.setVersion(config.getVersion());
+        dataSourceJobConfiguration.setConnector(config.getConnector());
+        dataSourceJobConfiguration.setType(config.getType());
+        dataSourceJobConfiguration.setSupportsFirstLast(config.isSupportsFirstLast());
+        dataSourceJobConfiguration.setDisableHumanReadableName(config.isDisableHumanReadableName());
+        dataSourceJobConfiguration.setSupportsGDA(config.isSupportsGDA());
+        dataSourceJobConfiguration.setAllowedOfferings(config.getAllowedOfferings());
+        dataSourceJobConfiguration.setAllowedSensors(config.getAllowedSensors());
+        dataSourceJobConfiguration.setGetUrls(config.getGetUrls());
+        dataSourceJobConfiguration.setPostUrls(config.getPostUrls());
+        dataSourceJobConfiguration.setCronExpression(job.getCronExpression());
+        dataSourceJobConfiguration.setEnabled(job.isEnabled());
+        dataSourceJobConfiguration.setTriggerAtStartup(job.isTriggerAtStartup());
+        dataSourceJobConfiguration.setModified(job.isModified());
+        dataSourceJobConfiguration.setJobType(job.getJobType());
+        dataSourceJobConfiguration.setName(config.getItemName() + " - " + job.getJobType());
+        return dataSourceJobConfiguration;
     }
 
 }

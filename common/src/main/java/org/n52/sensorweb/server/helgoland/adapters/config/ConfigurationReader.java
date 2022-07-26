@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
-public class ConfigurationReader {
+public class ConfigurationReader implements ConfigurationProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
 
@@ -55,7 +55,7 @@ public class ConfigurationReader {
         }
     }
 
-    public List<DataSourceConfiguration> getDataSource() {
+    public List<DataSourceConfiguration> getDataSources() {
         return intervalConfig.getDataSources();
     }
 

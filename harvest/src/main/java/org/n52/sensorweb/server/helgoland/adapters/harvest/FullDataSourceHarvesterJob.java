@@ -30,22 +30,12 @@ package org.n52.sensorweb.server.helgoland.adapters.harvest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.n52.bjornoya.schedule.FullHarvesterJob;
-import org.n52.bjornoya.schedule.JobConfiguration;
-import org.n52.bjornoya.schedule.ScheduledJob;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
-import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractConnector;
 import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
-import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfiguration;
-import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfigurationFactory;
 import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorRequestFailedException;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
-import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.DescribableEntity;
@@ -56,9 +46,6 @@ import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
@@ -71,52 +58,27 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressWarnings("SpringJavaAutowiredMembersInspection")
 @PersistJobDataAfterExecution
 @DisallowConcurrentExecution
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
-public class DataSourceHarvesterJob extends ScheduledJob implements FullHarvesterJob {
+@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+public class FullDataSourceHarvesterJob extends AbstractDataSourceHarvesterJob implements FullHarvesterJob {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvesterJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FullDataSourceHarvesterJob.class);
 
-    @Inject
-    private CRUDRepository crudRepository;
-    @Inject
-    private Optional<Set<HarvestingListener>> listeners;
-    @Inject
-    private Optional<Set<AbstractConnector>> connectors;
-    @Inject
-    private Set<ConnectorConfigurationFactory> connectorConfigurationFactory;
-
-    private DataSourceConfiguration config;
-
-    public DataSourceHarvesterJob() {
-    }
-
-    @Override
-    public JobDetail createJobDetails() {
-        JobDataMap dataMap = getJobDataMap();
-        dataMap.put(JOB_CONFIG, config);
-        return JobBuilder.newJob(DataSourceHarvesterJob.class).withIdentity(getJobName()).usingJobData(dataMap)
-                .build();
-    }
-
-    private DataSourceConfiguration recreateConfig(JobDataMap jobDataMap) {
-        return (DataSourceConfiguration) jobDataMap.get(JOB_CONFIG);
+    public FullDataSourceHarvesterJob() {
     }
 
     protected void process(JobExecutionContext context) throws JobExecutionException {
-        DataSourceConfiguration dataSource = recreateConfig(context.getJobDetail().getJobDataMap());
-        AbstractServiceConstellation result = determineConstellation(dataSource);
+        DataSourceJobConfiguration dataSourceJobConfiguration = getDataSourceJobConfiguration();
+        AbstractServiceConstellation result = determineConstellation(dataSourceJobConfiguration);
         try {
             if (result == null) {
-                LOGGER.warn("No connector found for {}", dataSource);
+                LOGGER.warn("No connector found for {}", dataSourceJobConfiguration);
             } else {
                 saveConstellation(result);
-                if (listeners.isPresent()) {
-                    for (HarvestingListener listener : listeners.get()) {
-                        try {
-                            listener.onResult(result);
-                        } catch (Throwable t) {
-                            LOGGER.warn("error executing listener " + listener, t);
-                        }
+                for (HarvestingListener listener : getHelper().getHarvestListener()) {
+                    try {
+                        listener.onResult(result);
+                    } catch (Throwable t) {
+                        LOGGER.warn("error executing listener " + listener, t);
                     }
                 }
             }
@@ -125,25 +87,13 @@ public class DataSourceHarvesterJob extends ScheduledJob implements FullHarveste
         }
     }
 
-    public void init(JobConfiguration initConfig) {
-        super.init(initConfig);
-        if (initConfig instanceof DataSourceConfiguration) {
-            DataSourceConfiguration dsc = (DataSourceConfiguration) initConfig;
-            setJobName(dsc.getItemName());
-        }
-    }
-
-    private void setConfig(DataSourceConfiguration initConfig) {
-        this.config = initConfig;
-    }
-
     @Transactional(rollbackFor = Exception.class)
     protected void saveConstellation(AbstractServiceConstellation abstractConstellation) {
         if (abstractConstellation instanceof ServiceConstellation) {
             ServiceConstellation constellation = (ServiceConstellation) abstractConstellation;
             // serviceEntity
-            ServiceEntity service = crudRepository.insertService(constellation.getService());
-            Set<Long> datasetIds = crudRepository.getIdsForService(service);
+            ServiceEntity service = getHelper().getCRUDRepository().insertService(constellation.getService());
+            Set<Long> datasetIds = getHelper().getCRUDRepository().getIdsForService(service);
             int datasetCount = datasetIds.size();
 
             // save all constellations
@@ -159,13 +109,14 @@ public class DataSourceHarvesterJob extends ScheduledJob implements FullHarveste
                         Arrays.asList(procedure, category, feature, offering, phenomenon, platform);
                 if (entities.stream().allMatch(Objects::nonNull)) {
                     entities.stream().forEach(x -> x.setService(service));
-                    DatasetEntity ds = crudRepository.insertDataset(dataset.createDatasetEntity(procedure, category,
-                            feature, offering, phenomenon, platform, service));
+                    DatasetEntity ds =
+                            getHelper().getCRUDRepository().insertDataset(dataset.createDatasetEntity(procedure,
+                                    category, feature, offering, phenomenon, platform, service));
                     if (ds != null) {
                         datasetIds.remove(ds.getId());
 
-                        dataset.getFirst().ifPresent(data -> crudRepository.insertData(ds, data));
-                        dataset.getLatest().ifPresent(data -> crudRepository.insertData(ds, data));
+                        dataset.getFirst().ifPresent(data -> getHelper().getCRUDRepository().insertData(ds, data));
+                        dataset.getLatest().ifPresent(data -> getHelper().getCRUDRepository().insertData(ds, data));
                         LOGGER.info("Added dataset: {}", dataset);
                     } else {
                         LOGGER.warn("Can't save dataset: {}", dataset);
@@ -175,30 +126,12 @@ public class DataSourceHarvesterJob extends ScheduledJob implements FullHarveste
                 }
             });
 
-            crudRepository.cleanUp(service, datasetIds, datasetCount > 0 && datasetIds.size() == datasetCount);
+            getHelper().getCRUDRepository().cleanUp(service, datasetIds,
+                    datasetCount > 0 && datasetIds.size() == datasetCount);
         }
     }
 
-    private AbstractServiceConstellation determineConstellation(DataSourceConfiguration dataSource) {
-        if (dataSource.getType() == null && connectors.isPresent()) {
-            return null;
-        }
-        for (ConnectorConfigurationFactory factory : connectorConfigurationFactory) {
-            if (factory.checkDatasource(dataSource)) {
-                try {
-                    return determineConstellation(factory.createConfiguration(dataSource));
-                } catch (JobExecutionException e) {
-                   LOGGER.error("Error while creating constellation!", e);
-                }
-            }
-        }
-        return null;
+    protected Class<FullDataSourceHarvesterJob> getClazz() {
+        return FullDataSourceHarvesterJob.class;
     }
-
-    private AbstractServiceConstellation determineConstellation(ConnectorConfiguration configuration) {
-        return this.connectors.get().stream()
-                .filter(connector -> connector.matches(configuration.getDataSourceConfiguration()))
-                .map(connector -> connector.getConstellation(configuration)).findFirst().orElse(null);
-    }
-
 }

@@ -25,25 +25,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.config;
 
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
+import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+public interface ConfigurationProvider {
 
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP" })
-public class SosConnectorConfiguration extends ConnectorConfiguration {
-
-    private GetCapabilitiesResponse capabilities;
-
-    public SosConnectorConfiguration(DataSourceJobConfiguration dataSource,
-            GetCapabilitiesResponse capabilitiesResponse) {
-        super(dataSource);
-        this.capabilities = capabilitiesResponse;
-    }
-
-    public GetCapabilitiesResponse getCapabilities() {
-        return capabilities;
-    }
+    List<DataSourceConfiguration> getDataSources();
 }

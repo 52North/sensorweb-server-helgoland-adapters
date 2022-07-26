@@ -34,31 +34,34 @@ import javax.inject.Inject;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.web.SimpleHttpClient;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.n52.svalbard.util.CodingHelper;
 import org.quartz.JobExecutionException;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SosConnectorConfigurationFactory implements ConnectorConfigurationFactory {
 
     @Inject
     private DecoderRepository decoderRepository;
 
     @Override
-    public ConnectorConfiguration createConfiguration(DataSourceConfiguration dataSource)
+    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
             throws JobExecutionException {
         return new SosConnectorConfiguration(dataSource, getCapabilities(dataSource));
     }
 
     @Override
-    public boolean checkDatasource(DataSourceConfiguration dataSource) {
+    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
         return dataSource.getType().equalsIgnoreCase("SOS");
     }
 
-    private GetCapabilitiesResponse getCapabilities(DataSourceConfiguration dataSource) throws JobExecutionException {
+    private GetCapabilitiesResponse getCapabilities(DataSourceJobConfiguration dataSource)
+            throws JobExecutionException {
         try {
             SimpleHttpClient simpleHttpClient = new SimpleHttpClient();
             String url = dataSource.getUrl();

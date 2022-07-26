@@ -48,10 +48,10 @@ import org.joda.time.DateTime;
 import org.n52.janmayen.http.HTTPHeaders;
 import org.n52.janmayen.http.MediaTypes;
 import org.n52.janmayen.http.QueryBuilder;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.DataEntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -140,20 +140,29 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
     }
 
     @Override
-    public AbstractServiceConstellation getConstellation(ConnectorConfiguration connectorConfig) {
-        if (connectorConfig instanceof SosConnectorConfiguration) {
-            return getConstellation(connectorConfig.getDataSourceConfiguration(),
-                    ((SosConnectorConfiguration) connectorConfig).getCapabilities());
+    public boolean matches(ConnectorConfiguration configuration) {
+        if (configuration instanceof SosConnectorConfiguration) {
+            return matches(configuration.getDataSourceJobConfiguration(),
+                    ((SosConnectorConfiguration) configuration).getCapabilities());
         }
-        return getConstellation(connectorConfig.getDataSourceConfiguration(), new GetCapabilitiesResponse());
+        return super.matches(configuration);
     }
 
-    public abstract ServiceConstellation getConstellation(DataSourceConfiguration config,
-            GetCapabilitiesResponse capabilities);
-
-    public boolean matches(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
+    public boolean matches(DataSourceJobConfiguration config, GetCapabilitiesResponse capabilities) {
         return config.getConnector() != null ? super.matches(config) : canHandle(config, capabilities);
     }
+
+    @Override
+    public AbstractServiceConstellation getConstellation(ConnectorConfiguration connectorConfig) {
+        if (connectorConfig instanceof SosConnectorConfiguration) {
+            return getConstellation(connectorConfig.getDataSourceJobConfiguration(),
+                    ((SosConnectorConfiguration) connectorConfig).getCapabilities());
+        }
+        return getConstellation(connectorConfig.getDataSourceJobConfiguration(), new GetCapabilitiesResponse());
+    }
+
+    public abstract ServiceConstellation getConstellation(DataSourceJobConfiguration config,
+            GetCapabilitiesResponse capabilities);
 
     public UnitEntity getUom(String procedure, String offering, String phenomenon, String feature,
             boolean supportsFirstLast, DateTime lastTimestamp, String serviceURL) {
@@ -239,7 +248,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
         }
     }
 
-    protected abstract boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities);
+    protected abstract boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse capabilities);
 
     protected DataEntity<?> createDataEntity(OmObservation observation, DatasetEntity seriesEntity) {
         if (ValueType.quantity.equals(seriesEntity.getValueType())) {
@@ -264,7 +273,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
 
     protected GetFeatureOfInterestResponse getFeatureOfInterest(String featureId, String procedureId, String obsProp,
             String serviceURL) {
-        DataSourceConfiguration config = getServiceConfig(serviceURL);
+        DataSourceJobConfiguration config = getServiceConfig(serviceURL);
         try {
             if (supportsKvp(config)) {
                 QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
@@ -297,7 +306,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
     }
 
     protected DescribeSensorResponse describeSensor(String procedureId, String format,
-            DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         try {
             if (supportsKvp(config)) {
                 QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
@@ -354,7 +363,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
 
     protected GetDataAvailabilityResponse getDataAvailability(String procedure, String offering, String phenomenon,
             String feature, String serviceURL) {
-        DataSourceConfiguration config = getServiceConfig(serviceURL);
+        DataSourceJobConfiguration config = getServiceConfig(serviceURL);
         try {
             QueryBuilder builder = new QueryBuilder(getKvpUrl(config));
             builder.add(OWSConstants.RequestParams.service, SosConstants.SOS);
@@ -418,7 +427,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
     }
 
     private GetObservationResponse getObservation(GetObservationRequest request, String serviceURL) {
-        DataSourceConfiguration config = getServiceConfig(serviceURL);
+        DataSourceJobConfiguration config = getServiceConfig(serviceURL);
         try {
             if (supportsPox(config)) {
                 return (GetObservationResponse) getSosResponseFor(request,
@@ -437,7 +446,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
 
     }
 
-    protected void addBindingUrls(SosCapabilities capabilities, DataSourceConfiguration config) {
+    protected void addBindingUrls(SosCapabilities capabilities, DataSourceJobConfiguration config) {
         Optional<OwsOperation> operation = capabilities.getOperationsMetadata()
                 .map(OwsOperationsMetadata::getOperations).map(Set::stream).orElseGet(Stream::empty)
                 .filter(o -> o.getName().equals(SosConstants.Operations.GetObservation.name())).findFirst();
@@ -490,19 +499,19 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
         }
     }
 
-    protected URL getKvpUrl(DataSourceConfiguration config) throws MalformedURLException {
+    protected URL getKvpUrl(DataSourceJobConfiguration config) throws MalformedURLException {
         return URI.create(config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
                 ? config.getGetUrls().get(MediaTypes.APPLICATION_KVP.toString())
                 : config.getGetUrls().get(DEFAULT)).toURL();
     }
 
-    protected URL getSoapUrl(DataSourceConfiguration config) throws MalformedURLException {
+    protected URL getSoapUrl(DataSourceJobConfiguration config) throws MalformedURLException {
         return URI.create(config.getPostUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString())
                 ? config.getPostUrls().get(MediaTypes.APPLICATION_SOAP_XML.toString())
                 : config.getPostUrls().get(DEFAULT)).toURL();
     }
 
-    protected URL getPoxUrl(DataSourceConfiguration config) throws MalformedURLException {
+    protected URL getPoxUrl(DataSourceJobConfiguration config) throws MalformedURLException {
         return URI.create(config.getPostUrls().containsKey(MediaTypes.APPLICATION_KVP.toString())
                 ? config.getPostUrls().get(MediaTypes.APPLICATION_KVP.toString())
                 : config.getPostUrls().containsKey(MediaTypes.APPLICATION_XML.toString())
@@ -511,28 +520,28 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
                 .toURL();
     }
 
-    protected boolean supportsKvp(DataSourceConfiguration config) {
+    protected boolean supportsKvp(DataSourceJobConfiguration config) {
         return !config.getGetUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
                 || config.getGetUrls().containsKey(MediaTypes.APPLICATION_KVP.toString()));
     }
 
-    protected boolean supportsSoap(DataSourceConfiguration config) {
+    protected boolean supportsSoap(DataSourceJobConfiguration config) {
         return !config.getPostUrls().isEmpty() && (config.getGetUrls().containsKey(DEFAULT)
                 || config.getPostUrls().containsKey(MediaTypes.APPLICATION_SOAP_XML.toString()));
     }
 
-    protected boolean supportsPox(DataSourceConfiguration config) {
+    protected boolean supportsPox(DataSourceJobConfiguration config) {
         return !config.getPostUrls().isEmpty() && (config.getGetUrls().containsKey(MediaTypes.TEXT_XML.toString())
                 || config.getPostUrls().containsKey(MediaTypes.APPLICATION_XML.toString()));
     }
 
-    protected void checkHumanReadableName(DataSourceConfiguration config, QueryBuilder builder) {
+    protected void checkHumanReadableName(DataSourceJobConfiguration config, QueryBuilder builder) {
         if (config.isDisableHumanReadableName()) {
             builder.add(RETURN_HUMAN_READABLE_NAME, false);
         }
     }
 
-    protected void checkHumanReadableName(DataSourceConfiguration config, OwsServiceRequest request) {
+    protected void checkHumanReadableName(DataSourceJobConfiguration config, OwsServiceRequest request) {
         if (config.isDisableHumanReadableName()) {
             SwesExtension<SweBoolean> ext = new SwesExtension<>();
             ext.setIdentifier(RETURN_HUMAN_READABLE_NAME);

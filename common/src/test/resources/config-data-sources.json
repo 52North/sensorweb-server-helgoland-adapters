@@ -9,7 +9,14 @@
 			"jobs": [{
 				"cronExpression": "0 0 0/1 * * ?",
 				"enabled": true,
-				"triggerAtStartup": true
+				"triggerAtStartup": true,
+				"jobType": "full"
+			},
+			{
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true,
+				"jobType": "temporal"
 			}]
 		},
 		{
@@ -20,7 +27,7 @@
 			"supportsFirstLast": true,
 			"jobs": [{
 				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": false,
+				"enabled": true,
 				"triggerAtStartup": false
 			}]
 		},

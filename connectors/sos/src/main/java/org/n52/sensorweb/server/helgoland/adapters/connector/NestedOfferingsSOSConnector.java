@@ -35,9 +35,9 @@ import java.util.Optional;
 import org.n52.janmayen.function.Functions;
 import org.n52.janmayen.function.Predicates;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -65,14 +65,13 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(NestedOfferingsSOSConnector.class);
 
     @Override
-    protected boolean canHandle(DataSourceConfiguration config, GetCapabilitiesResponse capabilities) {
+    protected boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse capabilities) {
         return false;
     }
 
     @Override
-    protected void doForOffering(SosObservationOffering obsOff,
-                                 ServiceConstellation serviceConstellation,
-                                 DataSourceConfiguration config) {
+    protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
+            DataSourceJobConfiguration config) {
         obsOff.getExtension(RelatedOfferingConstants.RELATED_OFFERINGS)
                 .filter(Predicates.instanceOf(RelatedOfferings.class))
                 .ifPresent(e -> addNestedOfferings((RelatedOfferings) e, serviceConstellation, config.getUrl()));
@@ -92,10 +91,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
-        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
-                .getObservationCollection().toStream()
-                .map(Functions.currySecond(this::createDataEntity, seriesEntity))
-                .collect(toList());
+        List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query)).getObservationCollection()
+                .toStream().map(Functions.currySecond(this::createDataEntity, seriesEntity)).collect(toList());
         LOGGER.info("Found {} Entries", data.size());
         return data;
     }
@@ -107,13 +104,13 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
     }
 
     private void addNestedOfferings(RelatedOfferings relatedOfferings, ServiceConstellation serviceConstellation,
-                                    String serviceUri) {
+            String serviceUri) {
         relatedOfferings.getValue().forEach(context -> {
             try {
                 ReferenceType relatedOffering = context.getRelatedOffering();
                 LOGGER.info("Fetch nested offerings for {}", relatedOffering.getTitle());
-                if (relatedOffering.getTitle().equalsIgnoreCase(
-                        "http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
+                if (relatedOffering.getTitle()
+                        .equalsIgnoreCase("http://ressource.brgm-rec.fr/obs/RawGeologicLogs/BSS000AAEU")) {
                     GetDataAvailabilityResponse response = getDataAvailabilityForOffering(relatedOffering.getHref());
                     response.getDataAvailabilities().forEach(dataAvail -> {
                         String procedureId = addProcedure(dataAvail, true, false, serviceConstellation);
@@ -130,8 +127,7 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         }
                         // TODO maybe not only QuantityDatasetConstellation
                         serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                                                                                  phenomenonId,
-                                                                                  featureId, featureId));
+                                phenomenonId, featureId, featureId));
                     });
                 }
             } catch (ProxyException ex) {

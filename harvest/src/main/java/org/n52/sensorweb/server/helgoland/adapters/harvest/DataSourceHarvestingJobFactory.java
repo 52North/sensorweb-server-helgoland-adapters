@@ -27,17 +27,17 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import static java.util.stream.Collectors.toSet;
-
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.n52.bjornoya.schedule.JobConfiguration;
 import org.n52.bjornoya.schedule.JobHandler;
 import org.n52.bjornoya.schedule.ScheduledJob;
 import org.n52.janmayen.lifecycle.Constructable;
-import org.n52.sensorweb.server.helgoland.adapters.config.ConfigurationReader;
+import org.n52.sensorweb.server.helgoland.adapters.config.ConfigurationProvider;
 import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class DataSourceHarvestingJobFactory implements Constructable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataSourceHarvestingJobFactory.class);
 
     @Inject
-    private ConfigurationReader configurationProvider;
+    private Set<ConfigurationProvider> configurationProviders;
     @Inject
     private CRUDRepository crudRepository;
     @Inject
@@ -55,19 +55,34 @@ public class DataSourceHarvestingJobFactory implements Constructable {
 
     @Override
     public void init() {
-        Set<DataSourceConfiguration> configuredServices = configurationProvider.getDataSource()
-                .stream()
-                .filter(t -> t.getJob().isEnabled())
-                .collect(toSet());
+        Set<DataSourceJobConfiguration> configuredServices = new LinkedHashSet<>();
+        for (ConfigurationProvider configurationProvider : configurationProviders) {
+            for (DataSourceConfiguration dataSourceConfiguration : configurationProvider.getDataSources()) {
+                for (JobConfiguration jobConfiguration : dataSourceConfiguration.getJobs()) {
+                    if (jobConfiguration.isEnabled()) {
+                        configuredServices
+                                .add(DataSourceJobConfiguration.of(dataSourceConfiguration, jobConfiguration));
+                    }
+                }
+
+            }
+        }
         crudRepository.removeNonMatchingServices(configuredServices);
 
-        Set<ScheduledJob> jobs = configurationProvider.getDataSource().stream()
+        Set<ScheduledJob> jobs = configuredServices.stream()
                 .peek(config -> LOGGER.info("{} {}", config.getItemName(), config.getUrl())).map(config -> {
-                    DataSourceHarvesterJob job = new DataSourceHarvesterJob();
+                    AbstractDataSourceHarvesterJob job = createJob(config);
                     job.init(config);
                     return job;
                 }).collect(Collectors.toSet());
         jobHandler.addScheduledJobs(jobs);
+    }
+
+    private AbstractDataSourceHarvesterJob createJob(DataSourceJobConfiguration config) {
+        if (config.getJobType().equals(JobConfiguration.JobType.temporal.name())) {
+            return new TemporalDataSourceHarvesterJob();
+        }
+        return new FullDataSourceHarvesterJob();
     }
 
 }

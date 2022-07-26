@@ -55,8 +55,8 @@ import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
 import org.n52.sensorweb.server.db.repositories.core.FormatRepository;
 import org.n52.sensorweb.server.db.repositories.core.ServiceRepository;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.test.CategoryBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.test.DatasetEntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.test.FeatureBuilder;
@@ -127,10 +127,10 @@ public class InsertRespositoryTest extends ProxyTestBase {
             assertThat(serviceRespository.findById(insertedService.getId()).isPresent());
             assertThat(serviceRespository.findByIdentifier("service").isPresent());
         });
-        DataSourceConfiguration dataSourceConfiguration = new DataSourceConfiguration();
+        DataSourceJobConfiguration dataSourceConfiguration = new DataSourceJobConfiguration();
         dataSourceConfiguration.setItemName("service");
         dataSourceConfiguration.setUrl("https://52north.org/service");
-        Set<DataSourceConfiguration> config = new LinkedHashSet<>();
+        Set<DataSourceJobConfiguration> config = new LinkedHashSet<>();
         config.add(dataSourceConfiguration);
         insertRespository.removeNonMatchingServices(config);
         assertAll("Deleted configured service", () -> {
@@ -138,7 +138,7 @@ public class InsertRespositoryTest extends ProxyTestBase {
             assertThat(serviceRespository.findByIdentifier("service").isPresent());
         });
         config.clear();
-        dataSourceConfiguration = new DataSourceConfiguration();
+        dataSourceConfiguration = new DataSourceJobConfiguration();
         dataSourceConfiguration.setItemName("dfgfdg");
         dataSourceConfiguration.setUrl("https://52north.org/sdgsg");
         config.add(dataSourceConfiguration);
@@ -158,10 +158,10 @@ public class InsertRespositoryTest extends ProxyTestBase {
             assertThat(serviceRespository.findById(insertedService.getId()).isPresent());
             assertThat(serviceRespository.findByIdentifier("service").isPresent());
         });
-        DataSourceConfiguration dataSourceConfiguration = new DataSourceConfiguration();
+        DataSourceJobConfiguration dataSourceConfiguration = new DataSourceJobConfiguration();
         dataSourceConfiguration.setItemName("dfgfdg");
         dataSourceConfiguration.setUrl("https://52north.org/sdgsg");
-        Set<DataSourceConfiguration> config = new LinkedHashSet<>();
+        Set<DataSourceJobConfiguration> config = new LinkedHashSet<>();
         config.add(dataSourceConfiguration);
         insertRespository.removeNonMatchingServices(config);
         assertAll("Deleted configured service", () -> {
@@ -221,10 +221,10 @@ public class InsertRespositoryTest extends ProxyTestBase {
                 ServiceBuilder.newService("service", "https://52north.org/service", "SOS 2.0.0").build());
         DatasetEntity dataset = createDatasetEntity(service);
         DatasetEntity insertedDataset = insertRespository.insertDataset(dataset);
-        DataSourceConfiguration dataSourceConfiguration = new DataSourceConfiguration();
+        DataSourceJobConfiguration dataSourceConfiguration = new DataSourceJobConfiguration();
         dataSourceConfiguration.setItemName("dfgfdg");
         dataSourceConfiguration.setUrl("https://52north.org/sdgsg");
-        Set<DataSourceConfiguration> config = new LinkedHashSet<>();
+        Set<DataSourceJobConfiguration> config = new LinkedHashSet<>();
         config.add(dataSourceConfiguration);
         insertRespository.removeNonMatchingServices(config);
         assertAll("Deleted dataset", () -> {

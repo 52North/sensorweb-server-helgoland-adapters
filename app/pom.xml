@@ -71,6 +71,26 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-connector</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-common</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-sos</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-sensorthings</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.n52.sensorweb-server.db-model</groupId>
             <artifactId>db-model-entities</artifactId>
             <scope>runtime</scope>

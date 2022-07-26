@@ -36,9 +36,9 @@ import java.util.Optional;
 import java.util.SortedSet;
 
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
-import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -78,7 +78,8 @@ public class UfzSos2Connector extends SOS2Connector {
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
         return Collections.emptyList();
-        // List<DataEntity<?>> data = getObservation(seriesEntity, createTimeFilter(query))
+        // List<DataEntity<?>> data = getObservation(seriesEntity,
+        // createTimeFilter(query))
         // .getObservationCollection().toStream()
         // .map(Functions.currySecond(this::createDataEntity, seriesEntity))
         // .collect(toList());
@@ -104,129 +105,116 @@ public class UfzSos2Connector extends SOS2Connector {
 
     @Override
     protected void addDatasets(ServiceConstellation serviceConstellation, SosCapabilities sosCaps,
-                               DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         this.featureCache.clear();
         super.addDatasets(serviceConstellation, sosCaps, config);
     }
 
     @Override
     protected void doForOffering(SosObservationOffering obsOff, ServiceConstellation serviceConstellation,
-                                 DataSourceConfiguration config) {
+            DataSourceJobConfiguration config) {
         String offeringId = addOffering(obsOff, serviceConstellation);
 
-        obsOff.getProcedures().stream()
-            .filter(procedureId -> {
-                for (String sensor : config.getAllowedSensors()) {
-                    if (procedureId.endsWith(sensor)) {
-                        return true;
-                    }
+        obsOff.getProcedures().stream().filter(procedureId -> {
+            for (String sensor : config.getAllowedSensors()) {
+                if (procedureId.endsWith(sensor)) {
+                    return true;
                 }
-                return false;
-            })
-            .forEach(procedureId -> {
-                try {
-                    String format = getFormat(obsOff.getProcedureDescriptionFormats());
-                    DescribeSensorResponse dsr = describeSensor(procedureId, format, config);
-                    if (dsr.isSetProcedureDescriptions()) {
-                        for (SosProcedureDescription<?> pd : dsr.getProcedureDescriptions()) {
-                            if (format.equals(SensorML20Constants.NS_SML_20)) {
-                                if (pd.getProcedureDescription() instanceof PhysicalSystem) {
-                                    PhysicalSystem ps = (PhysicalSystem) pd.getProcedureDescription();
-                                    String categoryId = getCategory(ps, serviceConstellation);
-                                    String featureId = getFeatureId(ps, config, serviceConstellation);
-                                    String platformId = getPlatformId(ps, serviceConstellation);
-                                    if (ps.isSetComponents()) {
-                                        // Set<String> children = new LinkedHashSet<>();
-                                        for (SmlComponent component : ps.getComponents()) {
-                                            if (component.isSetProcess()) {
-                                                AbstractProcess process = (AbstractProcess) component.getProcess();
-                                                String componentName = checkForName(process);
-                                                String componentId = addProcedure(
-                                                    component.getName().replaceAll("_", ":"),
+            }
+            return false;
+        }).forEach(procedureId -> {
+            try {
+                String format = getFormat(obsOff.getProcedureDescriptionFormats());
+                DescribeSensorResponse dsr = describeSensor(procedureId, format, config);
+                if (dsr.isSetProcedureDescriptions()) {
+                    for (SosProcedureDescription<?> pd : dsr.getProcedureDescriptions()) {
+                        if (format.equals(SensorML20Constants.NS_SML_20)) {
+                            if (pd.getProcedureDescription() instanceof PhysicalSystem) {
+                                PhysicalSystem ps = (PhysicalSystem) pd.getProcedureDescription();
+                                String categoryId = getCategory(ps, serviceConstellation);
+                                String featureId = getFeatureId(ps, config, serviceConstellation);
+                                String platformId = getPlatformId(ps, serviceConstellation);
+                                if (ps.isSetComponents()) {
+                                    // Set<String> children = new
+                                    // LinkedHashSet<>();
+                                    for (SmlComponent component : ps.getComponents()) {
+                                        if (component.isSetProcess()) {
+                                            AbstractProcess process = (AbstractProcess) component.getProcess();
+                                            String componentName = checkForName(process);
+                                            String componentId = addProcedure(component.getName().replaceAll("_", ":"),
                                                     componentName != null ? componentName : process.getIdentifier(),
-                                                    true,
-                                                    false,
-                                                    serviceConstellation);
-                                                // children.add(componentId);
-                                                for (SmlIo outputs : process.getOutputs()) {
-                                                    SweAbstractDataComponent ioValue = outputs.getIoValue();
-                                                    if (ioValue instanceof SweQuantity) {
-                                                        SweQuantity q = (SweQuantity) ioValue;
-                                                        String phenomenonId =
-                                                            addPhenomenon(q.getDefinition(), q.getLabel(),
-                                                                          serviceConstellation);
-                                                        UnitEntity unit =
-                                                            createUnit(q.getUom(), q.getUom());
-                                                        QuantityDatasetConstellation constellation =
-                                                            new QuantityDatasetConstellation(
-                                                                componentId,
-                                                                offeringId,
-                                                                categoryId,
-                                                                phenomenonId,
-                                                                featureId,
-                                                                platformId);
-                                                        constellation.setUnit(unit);
-                                                        setPhenomenonTime(obsOff, constellation);
-                                                        serviceConstellation.add(constellation);
-                                                    }
+                                                    true, false, serviceConstellation);
+                                            // children.add(componentId);
+                                            for (SmlIo outputs : process.getOutputs()) {
+                                                SweAbstractDataComponent ioValue = outputs.getIoValue();
+                                                if (ioValue instanceof SweQuantity) {
+                                                    SweQuantity q = (SweQuantity) ioValue;
+                                                    String phenomenonId = addPhenomenon(q.getDefinition(),
+                                                            q.getLabel(), serviceConstellation);
+                                                    UnitEntity unit = createUnit(q.getUom(), q.getUom());
+                                                    QuantityDatasetConstellation constellation =
+                                                            new QuantityDatasetConstellation(componentId, offeringId,
+                                                                    categoryId, phenomenonId, featureId, platformId);
+                                                    constellation.setUnit(unit);
+                                                    setPhenomenonTime(obsOff, constellation);
+                                                    serviceConstellation.add(constellation);
                                                 }
                                             }
                                         }
-                                    } else {
-                                        String name = checkForName(ps);
-                                        String procId = addProcedure(ps.getIdentifier(),
-                                                                     name != null ? name : ps.getIdentifier(),
-                                                                     true,
-                                                                     false,
-                                                                     serviceConstellation);
-                                        for (SmlIo outputs : ps.getOutputs()) {
-                                            SweAbstractDataComponent ioValue = outputs.getIoValue();
-                                            if (ioValue instanceof SweQuantity) {
-                                                SweQuantity q = (SweQuantity) ioValue;
-                                                String phenomenonId =
-                                                    addPhenomenon(q.getDefinition(),
-                                                                  q.getLabel(),
-                                                                  serviceConstellation);
-                                                serviceConstellation.add(new QuantityDatasetConstellation(procId,
-                                                                                                          offeringId,
-                                                                                                          categoryId,
-                                                                                                          phenomenonId,
-                                                                                                          featureId,
-                                                                                                          featureId));
-                                            }
+                                    }
+                                } else {
+                                    String name = checkForName(ps);
+                                    String procId =
+                                            addProcedure(ps.getIdentifier(), name != null ? name : ps.getIdentifier(),
+                                                    true, false, serviceConstellation);
+                                    for (SmlIo outputs : ps.getOutputs()) {
+                                        SweAbstractDataComponent ioValue = outputs.getIoValue();
+                                        if (ioValue instanceof SweQuantity) {
+                                            SweQuantity q = (SweQuantity) ioValue;
+                                            String phenomenonId = addPhenomenon(q.getDefinition(), q.getLabel(),
+                                                    serviceConstellation);
+                                            serviceConstellation.add(new QuantityDatasetConstellation(procId,
+                                                    offeringId, categoryId, phenomenonId, featureId, featureId));
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                } catch (Exception e) {
-                    LOGGER.error(String.format("Error while harvesting offering '%s'!", offeringId), e);
                 }
+            } catch (Exception e) {
+                LOGGER.error(String.format("Error while harvesting offering '%s'!", offeringId), e);
+            }
 
-                // getchilds
-                // add parent^
-                // add childs
-                // getfois check cache
-                // addProcedure(procedureId, true, false, serviceConstellation);
-                // obsOff.getObservableProperties().forEach(phenomenonId -> {
-                // addPhenomenon(phenomenonId, serviceConstellation);
-                // String categoryId = addCategory(phenomenonId, serviceConstellation);
-                //
-                // GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestByProcedure(procedureId,
-                // config.getUrl());
-                // AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                // if (abstractFeature instanceof FeatureCollection) {
-                // FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
-                // featureCollection.getMembers().forEach((key, feature) -> {
-                // String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
-                // // TODO maybe not only QuantityDatasetConstellation
-                // serviceConstellation.add(new QuantityDatasetConstellation(procedureId, offeringId, categoryId,
-                // phenomenonId, featureId, featureId));
-                // });
-                // }
-                // });
-            });
+            // getchilds
+            // add parent^
+            // add childs
+            // getfois check cache
+            // addProcedure(procedureId, true, false, serviceConstellation);
+            // obsOff.getObservableProperties().forEach(phenomenonId -> {
+            // addPhenomenon(phenomenonId, serviceConstellation);
+            // String categoryId = addCategory(phenomenonId,
+            // serviceConstellation);
+            //
+            // GetFeatureOfInterestResponse foiResponse =
+            // getFeatureOfInterestByProcedure(procedureId,
+            // config.getUrl());
+            // AbstractFeature abstractFeature =
+            // foiResponse.getAbstractFeature();
+            // if (abstractFeature instanceof FeatureCollection) {
+            // FeatureCollection featureCollection = (FeatureCollection)
+            // abstractFeature;
+            // featureCollection.getMembers().forEach((key, feature) -> {
+            // String featureId = addFeature((AbstractSamplingFeature) feature,
+            // serviceConstellation);
+            // // TODO maybe not only QuantityDatasetConstellation
+            // serviceConstellation.add(new
+            // QuantityDatasetConstellation(procedureId, offeringId, categoryId,
+            // phenomenonId, featureId, featureId));
+            // });
+            // }
+            // });
+        });
     }
 
     private String checkForName(AbstractProcess process) {
@@ -259,11 +247,11 @@ public class UfzSos2Connector extends SOS2Connector {
                 if (characteristics.getName().equalsIgnoreCase("loggerType")) {
                     for (SmlCharacteristic characteristic : characteristics.getCharacteristic()) {
                         if (characteristic.getName().equalsIgnoreCase("loggerTypeName")
-                            && characteristic.getAbstractDataComponent().getDefinition()
-                            .equalsIgnoreCase("urn:ogc:def:characteristic:OGC:loggerTypeName")
-                            && characteristic.getAbstractDataComponent() instanceof SweText) {
+                                && characteristic.getAbstractDataComponent().getDefinition()
+                                        .equalsIgnoreCase("urn:ogc:def:characteristic:OGC:loggerTypeName")
+                                && characteristic.getAbstractDataComponent() instanceof SweText) {
                             return addCategory(((SweText) characteristic.getAbstractDataComponent()).getValue(),
-                                               serviceConstellation);
+                                    serviceConstellation);
                         }
                     }
                 }
@@ -276,8 +264,8 @@ public class UfzSos2Connector extends SOS2Connector {
         return addPlatform(ps.getIdentifier(), checkForName(ps), ps.getDescription(), serviceConstellation);
     }
 
-    private String getFeatureId(AbstractProcessV20 ap, DataSourceConfiguration config,
-                                ServiceConstellation serviceConstellation) {
+    private String getFeatureId(AbstractProcessV20 ap, DataSourceJobConfiguration config,
+            ServiceConstellation serviceConstellation) {
         if (ap.isSetSmlFeatureOfInterest() && ap.getSmlFeatureOfInterest().isSetFeatures()) {
             for (String identifier : ap.getSmlFeatureOfInterest().getFeaturesOfInterest()) {
                 GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(identifier, config.getUrl());
@@ -290,7 +278,7 @@ public class UfzSos2Connector extends SOS2Connector {
 
     private String getFormat(SortedSet<String> formats) {
         return formats.contains(SensorML20Constants.NS_SML_20) ? SensorML20Constants.NS_SML_20
-            : formats.contains(SensorML20Constants.NS_SML) ? SensorML20Constants.NS_SML
-            : formats.stream().findFirst().orElse(SensorML20Constants.NS_SML_20);
+                : formats.contains(SensorML20Constants.NS_SML) ? SensorML20Constants.NS_SML
+                        : formats.stream().findFirst().orElse(SensorML20Constants.NS_SML_20);
     }
 }
