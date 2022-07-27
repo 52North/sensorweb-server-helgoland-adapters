@@ -27,7 +27,11 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,16 +47,25 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressFBWarnings({ "EI_EXPOSE_REP" })
 public class DataSourceHarvesterHelper {
 
-    private Set<HarvestingListener> listeners = new LinkedHashSet<>();
-    private Set<AbstractConnector> connectors = new LinkedHashSet<>();
-
     @Inject
     private CRUDRepository crudRepository;
-    @Inject
-    private Set<ConnectorConfigurationFactory> connectorConfigurationFactory;
+    private Set<HarvestingListener> listeners = new LinkedHashSet<>();
+    private Set<AbstractConnector> connectors = new LinkedHashSet<>();
+    private Set<ConnectorConfigurationFactory> connectorConfigurationFactories = new LinkedHashSet<>();
+    private Map<String, TemporalHarvester> temporalHarvester = new LinkedHashMap<>();
+    private Map<String, FullHarvester> fullHarvester = new LinkedHashMap<>();
 
     @Inject
-    private void setHarvestingListeners(Optional<Set<HarvestingListener>> listeners) {
+    private void setConnectorConfigurationFactories(
+            Collection<ConnectorConfigurationFactory> connectorConfigurationFactories) {
+        this.connectorConfigurationFactories.clear();
+        if (connectorConfigurationFactories != null) {
+            this.connectorConfigurationFactories.addAll(connectorConfigurationFactories);
+        }
+    }
+
+    @Inject
+    private void setHarvestingListeners(Optional<Collection<HarvestingListener>> listeners) {
         this.listeners.clear();
         if (listeners.isPresent()) {
             this.listeners.addAll(listeners.get());
@@ -60,7 +73,27 @@ public class DataSourceHarvesterHelper {
     }
 
     @Inject
-    private void setAbstractConnectors(Optional<Set<AbstractConnector>> connectors) {
+    private void setTemporalHarvester(Collection<TemporalHarvester> harvesters) {
+        this.temporalHarvester.clear();
+        if (harvesters != null) {
+            for (TemporalHarvester harvester : harvesters) {
+                this.temporalHarvester.put(harvester.getClass().getName(), harvester);
+            }
+        }
+    }
+
+    @Inject
+    private void setFullHarvester(Collection<FullHarvester> harvesters) {
+        this.fullHarvester.clear();
+        if (harvesters != null) {
+            for (FullHarvester harvester : harvesters) {
+                this.fullHarvester.put(harvester.getClass().getName(), harvester);
+            }
+        }
+    }
+
+    @Inject
+    private void setAbstractConnectors(Optional<Collection<AbstractConnector>> connectors) {
         this.connectors.clear();
         if (connectors.isPresent()) {
             this.connectors.addAll(connectors.get());
@@ -85,16 +118,12 @@ public class DataSourceHarvesterHelper {
     }
 
     public Set<ConnectorConfigurationFactory> getConnectorConfigurationFactory() {
-        return connectorConfigurationFactory;
+        return Collections.unmodifiableSet(connectorConfigurationFactories);
     }
 
     public Set<HarvestingListener> getHarvestListener() {
         return listeners;
     }
-
-//    public Optional<AbstractConnector> getConnector(String name) {
-//        return this.connectors.stream().filter(connector -> connector.matches(name)).findFirst();
-//    }
 
     public Optional<AbstractConnector> getConnector(DataSourceJobConfiguration dataSourceConfiguration) {
         return this.connectors.stream().filter(connector -> connector.matches(dataSourceConfiguration)).findFirst();
@@ -102,6 +131,14 @@ public class DataSourceHarvesterHelper {
 
     public Optional<AbstractConnector> getConnector(ConnectorConfiguration configuration) {
         return this.connectors.stream().filter(connector -> connector.matches(configuration)).findFirst();
+    }
+
+    public TemporalHarvester getTemporalHarvester(String name) {
+        return temporalHarvester.get(name);
+    }
+
+    public FullHarvester getFullHarvester(String name) {
+        return fullHarvester.get(name);
     }
 
 }

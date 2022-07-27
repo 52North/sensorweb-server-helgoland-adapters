@@ -52,6 +52,8 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.Quan
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.DataEntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultFullHarvester;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultTemporalHarvester;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.UnitEntity;
@@ -170,6 +172,11 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
                 createFirstTimefilter(supportsFirstLast, lastTimestamp), serviceURL);
         return response.getObservationCollection().toStream().findFirst().map(o -> o.getValue().getValue().getUnit())
                 .map(unit -> createUnit(unit, null)).orElse(null);
+    }
+
+    protected ServiceConstellation getServiceConstellation() {
+        return new ServiceConstellation(DefaultFullHarvester.class.getName(),
+                DefaultTemporalHarvester.class.getName());
     }
 
     protected Object getSosResponseFor(String uri) {

@@ -13,4 +13,6 @@
     <bean name="crudRepository" class="org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository"/>
     <bean name="dataSourceHarvesterHelper" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceHarvesterHelper"/>
 	<bean name="dataSourceHarvestingJobFactory" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceHarvestingJobFactory" init-method="init"/>
+	<bean name="defaultFullHarvester" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultFullHarvester"/>
+	<bean name="defaultTemporalHarvester" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultTemporalHarvester"/>
 </beans>

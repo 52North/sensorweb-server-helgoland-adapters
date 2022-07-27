@@ -25,40 +25,28 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.test;
 
-import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
-import org.n52.series.db.beans.ServiceEntity;
+import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfigurationFactory;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
+import org.quartz.JobExecutionException;
+import org.springframework.stereotype.Component;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+@Component
+public class DummyConnectorConfigurationFactory implements ConnectorConfigurationFactory {
 
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
-public abstract class AbstractServiceConstellation implements EntityBuilder {
-
-    private final String temporalHarvester;
-    private final String fullHarvester;
-    // service
-    private ServiceEntity service;
-
-    public AbstractServiceConstellation(String fullHarvester, String temporalHarvester) {
-        this.fullHarvester = fullHarvester;
-        this.temporalHarvester = temporalHarvester;
+    @Override
+    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
+        // TODO Auto-generated method stub
+        return false;
     }
 
-    public void setService(ServiceEntity service) {
-        this.service = service;
-    }
-
-    public ServiceEntity getService() {
-        return service;
-    }
-
-    public String getTemporalHarvester() {
-        return temporalHarvester;
-    }
-
-    public String getFullHarvester() {
-        return fullHarvester;
+    @Override
+    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
+            throws JobExecutionException {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

@@ -25,40 +25,36 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
-import org.n52.series.db.beans.ServiceEntity;
+import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
+import org.quartz.JobDataMap;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
-public abstract class AbstractServiceConstellation implements EntityBuilder {
+@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+public class HarvestContext {
 
-    private final String temporalHarvester;
-    private final String fullHarvester;
-    // service
-    private ServiceEntity service;
+    private AbstractServiceConstellation constellation;
 
-    public AbstractServiceConstellation(String fullHarvester, String temporalHarvester) {
-        this.fullHarvester = fullHarvester;
-        this.temporalHarvester = temporalHarvester;
+    private JobDataMap jobDataMap;
+
+    public HarvestContext(AbstractServiceConstellation constellation) {
+        this(constellation, null);
     }
 
-    public void setService(ServiceEntity service) {
-        this.service = service;
+    public HarvestContext(AbstractServiceConstellation constellation, JobDataMap jobDataMap) {
+        this.constellation = constellation;
+        this.jobDataMap = jobDataMap;
     }
 
-    public ServiceEntity getService() {
-        return service;
+    public AbstractServiceConstellation getConstellation() {
+        return constellation;
     }
 
-    public String getTemporalHarvester() {
-        return temporalHarvester;
+    public JobDataMap getJobDataMap() {
+        return jobDataMap;
     }
 
-    public String getFullHarvester() {
-        return fullHarvester;
-    }
 
 }

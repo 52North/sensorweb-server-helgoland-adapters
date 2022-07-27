@@ -57,7 +57,7 @@ public class HydroSOSConnector extends SOS2Connector {
     @Override
     public ServiceConstellation getConstellation(DataSourceJobConfiguration config,
             GetCapabilitiesResponse capabilities) {
-        ServiceConstellation serviceConstellation = new ServiceConstellation();
+        ServiceConstellation serviceConstellation = getServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation,

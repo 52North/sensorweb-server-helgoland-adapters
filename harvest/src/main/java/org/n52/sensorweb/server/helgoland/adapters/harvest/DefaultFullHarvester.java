@@ -32,9 +32,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.n52.bjornoya.schedule.FullHarvesterJob;
-import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
-import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorRequestFailedException;
+import javax.inject.Inject;
+
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -45,52 +44,26 @@ import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.PersistJobDataAfterExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+public class DefaultFullHarvester implements FullHarvester {
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
-@PersistJobDataAfterExecution
-@DisallowConcurrentExecution
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
-public class FullDataSourceHarvesterJob extends AbstractDataSourceHarvesterJob implements FullHarvesterJob {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFullHarvester.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FullDataSourceHarvesterJob.class);
+    @Inject
+    private DataSourceHarvesterHelper helper;
 
-    public FullDataSourceHarvesterJob() {
+    protected DataSourceHarvesterHelper getHelper() {
+        return helper;
     }
 
-    protected void process(JobExecutionContext context) throws JobExecutionException {
-        DataSourceJobConfiguration dataSourceJobConfiguration = getDataSourceJobConfiguration();
-        AbstractServiceConstellation result = determineConstellation(dataSourceJobConfiguration);
-        try {
-            if (result == null) {
-                LOGGER.warn("No connector found for {}", dataSourceJobConfiguration);
-            } else {
-                saveConstellation(result);
-                for (HarvestingListener listener : getHelper().getHarvestListener()) {
-                    try {
-                        listener.onResult(result);
-                    } catch (Throwable t) {
-                        LOGGER.warn("error executing listener " + listener, t);
-                    }
-                }
-            }
-        } catch (ConnectorRequestFailedException ex) {
-            throw new JobExecutionException(ex);
-        }
-    }
-
+    @Override
     @Transactional(rollbackFor = Exception.class)
-    protected void saveConstellation(AbstractServiceConstellation abstractConstellation) {
-        if (abstractConstellation instanceof ServiceConstellation) {
-            ServiceConstellation constellation = (ServiceConstellation) abstractConstellation;
+    public void harvest(HarvestContext context) {
+        if (context.getConstellation() instanceof ServiceConstellation) {
+            ServiceConstellation constellation = (ServiceConstellation) context.getConstellation();
             // serviceEntity
             ServiceEntity service = getHelper().getCRUDRepository().insertService(constellation.getService());
             Set<Long> datasetIds = getHelper().getCRUDRepository().getIdsForService(service);
@@ -131,7 +104,4 @@ public class FullDataSourceHarvesterJob extends AbstractDataSourceHarvesterJob i
         }
     }
 
-    protected Class<FullDataSourceHarvesterJob> getClazz() {
-        return FullDataSourceHarvesterJob.class;
-    }
 }

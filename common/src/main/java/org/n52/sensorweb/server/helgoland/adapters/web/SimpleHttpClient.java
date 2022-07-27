@@ -29,21 +29,47 @@ package org.n52.sensorweb.server.helgoland.adapters.web;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.entity.ContentType;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.cache.CachingHttpClients;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.util.EntityUtils;
 import org.apache.xmlbeans.XmlObject;
+import org.n52.janmayen.http.MediaType;
+import org.n52.janmayen.http.MediaTypes;
+import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
+import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractDeleteRequest;
+import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractGetRequest;
+import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractPostRequest;
+import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractRequest;
+import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
+import org.n52.shetland.util.CollectionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +81,16 @@ public class SimpleHttpClient implements HttpClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-    private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", StandardCharsets.UTF_8);
+//    private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", StandardCharsets.UTF_8);
     private static final RetryPolicy<HttpResponse> RETRY_POLICY = new RetryPolicy<HttpResponse>()
             .withDelay(10, 900, ChronoUnit.SECONDS)
             .handle(ConnectException.class);
     private CloseableHttpClient httpclient;
     private int connectionTimeout;
     private int socketTimeout;
+    private String proxyHost;
+    private String proxyPort;
+    private boolean proxySslKey;
 
     /**
      * Creates an instance with <code>timeout = {@value #DEFAULT_CONNECTION_TIMEOUT}</code> ms.
@@ -96,23 +125,162 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
+    public Response execute(URI url, AbstractRequest request) throws ProxyException {
+        if (request instanceof AbstractGetRequest) {
+            return doGet(url, (AbstractGetRequest) request);
+        } else if (request instanceof AbstractPostRequest) {
+            return doPost(url, (AbstractPostRequest<?>) request);
+        } else if (request instanceof AbstractDeleteRequest) {
+            return doDelete(url, (AbstractDeleteRequest) request);
+        }
+        throw new ProxyException("The request type '%s' is unknown!", request.getClass()
+                .getTypeName());
+    }
+
+    protected Response doGet(URI url, AbstractGetRequest request) throws ProxyException {
+        try {
+            HttpGet httpGet = new HttpGet(getGetUrl(url, request.getPath(), request.getQueryParameters()));
+            if (request.hasHeader()) {
+                for (Entry<String, String> entry : request.getHeader()
+                        .entrySet()) {
+                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            logRequest(getGetUrl(url, request.getPath(), request.getQueryParameters()));
+            return getContent(executeHttpRequest(httpGet));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doGet(URI url, String path, Map<String, String> header, Map<String, String> parameter)
+            throws ProxyException {
+        try {
+            HttpGet httpGet = new HttpGet(getGetUrl(url, path, parameter));
+            if (CollectionHelper.isNotEmpty(header)) {
+                for (Entry<String, String> entry : header.entrySet()) {
+                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            logRequest(getGetUrl(url, path, parameter));
+            return getContent(executeHttpRequest(httpGet));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doPost(URI url, AbstractPostRequest<?> request) throws ProxyException {
+        try {
+            HttpPost httpPost = new HttpPost(getPathUrl(url, request.getPath()));
+            if (request.hasHeader()) {
+                for (Entry<String, String> entry : request.getHeader()
+                        .entrySet()) {
+                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            String content = request.getContent();
+            logRequest(content);
+            httpPost.setEntity(new StringEntity(content));
+            return getContent(executeHttpRequest(httpPost));
+        } catch (IOException | URISyntaxException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doPost(URI url, String content, MediaType contentType) throws ProxyException {
+        try {
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader(HttpHeaders.CONTENT_TYPE, contentType.toString());
+            logRequest(content);
+            httpPost.setEntity(new StringEntity(content));
+            return getContent(executeHttpRequest(httpPost));
+        } catch (IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doDelete(URI url, AbstractDeleteRequest request) throws ProxyException {
+        try {
+            HttpDelete httpDelete = new HttpDelete(getPathUrl(url, request.getPath()));
+            logRequest(getPathUrl(url, request.getPath()));
+            return getContent(executeHttpRequest(httpDelete));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    private CloseableHttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+        int counter = 4;
+        CloseableHttpResponse response = null;
+        long start = System.currentTimeMillis();
+        do {
+            response = Failsafe.with(RETRY_POLICY)
+                    .onFailure(ex -> LOGGER.warn("Could not connect to host; retrying", ex))
+                    .get(() -> getClient().execute(request));
+        } while (response == null && counter >= 0);
+
+        LOGGER.trace("Querying took {} ms!", System.currentTimeMillis() - start);
+        return response;
+    }
+
+    private CloseableHttpClient getClient() {
+        return httpclient;
+    }
+
+    private Response getContent(CloseableHttpResponse response) throws IOException {
+        try {
+            return response != null ? new Response(response.getStatusLine()
+                    .getStatusCode(),
+                    response.getEntity() != null ? EntityUtils.toString(response.getEntity(), "UTF-8") : null)
+                    : new Response(200, null);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    private URI getGetUrl(URI url, Map<String, String> parameters) throws URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(url, StandardCharsets.UTF_8);
+        if (CollectionHelper.isNotEmpty(parameters)) {
+            for (Entry<String, String> entry : parameters.entrySet()) {
+                uriBuilder.addParameter(entry.getKey(), entry.getValue());
+            }
+        }
+        URI uri = uriBuilder.build();
+        return uri;
+    }
+
+    private URI getGetUrl(URI url, String path, Map<String, String> parameters) throws URISyntaxException {
+        return getGetUrl(getPathUrl(url, path), parameters);
+    }
+
+    private URI getPathUrl(URI url, String path) throws URISyntaxException {
+        if (path != null && !path.isEmpty()) {
+            URIBuilder uriBuilder = new URIBuilder(url.toString() + path, StandardCharsets.UTF_8);
+            return uriBuilder.build();
+        }
+        return url;
+    }
+
+    @Override
     public HttpResponse executeGet(String uri) throws IOException {
         LOGGER.debug("executing GET method '{}'", uri);
         return executeMethod(new HttpGet(uri));
     }
 
     public HttpResponse executePost(String uri, XmlObject payloadToSend) throws IOException {
-        return executePost(uri, payloadToSend.xmlText(), CONTENT_TYPE_TEXT_XML);
+        return executePost(uri, payloadToSend.xmlText(), MediaTypes.TEXT_XML);
     }
 
     @Override
     public HttpResponse executePost(String uri, String payloadToSend) throws IOException {
-        return executePost(uri, payloadToSend, CONTENT_TYPE_TEXT_XML);
+        return executePost(uri, payloadToSend,  MediaTypes.TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws IOException {
-        StringEntity requestEntity = new StringEntity(payloadToSend, contentType);
+    public HttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException {
+        StringEntity requestEntity = new StringEntity(payloadToSend, contentType.toString());
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
     }
@@ -127,19 +295,34 @@ public class SimpleHttpClient implements HttpClient {
 
     @Override
     public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
-        return Failsafe.with(RETRY_POLICY)
-                .onFailure(ex -> LOGGER.warn("Could not connect to host; retrying", ex))
-                .get(() -> httpclient.execute(method));
+        return executeHttpRequest(method);
     }
 
-    public void setConnectionTimout(int timeout) {
+    public SimpleHttpClient setConnectionTimout(int timeout) {
         this.connectionTimeout = timeout;
         recreateClient();
+        return this;
     }
 
-    public void setSocketTimout(int timeout) {
+    public SimpleHttpClient setSocketTimout(int timeout) {
         this.socketTimeout = timeout;
         recreateClient();
+        return this;
+    }
+
+    public SimpleHttpClient setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+        return this;
+    }
+
+    public SimpleHttpClient setProxyPort(String proxyPort) {
+        this.proxyPort = proxyPort;
+        return this;
+    }
+
+    public SimpleHttpClient setProxySslKey(boolean proxySslKey) {
+        this.proxySslKey = proxySslKey;
+        return this;
     }
 
     private void recreateClient() {
@@ -151,13 +334,67 @@ public class SimpleHttpClient implements HttpClient {
             }
             this.httpclient = null;
         }
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(this.connectionTimeout).build();
-        SocketConfig socketConfig = SocketConfig.custom().setSoTimeout(this.socketTimeout).build();
-        this.httpclient = HttpClientBuilder.create()
+        this.httpclient = CachingHttpClients.custom()
+                .setDefaultRequestConfig(getRequestConfig())
+                .setSSLSocketFactory(getSSLSocketFactory())
+                .setDefaultSocketConfig(getSocketConfig())
+                .setMaxConnTotal(200)
+                .setMaxConnPerRoute(50)
                 .useSystemProperties()
-                .setDefaultSocketConfig(socketConfig)
-                .setDefaultRequestConfig(requestConfig)
                 .build();
+    }
+
+    private SSLConnectionSocketFactory getSSLSocketFactory() {
+        if (isIgnoreSSLHostnameValidation()) {
+            LOGGER.debug("Noop hostname verifier enabled!");
+            try {
+                return new SSLConnectionSocketFactory(
+                        SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                        NoopHostnameVerifier.INSTANCE);
+            } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+                LOGGER.error("Error creating SSL connnection socket factory!", e);
+            }
+        }
+        return null;
+    }
+
+    private boolean isIgnoreSSLHostnameValidation() {
+        return proxySslKey;
+    }
+
+    private RequestConfig getRequestConfig() {
+        Builder builder =  RequestConfig.custom()
+                .setConnectTimeout(this.connectionTimeout)
+        .setSocketTimeout(this.socketTimeout);
+        if (isSetProxy()) {
+            builder.setProxy(getProxy());
+        }
+        return builder.build();
+    }
+
+    private SocketConfig getSocketConfig() {
+        return SocketConfig.custom()
+        .setSoTimeout(this.socketTimeout).build();
+    }
+
+    private HttpHost getProxy() {
+        if (proxyPort != null && !proxyPort.isEmpty()) {
+            return new HttpHost(proxyHost, Integer.parseInt(proxyPort));
+        }
+        return new HttpHost(proxyHost);
+    }
+
+    private boolean isSetProxy() {
+        return proxyHost != null && !proxyHost.isEmpty();
+    }
+
+
+    private void logRequest(URI request) {
+        logRequest(request.toString());
+    }
+
+    private void logRequest(String request) {
+        LOGGER.debug("Request: {}", request);
     }
 
 }

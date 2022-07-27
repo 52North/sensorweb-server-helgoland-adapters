@@ -35,8 +35,21 @@ import org.n52.janmayen.exception.LocationHintException;
 public class ProxyException extends LocationHintException {
     private static final long serialVersionUID = -8654668015391742318L;
 
+    public ProxyException() {
+        this(null);
+    }
+
+    public ProxyException(String message) {
+        super(message);
+    }
+
     public ProxyException(String message, Object... args) {
         super(message, args);
     }
+
+    public final ProxyException causedBy(final Throwable exception) {
+        return (ProxyException) initCause(exception);
+    }
+
 
 }

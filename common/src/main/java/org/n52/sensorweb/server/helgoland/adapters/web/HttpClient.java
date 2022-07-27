@@ -28,29 +28,24 @@
 package org.n52.sensorweb.server.helgoland.adapters.web;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.ContentType;
+import org.n52.janmayen.http.MediaType;
+import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
+import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractRequest;
+import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 
 public interface HttpClient {
 
     HttpResponse executeGet(String uri) throws IOException;
 
     /**
-     * @param baseUri    the target to send the GET request to.
-     * @param parameters the request/query parameters.
-     *
-     * @return the HTTP response returned by the target.
-     *
-     * @throws HttpClientException if sending the request fails.
-     */
-    //public HttpResponse executeGet(String baseUri, RequestParameters parameters) throws HttpClientErrorException;
-    /**
      * Sends the given payload as content-type text/xml with UTF-8 encoding to the determined URI.
      * <strong>Callees are responsible for ensuring that the contents are actually encoded as UTF-8</strong>. If not
-     * UTF-8, use {@link #executePost(String, String, ContentType)} instead.
+     * UTF-8, use {@link #executePost(String, String, MediaType)} instead.
      *
      * @param uri           the target to send the POST request to.
      * @param payloadToSend the POST payload as XML encoded as UTF-8.
@@ -72,7 +67,7 @@ public interface HttpClient {
      *
      * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, String payloadToSend, ContentType contentType) throws IOException;
+    HttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException;
 
     /**
      * Sends the given payload to the determined URI. Refer to the <a
@@ -96,5 +91,7 @@ public interface HttpClient {
      * @throws IOException if sending the request fails
      */
     HttpResponse executeMethod(HttpRequestBase method) throws IOException;
+
+    Response execute(URI url, AbstractRequest request) throws ProxyException;
 
 }

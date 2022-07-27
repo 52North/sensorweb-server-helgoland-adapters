@@ -20,6 +20,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>helgoland-adapters-connector</artifactId>
         </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-harvest</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>

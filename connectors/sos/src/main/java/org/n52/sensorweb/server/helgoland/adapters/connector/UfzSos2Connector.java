@@ -270,7 +270,9 @@ public class UfzSos2Connector extends SOS2Connector {
             for (String identifier : ap.getSmlFeatureOfInterest().getFeaturesOfInterest()) {
                 GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(identifier, config.getUrl());
                 AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                return addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
+                if (abstractFeature != null) {
+                    return addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
+                }
             }
         }
         return null;

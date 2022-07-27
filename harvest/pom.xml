@@ -8,7 +8,7 @@
     </parent>
     <artifactId>helgoland-adapters-harvest</artifactId>
     <packaging>jar</packaging>
-    <name>Sensor Web Server Helgoland Adapters - Dao Module</name>
+    <name>Sensor Web Server Helgoland Adapters - Harvester Module</name>
     <url>https://52north.org/communities/sensorweb/</url>
 
     <dependencies>
@@ -19,10 +19,6 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>helgoland-adapters-connector</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>helgoland-adapters-sos</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

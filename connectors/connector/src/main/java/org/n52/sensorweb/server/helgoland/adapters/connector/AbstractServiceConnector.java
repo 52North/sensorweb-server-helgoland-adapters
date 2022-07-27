@@ -216,10 +216,16 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
     }
 
     protected void addFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
-        if (feature instanceof AbstractSamplingFeature) {
-            addFeature((AbstractSamplingFeature) feature, serviceConstellation);
-        } else if (feature instanceof FeatureCollection) {
-            ((FeatureCollection) feature).forEach(featureEntry -> addFeature(featureEntry, serviceConstellation));
+        if (feature != null) {
+            if (feature instanceof AbstractSamplingFeature) {
+                addFeature((AbstractSamplingFeature) feature, serviceConstellation);
+            } else if (feature instanceof FeatureCollection) {
+                ((FeatureCollection) feature).forEach(featureEntry -> {
+                    if (featureEntry != null) {
+                        addFeature(featureEntry, serviceConstellation);
+                    }
+                });
+            }
         }
     }
 

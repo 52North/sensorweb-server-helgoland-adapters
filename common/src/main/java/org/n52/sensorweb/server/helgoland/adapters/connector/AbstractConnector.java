@@ -85,14 +85,18 @@ public abstract class AbstractConnector {
         return false;
     }
 
+    protected SimpleHttpClient getHttpClient() {
+        return httpClient;
+    }
+
     protected HttpResponse sendGetRequest(String uri) throws IOException {
         LOGGER.debug("Executing GET request {}", uri);
-        return httpClient.executeGet(uri);
+        return getHttpClient().executeGet(uri);
     }
 
     protected HttpResponse sendPostRequest(XmlObject request, String uri) throws IOException {
         LOGGER.debug("Executing POST request to {}\n{}", uri, request.xmlText());
-        return httpClient.executePost(uri, request);
+        return getHttpClient().executePost(uri, request);
     }
 
     protected void addServiceConfig(DataSourceJobConfiguration config) {

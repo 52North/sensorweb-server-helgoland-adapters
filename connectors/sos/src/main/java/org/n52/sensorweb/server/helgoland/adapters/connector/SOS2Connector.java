@@ -86,7 +86,7 @@ public class SOS2Connector extends AbstractSosConnector {
     @Override
     public ServiceConstellation getConstellation(DataSourceJobConfiguration config,
             GetCapabilitiesResponse capabilities) {
-        ServiceConstellation serviceConstellation = new ServiceConstellation();
+        ServiceConstellation serviceConstellation = getServiceConstellation();
         config.setVersion(Sos2Constants.SERVICEVERSION);
         config.setConnector(getConnectorName());
         addService(config, serviceConstellation,
@@ -168,23 +168,32 @@ public class SOS2Connector extends AbstractSosConnector {
                     offering.getObservableProperties().forEach(phenomenonId -> {
                         addPhenomenon(phenomenonId, serviceConstellation);
                         String categoryId = addCategory(phenomenonId, serviceConstellation);
+                        if (abstractFeature != null) {
+                            if (abstractFeature instanceof FeatureCollection) {
+                                FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
+                                featureCollection.getMembers().forEach((key, feature) -> {
+                                    if (feature != null) {
+                                        String featureId =
+                                                addFeature((AbstractSamplingFeature) feature, serviceConstellation);
+                                        // TODO maybe not only
+                                        // QuantityDatasetConstellation
+                                        serviceConstellation
+                                                .add(addPhenomenonTime(
+                                                        new QuantityDatasetConstellation(procedureId, offeringId,
+                                                                categoryId, phenomenonId, featureId, featureId),
+                                                        offering));
+                                    }
+                                });
+                            } else {
 
-                        if (abstractFeature instanceof FeatureCollection) {
-                            FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
-                            featureCollection.getMembers().forEach((key, feature) -> {
-                                String featureId = addFeature((AbstractSamplingFeature) feature, serviceConstellation);
+                                String featureId =
+                                        addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
                                 // TODO maybe not only
                                 // QuantityDatasetConstellation
                                 serviceConstellation.add(
                                         addPhenomenonTime(new QuantityDatasetConstellation(procedureId, offeringId,
                                                 categoryId, phenomenonId, featureId, featureId), offering));
-                            });
-                        } else {
-                            String featureId =
-                                    addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
-                            // TODO maybe not only QuantityDatasetConstellation
-                            serviceConstellation.add(addPhenomenonTime(new QuantityDatasetConstellation(procedureId,
-                                    offeringId, categoryId, phenomenonId, featureId, featureId), offering));
+                            }
                         }
                     });
                 }

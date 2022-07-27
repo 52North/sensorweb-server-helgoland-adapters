@@ -25,40 +25,30 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
-import org.n52.series.db.beans.ServiceEntity;
+import javax.inject.Inject;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
-public abstract class AbstractServiceConstellation implements EntityBuilder {
+public class DefaultTemporalHarvester implements TemporalHarvester {
 
-    private final String temporalHarvester;
-    private final String fullHarvester;
-    // service
-    private ServiceEntity service;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTemporalHarvester.class);
 
-    public AbstractServiceConstellation(String fullHarvester, String temporalHarvester) {
-        this.fullHarvester = fullHarvester;
-        this.temporalHarvester = temporalHarvester;
+    @Inject
+    private DataSourceHarvesterHelper helper;
+
+    protected DataSourceHarvesterHelper getHelper() {
+        return helper;
     }
 
-    public void setService(ServiceEntity service) {
-        this.service = service;
-    }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void update(HarvestContext context) {
+        // TODO Auto-generated method stub
 
-    public ServiceEntity getService() {
-        return service;
-    }
-
-    public String getTemporalHarvester() {
-        return temporalHarvester;
-    }
-
-    public String getFullHarvester() {
-        return fullHarvester;
     }
 
 }

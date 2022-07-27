@@ -58,6 +58,7 @@ public abstract class AbstractRequest {
      *            the key to add
      * @param value
      *            the value to add
+     * @return this
      */
     public AbstractRequest addHeader(String key, String value) {
         this.header.put(key, value);

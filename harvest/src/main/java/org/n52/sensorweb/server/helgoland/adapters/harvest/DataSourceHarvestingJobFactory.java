@@ -80,9 +80,9 @@ public class DataSourceHarvestingJobFactory implements Constructable {
 
     private AbstractDataSourceHarvesterJob createJob(DataSourceJobConfiguration config) {
         if (config.getJobType().equals(JobConfiguration.JobType.temporal.name())) {
-            return new TemporalDataSourceHarvesterJob();
+            return new DataSourceTemporalHarvesterJob();
         }
-        return new FullDataSourceHarvesterJob();
+        return new DataSourceFullHarvesterJob();
     }
 
 }

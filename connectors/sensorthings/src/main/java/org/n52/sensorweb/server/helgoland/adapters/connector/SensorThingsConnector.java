@@ -56,6 +56,8 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Sensor
 import org.n52.sensorweb.server.helgoland.adapters.connector.sensorthings.Thing;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultFullHarvester;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultTemporalHarvester;
 import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -69,7 +71,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
-public class SensorThingsConnector extends AbstractConnector implements ValueConnector, EntityBuilder {
+public class SensorThingsConnector extends AbstractServiceConnector implements ValueConnector, EntityBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SensorThingsConnector.class);
 
@@ -99,7 +101,8 @@ public class SensorThingsConnector extends AbstractConnector implements ValueCon
 
     @Override
     public AbstractServiceConstellation getConstellation(ConnectorConfiguration connectorConfig) {
-        ServiceConstellation serviceConstellation = new ServiceConstellation();
+        ServiceConstellation serviceConstellation = new ServiceConstellation(DefaultFullHarvester.class.getName(),
+                DefaultTemporalHarvester.class.getName());
         DataSourceJobConfiguration config = connectorConfig.getDataSourceJobConfiguration();
         config.setConnector(getConnectorName());
         serviceConstellation.setService(createService(config.getItemName(), "here goes description",

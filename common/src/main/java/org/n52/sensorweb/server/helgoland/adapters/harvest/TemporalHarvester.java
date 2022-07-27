@@ -25,40 +25,12 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
-import org.n52.series.db.beans.ServiceEntity;
+import org.springframework.transaction.annotation.Transactional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+public interface TemporalHarvester {
 
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
-public abstract class AbstractServiceConstellation implements EntityBuilder {
-
-    private final String temporalHarvester;
-    private final String fullHarvester;
-    // service
-    private ServiceEntity service;
-
-    public AbstractServiceConstellation(String fullHarvester, String temporalHarvester) {
-        this.fullHarvester = fullHarvester;
-        this.temporalHarvester = temporalHarvester;
-    }
-
-    public void setService(ServiceEntity service) {
-        this.service = service;
-    }
-
-    public ServiceEntity getService() {
-        return service;
-    }
-
-    public String getTemporalHarvester() {
-        return temporalHarvester;
-    }
-
-    public String getFullHarvester() {
-        return fullHarvester;
-    }
-
+    @Transactional(rollbackFor = Exception.class)
+    void update(HarvestContext context);
 }

@@ -47,7 +47,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class ServiceConstellation extends AbstractServiceConstellation {
 
-
     // map für procedures
     private final Map<String, ProcedureEntity> procedures = new HashMap<>();
 
@@ -69,6 +68,10 @@ public class ServiceConstellation extends AbstractServiceConstellation {
     // dataset collection
     private final Collection<DatasetConstellation> datasets = new HashSet<>();
 
+
+    public ServiceConstellation(String fullHarvester, String temporalHarvester) {
+        super(fullHarvester, temporalHarvester);
+    }
 
     public PhenomenonEntity putPhenomenon(PhenomenonEntity phenomenon) {
         phenomena.put(phenomenon.getIdentifier(), phenomenon);
