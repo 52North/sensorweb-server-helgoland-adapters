@@ -46,9 +46,8 @@ public class DefaultTemporalHarvester implements TemporalHarvester {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void update(HarvestContext context) {
-        // TODO Auto-generated method stub
-
+    public HarvesterResponse process(HarvestContext context) {
+        return new TemporalHarvesterResponse();
     }
 
 }

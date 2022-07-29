@@ -68,7 +68,6 @@ public class ServiceConstellation extends AbstractServiceConstellation {
     // dataset collection
     private final Collection<DatasetConstellation> datasets = new HashSet<>();
 
-
     public ServiceConstellation(String fullHarvester, String temporalHarvester) {
         super(fullHarvester, temporalHarvester);
     }

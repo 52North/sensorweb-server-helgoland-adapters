@@ -27,6 +27,28 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-public interface TemporalHarvester extends Harvester {
+public class TemporalHarvesterResponse extends HarvesterResponse {
 
+    private String nextToken;
+
+    public TemporalHarvesterResponse() {
+        super();
+    }
+
+    public TemporalHarvesterResponse(String nextToken) {
+        this.nextToken = nextToken;
+    }
+
+    public TemporalHarvesterResponse(boolean processed, String nextToken) {
+        super(processed);
+        this.nextToken = nextToken;
+    }
+
+    public String getNextToken() {
+        return nextToken;
+    }
+
+    public boolean isSetNextToken() {
+        return getNextToken() != null && !getNextToken().isEmpty();
+    }
 }

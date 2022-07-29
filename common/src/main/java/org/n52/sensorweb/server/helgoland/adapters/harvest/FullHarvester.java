@@ -27,11 +27,6 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.springframework.transaction.annotation.Transactional;
-
-public interface FullHarvester {
-
-    @Transactional(rollbackFor = Exception.class)
-    void harvest(HarvestContext context);
+public interface FullHarvester extends Harvester {
 
 }

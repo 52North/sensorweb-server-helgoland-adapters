@@ -57,7 +57,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CachingHttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.xmlbeans.XmlObject;
@@ -334,7 +334,7 @@ public class SimpleHttpClient implements HttpClient {
             }
             this.httpclient = null;
         }
-        this.httpclient = CachingHttpClients.custom()
+        this.httpclient = HttpClientBuilder.create()
                 .setDefaultRequestConfig(getRequestConfig())
                 .setSSLSocketFactory(getSSLSocketFactory())
                 .setDefaultSocketConfig(getSocketConfig())

@@ -41,6 +41,7 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractConnector;
 import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.connector.ConnectorConfigurationFactory;
 import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
+import org.springframework.util.ClassUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -77,7 +78,7 @@ public class DataSourceHarvesterHelper {
         this.temporalHarvester.clear();
         if (harvesters != null) {
             for (TemporalHarvester harvester : harvesters) {
-                this.temporalHarvester.put(harvester.getClass().getName(), harvester);
+                this.temporalHarvester.put(ClassUtils.getUserClass(harvester).getName(), harvester);
             }
         }
     }
@@ -87,7 +88,7 @@ public class DataSourceHarvesterHelper {
         this.fullHarvester.clear();
         if (harvesters != null) {
             for (FullHarvester harvester : harvesters) {
-                this.fullHarvester.put(harvester.getClass().getName(), harvester);
+                this.fullHarvester.put(ClassUtils.getUserClass(harvester).getName(), harvester);
             }
         }
     }

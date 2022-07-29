@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
+import org.joda.time.DateTime;
 import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
 import org.quartz.JobDataMap;
 
@@ -38,6 +39,8 @@ public class HarvestContext {
     private AbstractServiceConstellation constellation;
 
     private JobDataMap jobDataMap;
+
+    private DateTime lastUpdateTime;
 
     public HarvestContext(AbstractServiceConstellation constellation) {
         this(constellation, null);
@@ -56,5 +59,13 @@ public class HarvestContext {
         return jobDataMap;
     }
 
+    public HarvestContext setLastUpdateTime(DateTime lastUpdateTime) {
+        this.lastUpdateTime = lastUpdateTime;
+        return this;
+    }
+
+    public DateTime getLastUpdateTime() {
+        return lastUpdateTime;
+    }
 
 }

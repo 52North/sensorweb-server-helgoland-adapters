@@ -61,7 +61,7 @@ public class DefaultFullHarvester implements FullHarvester {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void harvest(HarvestContext context) {
+    public HarvesterResponse process(HarvestContext context) {
         if (context.getConstellation() instanceof ServiceConstellation) {
             ServiceConstellation constellation = (ServiceConstellation) context.getConstellation();
             // serviceEntity
@@ -102,6 +102,7 @@ public class DefaultFullHarvester implements FullHarvester {
             getHelper().getCRUDRepository().cleanUp(service, datasetIds,
                     datasetCount > 0 && datasetIds.size() == datasetCount);
         }
+        return new FullHarvesterResponse();
     }
 
 }

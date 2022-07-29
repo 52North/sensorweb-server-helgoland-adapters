@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.config;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,10 +49,13 @@ public class DataSourceConfiguration {
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private boolean supportsGDA;
+    private String username;
+    private String password;
     private List<String> allowedOfferings;
     private List<String> allowedSensors;
     private Map<String, String> getUrls = new LinkedHashMap<>();
     private Map<String, String> postUrls = new LinkedHashMap<>();
+    private Map<String, String> properties = new LinkedHashMap<>();
 
     private Set<JobConfiguration> jobs = new LinkedHashSet<>();
 
@@ -142,6 +146,22 @@ public class DataSourceConfiguration {
         this.disableHumanReadableName = disableHumanReadableName;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public List<String> getAllowedOfferings() {
         return allowedOfferings;
     }
@@ -158,11 +178,6 @@ public class DataSourceConfiguration {
         this.allowedSensors = allowedSensors;
     }
 
-    @Override
-    public String toString() {
-        return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url + ", version=" + version
-                + ", connector=" + connector + ", type=" + type + "}";
-    }
 
     public void addGetUrls(String key, String value) {
         getUrls.put(key, value);
@@ -178,6 +193,39 @@ public class DataSourceConfiguration {
 
     public Map<String, String> getPostUrls() {
         return postUrls;
+    }
+
+    public Map<String, String> getProperties() {
+        return Collections.unmodifiableMap(properties);
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties.clear();
+        if (properties != null) {
+            this.properties.putAll(properties);
+        }
+    }
+
+    public void addProperties(Map<String, String> properties) {
+        if (properties != null) {
+            this.properties.putAll(properties);
+        }
+    }
+
+    public void addProperty(String key, String value) {
+        if (key != null && !key.isEmpty()) {
+            this.properties.put(key, value);
+        }
+    }
+
+    public boolean hasProperties() {
+        return getProperties() != null && !getProperties().isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return "DataSourceConfiguration{" + "itemName=" + itemName + ", url=" + url + ", version=" + version
+                + ", connector=" + connector + ", type=" + type + "}";
     }
 
 }

@@ -27,12 +27,16 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
+import org.n52.janmayen.event.Event;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.HarvestContext;
 import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.series.db.beans.ServiceEntity;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionException;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP"})
+@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP" })
 public abstract class AbstractServiceConstellation implements EntityBuilder {
 
     private final String temporalHarvester;
@@ -59,6 +63,18 @@ public abstract class AbstractServiceConstellation implements EntityBuilder {
 
     public String getFullHarvester() {
         return fullHarvester;
+    }
+
+    public Event getEvent() {
+        return null;
+    }
+
+    public HarvestContext getHavesterContext() throws JobExecutionException {
+        return new HarvestContext(this);
+    }
+
+    public HarvestContext getHavesterContext(JobDataMap jobDataMap) throws JobExecutionException {
+        return new HarvestContext(this, jobDataMap);
     }
 
 }

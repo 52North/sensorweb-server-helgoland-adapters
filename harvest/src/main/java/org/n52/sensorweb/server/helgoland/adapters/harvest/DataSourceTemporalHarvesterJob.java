@@ -65,7 +65,13 @@ public class DataSourceTemporalHarvesterJob extends AbstractDataSourceHarvesterJ
                 if (harvester == null) {
                     LOGGER.warn("No harvester found for {}", result.getTemporalHarvester());
                 } else {
-                    harvester.update(new HarvestContext(result, mergedJobDataMap));
+                    HarvesterResponse response = harvester.process(result.getHavesterContext(mergedJobDataMap)
+                            .setLastUpdateTime(getLastUpdateTime(context)));
+                    context.getJobDetail().getJobDataMap().put(LAST_UPDATE_TIME,
+                            response instanceof TemporalHarvesterResponse
+                                    ? getNextTime(((TemporalHarvesterResponse) response).getNextToken(), now)
+                                    : now);
+                    submitEvent(result.getEvent());
                 }
                 for (HarvestingListener listener : getHelper().getHarvestListener()) {
                     try {
@@ -78,7 +84,6 @@ public class DataSourceTemporalHarvesterJob extends AbstractDataSourceHarvesterJ
         } catch (ConnectorRequestFailedException ex) {
             throw new JobExecutionException(ex);
         }
-        context.getJobDetail().getJobDataMap().put(LAST_UPDATE_TIME, now);
     }
 
     protected Class<DataSourceTemporalHarvesterJob> getClazz() {

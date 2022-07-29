@@ -61,7 +61,8 @@ public class DataSourceFullHarvesterJob extends AbstractDataSourceHarvesterJob i
                 if (harvester == null) {
                     LOGGER.warn("No harvester found for {}", result.getFullHarvester());
                 } else {
-                    harvester.harvest(new HarvestContext(result));
+                    harvester.process(result.getHavesterContext());
+                    submitEvent(result.getEvent());
                 }
                 for (HarvestingListener listener : getHelper().getHarvestListener()) {
                     try {

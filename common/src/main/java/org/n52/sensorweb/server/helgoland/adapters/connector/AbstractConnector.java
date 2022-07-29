@@ -53,7 +53,11 @@ public abstract class AbstractConnector {
     private final SimpleHttpClient httpClient;
 
     public AbstractConnector() {
-        httpClient = new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT));
+        this(new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT)));
+    }
+
+    public AbstractConnector(SimpleHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     public abstract AbstractServiceConstellation getConstellation(ConnectorConfiguration configuration);

@@ -27,6 +27,10 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-public interface TemporalHarvester extends Harvester {
+import org.springframework.transaction.annotation.Transactional;
 
+public interface Harvester {
+
+    @Transactional(rollbackFor = Exception.class)
+    HarvesterResponse process(HarvestContext context);
 }

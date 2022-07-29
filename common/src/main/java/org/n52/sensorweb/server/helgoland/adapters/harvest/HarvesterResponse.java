@@ -27,6 +27,19 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-public interface TemporalHarvester extends Harvester {
+public abstract class HarvesterResponse {
 
+    private final boolean processed;
+
+    public HarvesterResponse() {
+        this(true);
+    }
+
+    public HarvesterResponse(boolean processed) {
+        this.processed = processed;
+    }
+
+    public boolean isprocessed() {
+        return processed;
+    }
 }
