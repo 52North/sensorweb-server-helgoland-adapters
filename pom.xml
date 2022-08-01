@@ -124,7 +124,7 @@
 	        </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>dcatap</artifactId>
+                <artifactId>helgoland-adapters-dcatap</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -832,11 +832,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <!-- TODO remove before releasing -->
+                    <!-- TODO remove before releasing 
                     <configuration>
                         <ignoreNonCompile>false</ignoreNonCompile>
                         <failOnWarning>false</failOnWarning>
                      </configuration>
+                     -->
                 </plugin>
                 <plugin>
                     <!-- license headers -->

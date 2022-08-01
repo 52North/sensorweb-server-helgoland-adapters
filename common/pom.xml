@@ -80,16 +80,7 @@
             <artifactId>geolatte-geom</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.n52.sensorweb-server.helgoland</groupId>
-            <artifactId>helgoland-io</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.n52.arctic-sea</groupId>
-                    <artifactId>faroe-annotations</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
         <dependency>
             <groupId>org.n52.arctic-sea</groupId>
             <artifactId>faroe-annotations</artifactId>
@@ -119,17 +110,7 @@
 
         <dependency>
             <groupId>org.n52.arctic-sea</groupId>
-            <artifactId>svalbard</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.n52.arctic-sea</groupId>
             <artifactId>bjornoya</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.n52.arctic-sea</groupId>
-            <artifactId>svalbard-xmlbeans</artifactId>
         </dependency>
 
         <dependency>
@@ -207,25 +188,6 @@
             <version>0.2.20</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.filosganga</groupId>
-            <artifactId>geogson-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
@@ -233,10 +195,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
@@ -251,10 +209,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <scope>runtime</scope>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <scope>provided</scope>
+        </dependency>
+       	<dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -321,14 +288,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.n52.sensorweb</groupId>
-            <artifactId>52n-xml-sampling-v20</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.n52.sensorweb</groupId>
-            <artifactId>52n-xml-gml-v321</artifactId>
-        </dependency>
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>failsafe</artifactId>

@@ -6,7 +6,7 @@
         <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
         <version>2.0.0-SNAPSHOT</version>
     </parent>
-    <artifactId>dcatap</artifactId>
+    <artifactId>helgoland-adapters-dcatap</artifactId>
     <name>Sensor Web Server Helgoland Adapters - DCAT-AP Module</name>
     <dependencies>
         <dependency>
@@ -102,7 +102,7 @@
         </dependency>
         <dependency>
             <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
-            <artifactId>helgoland-adapters-harvest</artifactId>
+            <artifactId>helgoland-adapters-common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
