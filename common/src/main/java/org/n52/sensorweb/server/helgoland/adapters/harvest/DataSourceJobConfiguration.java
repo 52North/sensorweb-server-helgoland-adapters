@@ -194,6 +194,7 @@ public class DataSourceJobConfiguration extends JobConfiguration {
         dataSourceJobConfiguration.setModified(job.isModified());
         dataSourceJobConfiguration.setJobType(job.getJobType());
         dataSourceJobConfiguration.setName(config.getItemName() + " - " + job.getJobType());
+        dataSourceJobConfiguration.setGroup(job.getGroup());
         return dataSourceJobConfiguration;
     }
 
