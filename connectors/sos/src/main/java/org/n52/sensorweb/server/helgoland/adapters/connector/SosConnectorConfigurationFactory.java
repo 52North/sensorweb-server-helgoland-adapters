@@ -35,7 +35,10 @@ import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.request.GetCapabilitiesGetRequest;
+import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.SimpleHttpClient;
+import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.svalbard.decode.DecoderRepository;
 import org.n52.svalbard.decode.exception.DecodingException;
@@ -70,12 +73,17 @@ public class SosConnectorConfigurationFactory implements ConnectorConfigurationF
             } else {
                 url += "?";
             }
-            HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities"
-                    + (dataSource.isDisableHumanReadableName() ? "&returnHumanReadableIdentifier=false" : ""));
-            XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity().getContent());
+            GetCapabilitiesGetRequest request = new GetCapabilitiesGetRequest();
+            if (dataSource.isDisableHumanReadableName()) {
+                request.withReturnHumanReadableName(false);
+            }
+            Response response = simpleHttpClient.execute(url, request);
+//            HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities"
+//                    + (dataSource.isDisableHumanReadableName() ? "&returnHumanReadableIdentifier=false" : ""));
+            XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity());
             return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
-        } catch (XmlException | IOException | DecodingException ex) {
+        } catch (XmlException | DecodingException | ProxyException ex) {
             throw new JobExecutionException(ex);
         }
     }
