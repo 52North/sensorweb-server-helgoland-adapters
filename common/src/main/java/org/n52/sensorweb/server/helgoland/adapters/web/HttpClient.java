@@ -94,4 +94,6 @@ public interface HttpClient {
 
     Response execute(URI url, AbstractRequest request) throws ProxyException;
 
+    Response execute(String url, AbstractRequest request) throws ProxyException;
+
 }

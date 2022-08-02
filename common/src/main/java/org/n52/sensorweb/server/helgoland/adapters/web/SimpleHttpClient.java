@@ -125,6 +125,11 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
+    public Response execute(String url, AbstractRequest request) throws ProxyException {
+        return execute(URI.create(url), request);
+    }
+
+    @Override
     public Response execute(URI url, AbstractRequest request) throws ProxyException {
         if (request instanceof AbstractGetRequest) {
             return doGet(url, (AbstractGetRequest) request);
