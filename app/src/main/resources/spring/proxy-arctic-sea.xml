@@ -44,12 +44,12 @@
     <bean class="org.n52.svalbard.decode.CapabilitiesDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.CapabilitiesTypeDecoder"/>
     <bean class="org.n52.svalbard.decode.CapabilitiesV1DocumentDecoder"/>
-    <bean class="org.n52.svalbard.decode.DescribeSensorResponseSwesDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.DeleteObservationDecoder"/>
     <bean class="org.n52.svalbard.decode.DeleteObservationStringDecoder"/>
     <bean class="org.n52.svalbard.decode.DeleteObservationV20Decoder"/>
     <bean class="org.n52.svalbard.decode.DeleteResultTemplateDecoder"/>
     <bean class="org.n52.svalbard.decode.DeleteResultTemplateStringDecoder"/>
+    <bean class="org.n52.svalbard.decode.DescribeSensorResponseSwesDocumentDecoder"/>
     <bean class="org.n52.svalbard.decode.DocumentCitationTypeDecoder"/>
     <bean class="org.n52.svalbard.decode.FesDecoderv20"/>
     <bean class="org.n52.svalbard.decode.GetDataAvailabilityResponseDecoder"/>
@@ -146,6 +146,7 @@
     <bean class="org.n52.svalbard.encode.IdentifierPropertyTypeEncoder"/>
     <bean class="org.n52.svalbard.encode.IdentifierTypeEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertFeatureOfInterestEncoder"/>
+    <bean class="org.n52.svalbard.encode.InsertFeatureOfInterestRequestEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertObservationRequestEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertObservationResponseEncoder"/>
     <bean class="org.n52.svalbard.encode.InsertResultRequestEncoder"/>
@@ -204,6 +205,7 @@
     <bean class="org.n52.svalbard.encode.WmlTDREncoderv20"/>
     <bean class="org.n52.svalbard.encode.WmlTVPEncoderv20"/>
     <bean class="org.n52.svalbard.encode.WsaEncoder"/>
+    <bean class="org.n52.svalbard.encode.WsdlEncoderv11"/>
     <bean class="org.n52.svalbard.encode.XlinkEncoderv1999"/>
 
 </beans>

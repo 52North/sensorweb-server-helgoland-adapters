@@ -16,7 +16,7 @@ database:
   # what CRS persisted geometries do have
   srid: EPSG:4326
   jpa:
-    persistence-location: classpath:/META-INF/persistence.xml
+    persistence-location: "classpath:META-INF/persistence.xml"
 
 spring:
   main:
@@ -27,9 +27,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/proxy
     #url: jdbc:h2:mem:testdb;MODE=PostgreSQL
     #data: classpath:/META-INF/data-${spring.datasource.platform}.sql
-  sql:
-    init:
-      mode: always
+    initialization-mode: always
   jpa:
     properties:
       hibernate: 
@@ -91,11 +89,6 @@ request:
   interval:
     restriction: P370D
 
-## Service Configuration
-
-service.name: My RESTful Dataset Service
-# NO_DATA values in database which will return null values
-service.nodata.values: -9999.0,99999,NO_DATA
 
 ## Service Configuration
 service:

@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
+import org.n52.io.crs.CRSUtils;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
@@ -58,7 +59,9 @@ import org.n52.shetland.ogc.sos.ExtendedIndeterminateTime;
 import org.n52.shetland.ogc.sos.Sos2Constants;
 import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
+import org.n52.shetland.util.JTSHelper;
 import org.n52.shetland.util.ReferencedEnvelope;
+import org.opengis.referencing.FactoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,13 +240,25 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
                     samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
             if (samplingfeature.getGeometry() != null) {
                 serviceConstellation.putFeature(featureId, featureName, featureDescription,
-                        samplingfeature.getGeometry());
+                        checkGeometry(samplingfeature.getGeometry()));
             } else {
+
                 LOGGER.warn("No geometry found");
             }
             serviceConstellation.putPlatform(featureId, featureName, featureDescription);
         }
         return featureId;
+    }
+
+    private Geometry checkGeometry(Geometry geometry) {
+        try {
+            if (CRSUtils.createEpsgStrictAxisOrder().isNorthingFirstEpsgCode(geometry.getSRID())) {
+                return JTSHelper.switchCoordinateAxisOrder(geometry);
+            }
+        } catch (FactoryException e) {
+            throw new IllegalStateException("Illegal srid: " + geometry.getSRID(), e);
+        }
+        return geometry;
     }
 
     protected TemporalFilter createFirstTimefilter() {

@@ -27,11 +27,8 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
-import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
@@ -78,8 +75,6 @@ public class SosConnectorConfigurationFactory implements ConnectorConfigurationF
                 request.withReturnHumanReadableName(false);
             }
             Response response = simpleHttpClient.execute(url, request);
-//            HttpResponse response = simpleHttpClient.executeGet(url + "service=SOS&request=GetCapabilities"
-//                    + (dataSource.isDisableHumanReadableName() ? "&returnHumanReadableIdentifier=false" : ""));
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity());
             return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);

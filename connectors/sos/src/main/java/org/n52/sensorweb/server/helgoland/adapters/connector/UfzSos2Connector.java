@@ -47,6 +47,7 @@ import org.n52.shetland.ogc.gml.time.Time;
 import org.n52.shetland.ogc.gml.time.TimeInstant;
 import org.n52.shetland.ogc.gml.time.TimePeriod;
 import org.n52.shetland.ogc.om.features.samplingFeatures.AbstractSamplingFeature;
+import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
 import org.n52.shetland.ogc.sensorML.AbstractProcess;
 import org.n52.shetland.ogc.sensorML.SensorML20Constants;
 import org.n52.shetland.ogc.sensorML.elements.SmlCharacteristic;
@@ -74,6 +75,11 @@ public class UfzSos2Connector extends SOS2Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(UfzSos2Connector.class);
 
     private Map<String, AbstractFeature> featureCache = new LinkedHashMap<>();
+    
+    @Override
+    protected boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse response) {
+        return false;
+    }
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {

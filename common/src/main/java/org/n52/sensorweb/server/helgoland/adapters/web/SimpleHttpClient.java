@@ -55,6 +55,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -285,9 +286,13 @@ public class SimpleHttpClient implements HttpClient {
 
     @Override
     public HttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException {
-        StringEntity requestEntity = new StringEntity(payloadToSend, contentType.toString());
+        StringEntity requestEntity = new StringEntity(payloadToSend, getContentType(contentType));
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
+    }
+
+    private ContentType getContentType(MediaType contentType) {
+        return ContentType.create(contentType.toString());
     }
 
     @Override

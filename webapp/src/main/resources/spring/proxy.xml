@@ -9,22 +9,11 @@
         http://www.springframework.org/schema/context/spring-context.xsd">
 
     <import resource="proxy-arctic-sea.xml"/>
-    <bean class="org.n52.sensorweb.server.helgoland.adapters.da.ProxyTextDataRepository"/>
-    <bean class="org.n52.sensorweb.server.helgoland.adapters.da.ProxyCountDataRepository"/>
-    <bean class="org.n52.sensorweb.server.helgoland.adapters.da.ProxyQuantityDataRepository"/>
-    <bean class="org.n52.sensorweb.server.helgoland.adapters.da.ProxyQuantityProfileDataRepository"/>
-
     <bean name="configurationProvider" class="org.n52.sensorweb.server.helgoland.adapters.config.ConfigurationReader"/>
+    <bean name="crudRepository" class="org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository"/>
+    <bean name="dataSourceHarvesterHelper" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceHarvesterHelper"/>
+	<bean name="dataSourceHarvestingJobFactory" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceHarvestingJobFactory" init-method="init"/>
+	<bean name="defaultFullHarvester" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultFullHarvester"/>
+	<bean name="defaultTemporalHarvester" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultTemporalHarvester"/>
 
-    <bean name="dataSourceScheduler" class="org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceHarvesterScheduler" init-method="init" destroy-method="shutdown">
-        <property name="scheduler">
-            <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-                <property name="schedulerName" value="dataSourceScheduler"/>
-                <property name="jobFactory">
-                    <bean class="org.n52.io.task.AutowiringSpringBeanJobFactory" />
-                </property>
-            </bean>
-        </property>
-        <property name="configurationProvider" ref="configurationProvider"/>
-    </bean>
 </beans>

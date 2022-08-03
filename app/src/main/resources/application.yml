@@ -54,7 +54,7 @@ debug: false
 logging:
   config: classpath:logback.xml
   level:
-    org.n52: DEBUG
+    org.n52: WARN
     ## Spring
     org.springframework: INFO
     org.springframework.web.servlet.mvc.method.annotation: INFO
@@ -89,7 +89,6 @@ docs:
 request:
   interval:
     restriction: P370D
-
 
 
 ## Service Configuration
