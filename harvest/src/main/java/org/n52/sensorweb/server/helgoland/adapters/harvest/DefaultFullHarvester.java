@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.n52.sensorweb.server.helgoland.adapters.connector.utils.ServiceConstellation;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DatasetEntity;
@@ -48,16 +46,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
-public class DefaultFullHarvester implements FullHarvester {
+public class DefaultFullHarvester extends AbstractDefaultHarvester implements FullHarvester {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFullHarvester.class);
-
-    @Inject
-    private DataSourceHarvesterHelper helper;
-
-    protected DataSourceHarvesterHelper getHelper() {
-        return helper;
-    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -65,8 +56,8 @@ public class DefaultFullHarvester implements FullHarvester {
         if (context.getConstellation() instanceof ServiceConstellation) {
             ServiceConstellation constellation = (ServiceConstellation) context.getConstellation();
             // serviceEntity
-            ServiceEntity service = getHelper().getCRUDRepository().insertService(constellation.getService());
-            Set<Long> datasetIds = getHelper().getCRUDRepository().getIdsForService(service);
+            ServiceEntity service = getCRUDRepository().insertService(constellation.getService());
+            Set<Long> datasetIds = getCRUDRepository().getIdsForService(service);
             int datasetCount = datasetIds.size();
 
             // save all constellations
@@ -83,13 +74,13 @@ public class DefaultFullHarvester implements FullHarvester {
                 if (entities.stream().allMatch(Objects::nonNull)) {
                     entities.stream().forEach(x -> x.setService(service));
                     DatasetEntity ds =
-                            getHelper().getCRUDRepository().insertDataset(dataset.createDatasetEntity(procedure,
+                            getCRUDRepository().insertDataset(dataset.createDatasetEntity(procedure,
                                     category, feature, offering, phenomenon, platform, service));
                     if (ds != null) {
                         datasetIds.remove(ds.getId());
 
-                        dataset.getFirst().ifPresent(data -> getHelper().getCRUDRepository().insertData(ds, data));
-                        dataset.getLatest().ifPresent(data -> getHelper().getCRUDRepository().insertData(ds, data));
+                        dataset.getFirst().ifPresent(data -> getCRUDRepository().insertData(ds, data));
+                        dataset.getLatest().ifPresent(data -> getCRUDRepository().insertData(ds, data));
                         LOGGER.info("Added dataset: {}", dataset);
                     } else {
                         LOGGER.warn("Can't save dataset: {}", dataset);
@@ -99,10 +90,11 @@ public class DefaultFullHarvester implements FullHarvester {
                 }
             });
 
-            getHelper().getCRUDRepository().cleanUp(service, datasetIds,
+            getCRUDRepository().cleanUp(service, datasetIds,
                     datasetCount > 0 && datasetIds.size() == datasetCount);
+            return new FullHarvesterResponse();
         }
-        return new FullHarvesterResponse();
+        return new FullHarvesterResponse(false);
     }
 
 }

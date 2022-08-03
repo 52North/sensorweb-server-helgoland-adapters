@@ -27,18 +27,20 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
+import javax.inject.Inject;
 
-public class DefaultTemporalHarvester extends AbstractDefaultHarvester implements TemporalHarvester {
+import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTemporalHarvester.class);
+public class AbstractDefaultHarvester {
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public HarvesterResponse process(HarvestContext context) {
-        return new TemporalHarvesterResponse();
+    @Inject
+    private DataSourceHarvesterHelper helper;
+
+    protected DataSourceHarvesterHelper getHelper() {
+        return helper;
     }
 
+    protected CRUDRepository getCRUDRepository() {
+        return getHelper().getCRUDRepository();
+    }
 }
