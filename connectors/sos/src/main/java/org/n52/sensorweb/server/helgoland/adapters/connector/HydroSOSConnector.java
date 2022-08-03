@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 public class HydroSOSConnector extends SOS2Connector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HydroSOSConnector.class);
-    
+
     @Override
     protected boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse response) {
         return false;

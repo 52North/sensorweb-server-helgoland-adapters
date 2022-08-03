@@ -111,7 +111,7 @@ public class GetCapabilitiesTest {
         SimpleHttpClient client = new SimpleHttpClient();
         XmlObject getCapabilitiesDocument = createGetCapabilitiesDocument();
         // send getCapabilities
-        HttpResponse response = client.executePost(uri, getCapabilitiesDocument);
+        HttpResponse response = client.executePost(uri, getCapabilitiesDocument.xmlText());
         // handle response
         GetCapabilitiesResponse capabilitiesResponse = createGetCapabilitiesResponse(response.getEntity().getContent());
         LOGGER.info("Service: " + capabilitiesResponse.getService());

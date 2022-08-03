@@ -75,7 +75,7 @@ public class UfzSos2Connector extends SOS2Connector {
     private static final Logger LOGGER = LoggerFactory.getLogger(UfzSos2Connector.class);
 
     private Map<String, AbstractFeature> featureCache = new LinkedHashMap<>();
-    
+
     @Override
     protected boolean canHandle(DataSourceJobConfiguration config, GetCapabilitiesResponse response) {
         return false;

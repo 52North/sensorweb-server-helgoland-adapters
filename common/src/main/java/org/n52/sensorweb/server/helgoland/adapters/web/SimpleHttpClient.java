@@ -61,7 +61,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
-import org.apache.xmlbeans.XmlObject;
 import org.n52.janmayen.http.MediaType;
 import org.n52.janmayen.http.MediaTypes;
 import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
@@ -82,10 +81,8 @@ public class SimpleHttpClient implements HttpClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-//    private static final ContentType CONTENT_TYPE_TEXT_XML = ContentType.create("text/xml", StandardCharsets.UTF_8);
-    private static final RetryPolicy<HttpResponse> RETRY_POLICY = new RetryPolicy<HttpResponse>()
-            .withDelay(10, 900, ChronoUnit.SECONDS)
-            .handle(ConnectException.class);
+    private static final RetryPolicy<HttpResponse> RETRY_POLICY =
+            new RetryPolicy<HttpResponse>().withDelay(10, 900, ChronoUnit.SECONDS).handle(ConnectException.class);
     private CloseableHttpClient httpclient;
     private int connectionTimeout;
     private int socketTimeout;
@@ -94,7 +91,8 @@ public class SimpleHttpClient implements HttpClient {
     private boolean proxySslKey;
 
     /**
-     * Creates an instance with <code>timeout = {@value #DEFAULT_CONNECTION_TIMEOUT}</code> ms.
+     * Creates an instance with
+     * <code>timeout = {@value #DEFAULT_CONNECTION_TIMEOUT}</code> ms.
      */
     public SimpleHttpClient() {
         this(DEFAULT_CONNECTION_TIMEOUT);
@@ -103,7 +101,8 @@ public class SimpleHttpClient implements HttpClient {
     /**
      * Creates an instance with a given connection timeout.
      *
-     * @param connectionTimeout the connection timeout in milliseconds.
+     * @param connectionTimeout
+     *            the connection timeout in milliseconds.
      */
     public SimpleHttpClient(int connectionTimeout) {
         this(connectionTimeout, DEFAULT_SOCKET_TIMEOUT);
@@ -112,8 +111,10 @@ public class SimpleHttpClient implements HttpClient {
     /**
      * Creates an instance with the given timeouts.
      *
-     * @param connectionTimeout the connection timeout in milliseconds.
-     * @param socketTimeout     the socket timeout in milliseconds.
+     * @param connectionTimeout
+     *            the connection timeout in milliseconds.
+     * @param socketTimeout
+     *            the socket timeout in milliseconds.
      */
     public SimpleHttpClient(int connectionTimeout, int socketTimeout) {
         this.socketTimeout = socketTimeout;
@@ -139,134 +140,7 @@ public class SimpleHttpClient implements HttpClient {
         } else if (request instanceof AbstractDeleteRequest) {
             return doDelete(url, (AbstractDeleteRequest) request);
         }
-        throw new ProxyException("The request type '%s' is unknown!", request.getClass()
-                .getTypeName());
-    }
-
-    protected Response doGet(URI url, AbstractGetRequest request) throws ProxyException {
-        try {
-            HttpGet httpGet = new HttpGet(getGetUrl(url, request.getPath(), request.getQueryParameters()));
-            if (request.hasHeader()) {
-                for (Entry<String, String> entry : request.getHeader()
-                        .entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
-                }
-            }
-            logRequest(getGetUrl(url, request.getPath(), request.getQueryParameters()));
-            return getContent(executeHttpRequest(httpGet));
-        } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
-        }
-    }
-
-    protected Response doGet(URI url, String path, Map<String, String> header, Map<String, String> parameter)
-            throws ProxyException {
-        try {
-            HttpGet httpGet = new HttpGet(getGetUrl(url, path, parameter));
-            if (CollectionHelper.isNotEmpty(header)) {
-                for (Entry<String, String> entry : header.entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
-                }
-            }
-            logRequest(getGetUrl(url, path, parameter));
-            return getContent(executeHttpRequest(httpGet));
-        } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
-        }
-    }
-
-    protected Response doPost(URI url, AbstractPostRequest<?> request) throws ProxyException {
-        try {
-            HttpPost httpPost = new HttpPost(getPathUrl(url, request.getPath()));
-            if (request.hasHeader()) {
-                for (Entry<String, String> entry : request.getHeader()
-                        .entrySet()) {
-                    httpPost.addHeader(entry.getKey(), entry.getValue());
-                }
-            }
-            String content = request.getContent();
-            logRequest(content);
-            httpPost.setEntity(new StringEntity(content));
-            return getContent(executeHttpRequest(httpPost));
-        } catch (IOException | URISyntaxException e) {
-            throw new ProxyException().causedBy(e);
-        }
-    }
-
-    protected Response doPost(URI url, String content, MediaType contentType) throws ProxyException {
-        try {
-            HttpPost httpPost = new HttpPost(url);
-            httpPost.addHeader(HttpHeaders.CONTENT_TYPE, contentType.toString());
-            logRequest(content);
-            httpPost.setEntity(new StringEntity(content));
-            return getContent(executeHttpRequest(httpPost));
-        } catch (IOException e) {
-            throw new ProxyException().causedBy(e);
-        }
-    }
-
-    protected Response doDelete(URI url, AbstractDeleteRequest request) throws ProxyException {
-        try {
-            HttpDelete httpDelete = new HttpDelete(getPathUrl(url, request.getPath()));
-            logRequest(getPathUrl(url, request.getPath()));
-            return getContent(executeHttpRequest(httpDelete));
-        } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
-        }
-    }
-
-    private CloseableHttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
-        int counter = 4;
-        CloseableHttpResponse response = null;
-        long start = System.currentTimeMillis();
-        do {
-            response = Failsafe.with(RETRY_POLICY)
-                    .onFailure(ex -> LOGGER.warn("Could not connect to host; retrying", ex))
-                    .get(() -> getClient().execute(request));
-        } while (response == null && counter >= 0);
-
-        LOGGER.trace("Querying took {} ms!", System.currentTimeMillis() - start);
-        return response;
-    }
-
-    private CloseableHttpClient getClient() {
-        return httpclient;
-    }
-
-    private Response getContent(CloseableHttpResponse response) throws IOException {
-        try {
-            return response != null ? new Response(response.getStatusLine()
-                    .getStatusCode(),
-                    response.getEntity() != null ? EntityUtils.toString(response.getEntity(), "UTF-8") : null)
-                    : new Response(200, null);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-        }
-    }
-
-    private URI getGetUrl(URI url, Map<String, String> parameters) throws URISyntaxException {
-        URIBuilder uriBuilder = new URIBuilder(url, StandardCharsets.UTF_8);
-        if (CollectionHelper.isNotEmpty(parameters)) {
-            for (Entry<String, String> entry : parameters.entrySet()) {
-                uriBuilder.addParameter(entry.getKey(), entry.getValue());
-            }
-        }
-        URI uri = uriBuilder.build();
-        return uri;
-    }
-
-    private URI getGetUrl(URI url, String path, Map<String, String> parameters) throws URISyntaxException {
-        return getGetUrl(getPathUrl(url, path), parameters);
-    }
-
-    private URI getPathUrl(URI url, String path) throws URISyntaxException {
-        if (path != null && !path.isEmpty()) {
-            URIBuilder uriBuilder = new URIBuilder(url.toString() + path, StandardCharsets.UTF_8);
-            return uriBuilder.build();
-        }
-        return url;
+        throw new ProxyException("The request type '%s' is unknown!", request.getClass().getTypeName());
     }
 
     @Override
@@ -275,13 +149,9 @@ public class SimpleHttpClient implements HttpClient {
         return executeMethod(new HttpGet(uri));
     }
 
-    public HttpResponse executePost(String uri, XmlObject payloadToSend) throws IOException {
-        return executePost(uri, payloadToSend.xmlText(), MediaTypes.TEXT_XML);
-    }
-
     @Override
     public HttpResponse executePost(String uri, String payloadToSend) throws IOException {
-        return executePost(uri, payloadToSend,  MediaTypes.TEXT_XML);
+        return executePost(uri, payloadToSend, MediaTypes.TEXT_XML);
     }
 
     @Override
@@ -289,10 +159,6 @@ public class SimpleHttpClient implements HttpClient {
         StringEntity requestEntity = new StringEntity(payloadToSend, getContentType(contentType));
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
-    }
-
-    private ContentType getContentType(MediaType contentType) {
-        return ContentType.create(contentType.toString());
     }
 
     @Override
@@ -335,6 +201,134 @@ public class SimpleHttpClient implements HttpClient {
         return this;
     }
 
+    protected Response doGet(URI url, AbstractGetRequest request) throws ProxyException {
+        try {
+            HttpGet httpGet = new HttpGet(getGetUrl(url, request.getPath(), request.getQueryParameters()));
+            if (request.hasHeader()) {
+                for (Entry<String, String> entry : request.getHeader().entrySet()) {
+                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            logRequest(getGetUrl(url, request.getPath(), request.getQueryParameters()));
+            return getContent(executeHttpRequest(httpGet));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doGet(URI url, String path, Map<String, String> header, Map<String, String> parameter)
+            throws ProxyException {
+        try {
+            HttpGet httpGet = new HttpGet(getGetUrl(url, path, parameter));
+            if (CollectionHelper.isNotEmpty(header)) {
+                for (Entry<String, String> entry : header.entrySet()) {
+                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            logRequest(getGetUrl(url, path, parameter));
+            return getContent(executeHttpRequest(httpGet));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doPost(URI url, AbstractPostRequest<?> request) throws ProxyException {
+        try {
+            HttpPost httpPost = new HttpPost(getPathUrl(url, request.getPath()));
+            if (request.hasHeader()) {
+                for (Entry<String, String> entry : request.getHeader().entrySet()) {
+                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            String content = request.getContent();
+            logRequest(content);
+            httpPost.setEntity(new StringEntity(content));
+            return getContent(executeHttpRequest(httpPost));
+        } catch (IOException | URISyntaxException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doPost(URI url, String content, MediaType contentType) throws ProxyException {
+        try {
+            HttpPost httpPost = new HttpPost(url);
+            httpPost.addHeader(HttpHeaders.CONTENT_TYPE, contentType.toString());
+            logRequest(content);
+            httpPost.setEntity(new StringEntity(content));
+            return getContent(executeHttpRequest(httpPost));
+        } catch (IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    protected Response doDelete(URI url, AbstractDeleteRequest request) throws ProxyException {
+        try {
+            HttpDelete httpDelete = new HttpDelete(getPathUrl(url, request.getPath()));
+            logRequest(getPathUrl(url, request.getPath()));
+            return getContent(executeHttpRequest(httpDelete));
+        } catch (URISyntaxException | IOException e) {
+            throw new ProxyException().causedBy(e);
+        }
+    }
+
+    private CloseableHttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+        int counter = 4;
+        CloseableHttpResponse response = null;
+        long start = System.currentTimeMillis();
+        do {
+            response =
+                    Failsafe.with(RETRY_POLICY).onFailure(ex -> LOGGER.warn("Could not connect to host; retrying", ex))
+                            .get(() -> getClient().execute(request));
+        } while (response == null && counter >= 0);
+
+        LOGGER.trace("Querying took {} ms!", System.currentTimeMillis() - start);
+        return response;
+    }
+
+    private CloseableHttpClient getClient() {
+        return httpclient;
+    }
+
+    private Response getContent(CloseableHttpResponse response) throws IOException {
+        try {
+            return response != null
+                    ? new Response(response.getStatusLine().getStatusCode(),
+                            response.getEntity() != null ? EntityUtils.toString(response.getEntity(), "UTF-8") : null)
+                    : new Response(200, null);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    private URI getGetUrl(URI url, Map<String, String> parameters) throws URISyntaxException {
+        URIBuilder uriBuilder = new URIBuilder(url, StandardCharsets.UTF_8);
+        if (CollectionHelper.isNotEmpty(parameters)) {
+            for (Entry<String, String> entry : parameters.entrySet()) {
+                uriBuilder.addParameter(entry.getKey(), entry.getValue());
+            }
+        }
+        URI uri = uriBuilder.build();
+        return uri;
+    }
+
+    private URI getGetUrl(URI url, String path, Map<String, String> parameters) throws URISyntaxException {
+        return getGetUrl(getPathUrl(url, path), parameters);
+    }
+
+    private URI getPathUrl(URI url, String path) throws URISyntaxException {
+        if (path != null && !path.isEmpty()) {
+            URIBuilder uriBuilder = new URIBuilder(url.toString() + path, StandardCharsets.UTF_8);
+            return uriBuilder.build();
+        }
+        return url;
+    }
+
+    private ContentType getContentType(MediaType contentType) {
+        return ContentType.create(contentType.toString());
+    }
+
     private void recreateClient() {
         if (this.httpclient != null) {
             try {
@@ -344,14 +338,9 @@ public class SimpleHttpClient implements HttpClient {
             }
             this.httpclient = null;
         }
-        this.httpclient = HttpClientBuilder.create()
-                .setDefaultRequestConfig(getRequestConfig())
-                .setSSLSocketFactory(getSSLSocketFactory())
-                .setDefaultSocketConfig(getSocketConfig())
-                .setMaxConnTotal(200)
-                .setMaxConnPerRoute(50)
-                .useSystemProperties()
-                .build();
+        this.httpclient = HttpClientBuilder.create().setDefaultRequestConfig(getRequestConfig())
+                .setSSLSocketFactory(getSSLSocketFactory()).setDefaultSocketConfig(getSocketConfig())
+                .setMaxConnTotal(200).setMaxConnPerRoute(50).useSystemProperties().build();
     }
 
     private SSLConnectionSocketFactory getSSLSocketFactory() {
@@ -373,9 +362,8 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     private RequestConfig getRequestConfig() {
-        Builder builder =  RequestConfig.custom()
-                .setConnectTimeout(this.connectionTimeout)
-        .setSocketTimeout(this.socketTimeout);
+        Builder builder =
+                RequestConfig.custom().setConnectTimeout(this.connectionTimeout).setSocketTimeout(this.socketTimeout);
         if (isSetProxy()) {
             builder.setProxy(getProxy());
         }
@@ -383,8 +371,7 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     private SocketConfig getSocketConfig() {
-        return SocketConfig.custom()
-        .setSoTimeout(this.socketTimeout).build();
+        return SocketConfig.custom().setSoTimeout(this.socketTimeout).build();
     }
 
     private HttpHost getProxy() {
@@ -397,7 +384,6 @@ public class SimpleHttpClient implements HttpClient {
     private boolean isSetProxy() {
         return proxyHost != null && !proxyHost.isEmpty();
     }
-
 
     private void logRequest(URI request) {
         logRequest(request.toString());

@@ -100,7 +100,7 @@ public abstract class AbstractConnector {
 
     protected HttpResponse sendPostRequest(XmlObject request, String uri) throws IOException {
         LOGGER.debug("Executing POST request to {}\n{}", uri, request.xmlText());
-        return getHttpClient().executePost(uri, request);
+        return getHttpClient().executePost(uri, request.xmlText());
     }
 
     protected void addServiceConfig(DataSourceJobConfiguration config) {
