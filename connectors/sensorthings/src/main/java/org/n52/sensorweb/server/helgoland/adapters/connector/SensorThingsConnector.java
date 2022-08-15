@@ -40,8 +40,6 @@ import java.util.Optional;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.ContentType;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
@@ -65,19 +63,20 @@ import org.n52.series.db.beans.QuantityDataEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
-public class SensorThingsConnector extends AbstractServiceConnector implements ValueConnector, EntityBuilder {
+@Component
+public class SensorThingsConnector extends AbstractServiceConnector
+        implements ValueConnector, EntityBuilder, SensorThingsConstants {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SensorThingsConnector.class);
 
     private final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new GeometryAdapterFactory()).create();
-
-    private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity seriesEntity, DbQuery query) {
@@ -166,10 +165,11 @@ public class SensorThingsConnector extends AbstractServiceConnector implements V
     }
 
     private List<DataEntity<?>> createObservations(DatasetEntity seriesEntity, DateTime start, DateTime end) {
-        String entity = String.format(
-                "Datastreams(%s)/Observations?$filter=" + "phenomenonTime%%20gt%%20'%s'" + "%%20and%%20"
-                        + "phenomenonTime%%20lt%%20'%s'",
-                seriesEntity.getIdentifier(), start.toString(formatter), end.toString(formatter));
+        String entity =
+                String.format(
+                        "Datastreams(%s)/Observations?$filter=" + "phenomenonTime%%20gt%%20'%s'" + "%%20and%%20"
+                                + "phenomenonTime%%20lt%%20'%s'",
+                        seriesEntity.getIdentifier(), format(start), format(end));
         Observations observations =
                 (Observations) doGetRequest(seriesEntity.getService().getUrl(), entity, Observations.class);
         List<DataEntity<?>> list = new LinkedList<>();

@@ -27,22 +27,32 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+public interface HereonConstants {
 
-@Component
-public class SensorThingsConfigurationFactory implements ConnectorConfigurationFactory, SensorThingsConstants {
+    String HEREON = "Hereon";
 
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(SENSOR_THINGS);
+    interface Parameter {
+
+        String DEFAULT_WHERE = "1=1";
+
+        String QUERY = "query";
+
+        String WHERE = "where";
+
+        String FORMAT = "f";
+
+        String GEO_JSON = "geojson";
+
+        String RETURN_DISTINCT_VALUES = "returnDistinctValues";
+
+        String RETURN_GEOMETRY = "returnGeometry";
+
+        String OUT_FIELDS = "outFields";
+
     }
 
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        return new ConnectorConfiguration(dataSource);
-    }
+    interface Fields {
 
+        String PLATFORM = "Platform";
+    }
 }

@@ -25,24 +25,16 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-@Component
-public class SensorThingsConfigurationFactory implements ConnectorConfigurationFactory, SensorThingsConstants {
+public class GetPlatformsRequest extends AbstractHereonRequest implements HereonConstants.Fields {
 
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(SENSOR_THINGS);
-    }
-
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        return new ConnectorConfiguration(dataSource);
+    public GetPlatformsRequest() {
+        withDistinctValues(true);
+        withGeometry(false);
+        withOutFields(PLATFORM);
     }
 
 }

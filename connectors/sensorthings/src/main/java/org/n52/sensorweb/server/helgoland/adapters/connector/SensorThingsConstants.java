@@ -27,22 +27,17 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
-@Component
-public class SensorThingsConfigurationFactory implements ConnectorConfigurationFactory, SensorThingsConstants {
+public interface SensorThingsConstants {
 
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(SENSOR_THINGS);
+    String SENSOR_THINGS = "SensorThings";
+
+    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z");
+
+    default String format(DateTime time) {
+        return time.toString(DATE_TIME_FORMATTER);
     }
-
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        return new ConnectorConfiguration(dataSource);
-    }
-
 }

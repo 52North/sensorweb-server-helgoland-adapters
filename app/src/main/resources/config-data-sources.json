@@ -1,6 +1,18 @@
 {
 	"dataSources": [
-	{
+		{
+			"itemName": "Hereon STA-Proxy",
+			"url": "https://hub.hereon.de/server/rest/services/Hosted/test_sta_52n_sbds_out_view/FeatureServer/0/",
+			"type": "Hereon",
+			"connector": "HereonConnector",
+			"jobs": [{
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true,
+				"jobType": "full"
+			}]
+		},
+		{
 			"itemName": "demo",
 			"url": "http://sensorweb.demo.52north.org/52n-sos-webapp/service",
 			"version": "2.0.0",
@@ -8,8 +20,8 @@
 			"supportsFirstLast": true,
 			"jobs": [{
 				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": true,
-				"triggerAtStartup": true
+				"enabled": false,
+				"triggerAtStartup": false
 			}]
 		},
 		{

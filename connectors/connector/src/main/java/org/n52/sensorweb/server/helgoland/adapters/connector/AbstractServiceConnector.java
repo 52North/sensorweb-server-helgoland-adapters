@@ -71,10 +71,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractServiceConnector extends AbstractConnector implements ValueConnector, EntityBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractServiceConnector.class);
 
-    public AbstractServiceConnector() {
-        super();
-    }
-
     protected void addService(DataSourceJobConfiguration config, ServiceConstellation serviceConstellation,
             ServiceMetadata serviceMetadata) {
         ServiceMetadataEntity serviceMetadataEntity = null;

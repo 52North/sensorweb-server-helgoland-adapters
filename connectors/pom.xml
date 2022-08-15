@@ -15,6 +15,7 @@
    		<module>connector</module>
    		<module>sos</module>
    		<module>sensorthings</module>
+   		<module>hereon</module>
    	</modules>
 </project>
 

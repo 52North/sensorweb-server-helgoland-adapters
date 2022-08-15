@@ -32,11 +32,11 @@ import org.quartz.JobExecutionException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SensorThingsConfigurationFactory implements ConnectorConfigurationFactory, SensorThingsConstants {
+public class HereonConfigurationFactoriy implements ConnectorConfigurationFactory, HereonConstants {
 
     @Override
     public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(SENSOR_THINGS);
+        return dataSource.getType().equalsIgnoreCase(HEREON);
     }
 
     @Override

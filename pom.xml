@@ -122,6 +122,11 @@
 	            <artifactId>helgoland-adapters-sensorthings</artifactId>
 	            <version>${project.version}</version>
 	        </dependency>
+	          <dependency>
+	            <groupId>${project.groupId}</groupId>
+	            <artifactId>helgoland-adapters-hereon</artifactId>
+	            <version>${project.version}</version>
+	        </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>helgoland-adapters-dcatap</artifactId>
