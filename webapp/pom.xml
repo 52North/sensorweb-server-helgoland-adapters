@@ -17,6 +17,29 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>iceland</artifactId>
+        </dependency>
+          <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>faroe-annotations</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>janmayen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>bjornoya</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.n52.arctic-sea</groupId>
+            <artifactId>svalbard-xmlbeans</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.n52.sensorweb-server.helgoland</groupId>
             <artifactId>helgoland-rest</artifactId>
             <scope>runtime</scope>
@@ -36,26 +59,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.n52.arctic-sea</groupId>
-            <artifactId>faroe-annotations</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>helgoland-adapters-harvest</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>helgoland-adapters-common</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>helgoland-adapters-connector</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.n52.sensorweb-server.dao-impl</groupId>
             <artifactId>dao-impl-dao</artifactId>
         </dependency>
@@ -64,6 +67,14 @@
             <artifactId>dao-impl-repo</artifactId>
             <scope>runtime</scope>
 			<exclusions>
+				 <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpcore</artifactId>
+                </exclusion>
 				<exclusion>
 					<groupId>org.osgi</groupId>
 					<artifactId>org.osgi.core</artifactId>
@@ -86,9 +97,31 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.n52.arctic-sea</groupId>
-            <artifactId>janmayen</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-harvest</artifactId>
+            <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-connector</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-common</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-sos</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>helgoland-adapters-sensorthings</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Spring -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
@@ -125,15 +158,16 @@
             <artifactId>spring-aspects</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-        </dependency>
-         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <scope>runtime</scope>
@@ -145,30 +179,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-       <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.janino</groupId>
-            <artifactId>janino</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>runtime</scope>
@@ -178,25 +188,44 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Spring Data -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-          <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+			<groupId>com.cosium.spring.data</groupId>
+			<artifactId>spring-data-jpa-entity-graph</artifactId>
+		</dependency>
+		 <!-- Logging -->
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <!-- drop-in replacement for JCL -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <!-- drop-in replacement for log4j -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -209,18 +238,44 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        
+		<dependency>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
             <scope>runtime</scope>
         </dependency>
         
+         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
@@ -230,7 +285,6 @@
             <artifactId>byte-buddy</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -248,6 +302,10 @@
                     <groupId>ch.qos.logback</groupId>
                     <artifactId>logback-core</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback</artifactId>
+                </exclusion>
             </exclusions>
             <scope>runtime</scope>
         </dependency>
@@ -256,25 +314,11 @@
             <artifactId>hibernate-ehcache</artifactId>
             <scope>runtime</scope>
         </dependency>
-
         <dependency>
             <groupId>com.thetransactioncompany</groupId>
             <artifactId>cors-filter</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.n52.arctic-sea</groupId>
-            <artifactId>iceland</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        
     </dependencies>
 
     <build>
