@@ -57,7 +57,7 @@
         <org.springframework.version>5.3.22</org.springframework.version>
         <spring-boot.version>2.7.3</spring-boot.version>
         <spring-data-entity-graph.version>2.7.9</spring-data-entity-graph.version>
-        <logback.version>1.2.11</logback.version>
+        <logback.version>1.4.0</logback.version>
         <geotools.version>27.1</geotools.version>
         <jackson.version>2.13.3</jackson.version>
         <slf4j.version>2.0.0</slf4j.version>
