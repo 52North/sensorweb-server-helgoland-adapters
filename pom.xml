@@ -57,7 +57,7 @@
         <org.springframework.version>5.3.23</org.springframework.version>
         <spring-boot.version>2.7.4</spring-boot.version>
         <spring-data-entity-graph.version>2.7.10</spring-data-entity-graph.version>
-        <logback.version>1.2.11</logback.version>
+        <logback.version>1.3.3</logback.version>
         <geotools.version>27.1</geotools.version>
         <jackson.version>2.13.4</jackson.version>
         <slf4j.version>2.0.3</slf4j.version>
@@ -757,19 +757,16 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.janino</groupId>
@@ -783,12 +780,24 @@
                 <version>1.2</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- 
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
-                <scope>runtime</scope>
+                <exclusions>
+                	<exclusion>
+	                	<groupId>javax.activation</groupId>
+	                	<artifactId>activation</artifactId>
+                	</exclusion>
+                </exclusions>
             </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            -->
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-core</artifactId>
