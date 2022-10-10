@@ -27,10 +27,15 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import org.springframework.transaction.annotation.Transactional;
-
 public interface Harvester {
 
-    @Transactional(rollbackFor = Exception.class)
+    /**
+     * The method called by the harvester job The implementation should be
+     * annotated with @Transactional(rollbackFor = Exception.class)
+     *
+     * @param context
+     *            The context with additional information
+     * @return The response
+     */
     HarvesterResponse process(HarvestContext context);
 }
