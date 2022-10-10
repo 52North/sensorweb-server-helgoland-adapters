@@ -15,6 +15,12 @@
         <dependency>
             <groupId>org.n52.arctic-sea</groupId>
             <artifactId>iceland</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.zaxxer</groupId>
+					<artifactId>HikariCP-java7</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
           <dependency>
             <groupId>org.n52.arctic-sea</groupId>
@@ -29,6 +35,12 @@
             <groupId>org.n52.arctic-sea</groupId>
             <artifactId>bjornoya</artifactId>
             <scope>runtime</scope>
+            <exclusions>
+				<exclusion>
+					<groupId>com.zaxxer</groupId>
+					<artifactId>HikariCP</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
         <dependency>
             <groupId>org.n52.arctic-sea</groupId>

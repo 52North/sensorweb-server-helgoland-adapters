@@ -78,6 +78,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
             <scope>runtime</scope>
