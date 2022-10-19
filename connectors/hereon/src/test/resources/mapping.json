@@ -1,0 +1,32 @@
+{
+	"thing: {
+		"identifier": "",
+		"name": "",
+		"description: ""
+	},
+	"sensor": {
+		"identifier": "",
+		"name": "",
+		"description: ""
+	},
+	"observedProperty: {
+		"identifier": "",
+		"name": "",
+		"description: ""
+	},
+	"feature: {
+		"identifier": "",
+		"name": "",
+		"description: "",
+		"properties": ["CSV"]
+	},
+	"datastream: {
+		"identifier": "",
+		"name": "",
+		"description: ""
+	},
+	"general: {
+		"dataServiceUrl": "",
+		"metadataId": ""
+	}
+}
