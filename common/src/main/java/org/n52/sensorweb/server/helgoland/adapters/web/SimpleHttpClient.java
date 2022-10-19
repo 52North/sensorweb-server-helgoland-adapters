@@ -285,7 +285,7 @@ public class SimpleHttpClient implements HttpClient {
         return response;
     }
 
-    private CloseableHttpClient getClient() {
+    protected CloseableHttpClient getClient() {
         return httpclient;
     }
 
@@ -329,7 +329,7 @@ public class SimpleHttpClient implements HttpClient {
         return ContentType.create(contentType.toString());
     }
 
-    private void recreateClient() {
+    protected void recreateClient() {
         if (this.httpclient != null) {
             try {
                 this.httpclient.close();
@@ -338,9 +338,21 @@ public class SimpleHttpClient implements HttpClient {
             }
             this.httpclient = null;
         }
-        this.httpclient = HttpClientBuilder.create().setDefaultRequestConfig(getRequestConfig())
-                .setSSLSocketFactory(getSSLSocketFactory()).setDefaultSocketConfig(getSocketConfig())
-                .setMaxConnTotal(200).setMaxConnPerRoute(50).useSystemProperties().build();
+        this.httpclient = configureClient().build();
+    }
+
+    /**
+     * May be overwritten by subclasses that e.g. require specialized Headers
+     * @return builder for the client instance
+     */
+    protected HttpClientBuilder configureClient() {
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(getRequestConfig())
+                .setSSLSocketFactory(getSSLSocketFactory())
+                .setDefaultSocketConfig(getSocketConfig())
+                .setMaxConnTotal(200)
+                .setMaxConnPerRoute(50)
+                .useSystemProperties();
     }
 
     private SSLConnectionSocketFactory getSSLSocketFactory() {
