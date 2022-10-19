@@ -36,7 +36,7 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractGetRequest;
 import org.n52.shetland.util.CollectionHelper;
 
-public class AbstractHereonRequest extends AbstractGetRequest implements HereonConstants.Parameter {
+public class AbstractHereonRequest extends AbstractGetRequest implements HereonConstants {
 
     private String where;
     private boolean distinctValues;
@@ -56,7 +56,7 @@ public class AbstractHereonRequest extends AbstractGetRequest implements HereonC
 
     @Override
     public String getPath() {
-        return QUERY;
+        return Parameter.QUERY;
     }
 
     public AbstractHereonRequest withWhere(String where) {
@@ -96,24 +96,24 @@ public class AbstractHereonRequest extends AbstractGetRequest implements HereonC
     }
 
     private void addFormat(Map<String, String> map) {
-        map.put(FORMAT, GEO_JSON);
+        map.put(Parameter.FORMAT, Formats.GEO_JSON);
     }
 
     private void addWhere(Map<String, String> map) {
-        map.put(WHERE, hasWhere() ? getWhere() : DEFAULT_WHERE);
+        map.put(Parameter.WHERE, hasWhere() ? getWhere() : Values.DEFAULT_WHERE_VALUE);
     }
 
     private void addDistinctValues(Map<String, String> map) {
-        map.put(RETURN_DISTINCT_VALUES, Boolean.toString(distinctValues));
+        map.put(Parameter.RETURN_DISTINCT_VALUES, Boolean.toString(distinctValues));
     }
 
     private void addReturnGeometry(Map<String, String> map) {
-        map.put(RETURN_GEOMETRY,  Boolean.toString(returnGeometry));
+        map.put(Parameter.RETURN_GEOMETRY,  Boolean.toString(returnGeometry));
     }
 
     private void addOutFields(Map<String, String> map) {
         if (hasOutFields()) {
-            map.put(OUT_FIELDS, String.join(",", getOutFields()));
+            map.put(Parameter.OUT_FIELDS, String.join(",", getOutFields()));
         }
     }
 

@@ -27,32 +27,81 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-public interface HereonConstants {
+import org.n52.shetland.arcgis.service.feature.FeatureServiceConstants;
+
+public interface HereonConstants extends FeatureServiceConstants {
 
     String HEREON = "Hereon";
 
-    interface Parameter {
-
-        String DEFAULT_WHERE = "1=1";
-
-        String QUERY = "query";
-
-        String WHERE = "where";
-
-        String FORMAT = "f";
-
-        String GEO_JSON = "geojson";
-
-        String RETURN_DISTINCT_VALUES = "returnDistinctValues";
-
-        String RETURN_GEOMETRY = "returnGeometry";
-
-        String OUT_FIELDS = "outFields";
-
-    }
-
     interface Fields {
-
-        String PLATFORM = "Platform";
+        String OBJECT_ID = "objectid";
+        // String METADATA_ID = "metadata_id";
     }
+
+    interface MeetadataFields extends Fields {
+        String METADATA_ID = "metadata_id";
+        String PARA_STANDARD_NAME = "para_standard_name";
+        String PARA_STANDARD_URL = "para_standard_name_url";
+        String RESP_SCIEN_LASTNAME = "resp_scien_lastname";
+        String RESP_SCIEN_LFIRSTNAME = "resp_scien_firstname";
+        String RESP_SCIEN_ORCID = "resp_scien_orcid";
+        String RESP_SCIEN_EMAIL = "resp_scien_email";
+        String RESP_SCIEN_INSTITUTION = "resp_scien_institution";
+        String RESP_SCIEN_INSTITUTION_FOR_IDEN = "resp_scien_institution_ror_iden";
+        String SENSOR_URL = "sensor_url";
+        String LICENSE = "license";
+        String LINK_TO_METADATA = "link_to_metadata";
+        String FEATURE_OF_INTEREST = "feature_of_interest";
+        String NAME_START_HARBOR = "name_start_harbor";
+        String NAME_END_HARBOR = "name_end_harbor";
+        String DOI_PID = "doi_pid";
+        String URL_MAINTENANCE_INFO = "url_maintenance_info";
+        String URL_LAB_INFO = "url_lab_info";
+        String MEASURE_VAL_LAB = "measure_val_lab";
+        String UNIT_LAB = "unit_lab";
+        String TIMESTAMP_SAMPLE_LAB = "timestamp_sample_lab";
+        String TIMESTAMP_SMEASURE_LAB = "timestamp_measure_lab";
+        String TIME_END_HARBOR = "time_end_harbor";
+        String TIME_START_HARBOR = "time_start_harbor";
+    }
+
+    interface DataFields extends Fields {
+        String METADATA_ID = "METADATA_ID";
+        String GLOBAL_ID = "globalid";
+        String PLATFORM = "PLATFORM";
+        String MEASURE_VAL = "MEASURE_VAL";
+        String UNIT = "UNIT";
+        String INT_PARA_NAME = "INT_PARA_NAME";
+        String PARAMETER = "PARAMETER";
+        String DATE_TIME = "DATE_TIME";
+        String LAT = "LAT";
+        String LON = "LON";
+        String WATER_DEPTH = "WATER_DEPTH";
+        String SENSOR = "SENSOR";
+        String QUALITY_FLAG = "QUALITY_FLAG";
+        String REASON_QUALITY_FLAG = "REASON_QUALITY_FLAG";
+        String INFOFLAG = "INFOFLAG";
+        String AUTO_QUALITY_TEST_PARAM = "AUTO_QUALITY_TEST_PARAM";
+        String STATUS_FLAG = "STATUS_FLAG";
+        String MAN_QUALITY_TEST_PARAM = "MAN_QUALITY_TEST_PARAM";
+        String FLAG_MAN_QUALITY_CONTROL = "FLAG_MAN_QUALITY_CONTROL";
+        String FLAG_DATA_PUBLIC = "FLAG_DATA_PUBLIC";
+        String TRANSECT = "TRANSECT";
+        String ERROR_VAL = "ERROR_VAL";
+        String METHOD_ERR_VAL = "METHOD_ERR_VAL";
+        String STD_DEVIATION = "STD_DEVIATION";
+        String VARIANCE = "VARIANCE";
+        String MIN = "MIN";
+        String MAX = "MAX";
+        String NUMBER_OF_VALUES = "NUMBER_OF_VALUES";
+        String PRIMARYID = "PRIMARYID";
+        String RAW_MEASURE_VAL = "RAW_MEASURE_VAL";
+        String ET_DATE_CREATED = "ET_DATE_CREATED";
+        String ET_DATE_MODIFIED = "ET_DATE_MODIFIED";
+        String ET_USER_CREATED = "ET_USER_CREATED";
+        String ET_USER_MODIFIED = "ET_USER_MODIFIED";
+        String ET_IDENTIFIER = "ET_IDENTIFIER";
+        String ET_UUID = "ET_UUID";
+    }
+
 }

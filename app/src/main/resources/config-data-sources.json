@@ -2,106 +2,16 @@
 	"dataSources": [
 		{
 			"itemName": "Hereon STA-Proxy",
-			"url": "https://hub.hereon.de/server/rest/services/Hosted/test_sta_52n_sbds_out_view/FeatureServer/0/",
+			"url": "https://hub.hereon.de/server/rest/services/Hosted/Metadata_schema/FeatureServer/0/",
 			"type": "Hereon",
+			"username": "52north_ext",
+			"password": "$2a$12$tJQkT3e/7WYK2mPKL770nud/q8AIYfddP6g1nVHKg26h3d/SEP3Vu",
 			"connector": "HereonConnector",
 			"jobs": [{
 				"cronExpression": "0 0 0/1 * * ?",
 				"enabled": true,
 				"triggerAtStartup": true,
 				"jobType": "full"
-			}]
-		},
-		{
-			"itemName": "demo",
-			"url": "http://sensorweb.demo.52north.org/52n-sos-webapp/service",
-			"version": "2.0.0",
-			"type": "SOS",
-			"supportsFirstLast": true,
-			"jobs": [{
-				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": false,
-				"triggerAtStartup": false
-			}]
-		},
-		{
-			"itemName": "fluggs",
-			"url": "https://fluggs.wupperverband.de/sos2/service",
-			"version": "2.0.0",
-			"type": "SOS",
-			"supportsFirstLast": true,
-			"jobs": [{
-				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": false,
-				"triggerAtStartup": false
-			}]
-		},
-		{
-			"itemName": "irceline",
-			"url": "https://geo.irceline.be/sos/service",
-			"version": "2.0.0",
-			"type": "SOS",
-			"supportsFirstLast": true,
-			"disableHumanReadableName": true,
-			"jobs": [{
-				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": false,
-				"triggerAtStartup": false
-			}]
-		},
-		{
-			"itemName": "ufz-tereno",
-			"url": "https://sos.ufz.de/tereno-public/service",
-			"version": "2.0.0",
-			"type": "SOS",
-			"supportsFirstLast": false,
-			"connector": "UfzSos2Connector",
-			"allowedSensors": [
-				665,
-				735,
-				736,
-				737,
-				738,
-				739,
-				740,
-				741,
-				743,
-				744,
-				745,
-				746,
-				748,
-				749,
-				752,
-				753,
-				754,
-				756,
-				757,
-				758,
-				759,
-				760,
-				761,
-				762,
-				763,
-				764,
-				765,
-				766,
-				767,
-				768,
-				769,
-				770,
-				773,
-				774,
-				775,
-				776,
-				777,
-				778,
-				779,
-				533
-			],
-			"jobs": [{
-				"cronExpression": "0 0 0/1 * * ?",
-				"enabled": false,
-				"triggerAtStartup": false
 			}]
 		}
 	]

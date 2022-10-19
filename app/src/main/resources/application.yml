@@ -50,10 +50,11 @@ spring:
 ##
 ## LOGGING SETTINGS
 ##
-debug: false
+debug: true
 logging:
-  config: classpath:logback.xml
+  # config: classpath:logback.xml
   level:
+    root: TRACE
     org.n52: WARN
     ## Spring
     org.springframework: INFO
@@ -120,3 +121,8 @@ job:
   task:
     prerendering:
       enabled: true
+
+# hereon
+hereon:
+  username: test
+  password: test

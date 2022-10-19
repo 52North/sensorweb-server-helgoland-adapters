@@ -154,12 +154,24 @@ public class DataSourceConfiguration {
         this.username = username;
     }
 
+    public boolean isSetUsername() {
+        return getUsername() != null && !getUsername().isEmpty();
+    }
+
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isSetPassword() {
+        return getPassword() != null && !getPassword().isEmpty();
+    }
+
+    public boolean isSetCredentials() {
+        return isSetUsername() && isSetPassword();
     }
 
     public List<String> getAllowedOfferings() {

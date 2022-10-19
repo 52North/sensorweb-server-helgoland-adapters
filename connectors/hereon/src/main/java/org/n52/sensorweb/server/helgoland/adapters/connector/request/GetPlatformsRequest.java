@@ -29,12 +29,12 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-public class GetPlatformsRequest extends AbstractHereonRequest implements HereonConstants.Fields {
+public class GetPlatformsRequest extends AbstractHereonRequest implements HereonConstants {
 
     public GetPlatformsRequest() {
         withDistinctValues(true);
         withGeometry(false);
-        withOutFields(PLATFORM);
+        withOutFields(DataFields.PLATFORM);
     }
 
 }

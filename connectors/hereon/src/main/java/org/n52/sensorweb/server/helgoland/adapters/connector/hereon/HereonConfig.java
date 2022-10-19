@@ -25,33 +25,29 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.connector.hereon;
 
-import javax.inject.Inject;
+import org.n52.sensorweb.server.helgoland.adapters.harvest.Credentials;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+@Configuration
+public class HereonConfig {
 
-@Component
-public class HereonConfigurationFactoriy implements ConnectorConfigurationFactory, HereonConstants {
+    @Value("${hereon.username}")
+    private String username;
+    @Value("${hereon.password}")
+    private String password;
 
-    @Inject
-    private HereonConfig config;
-
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
+    private String getUsername() {
+        return username;
     }
 
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
+    private String getPassword() {
+        return password;
     }
 
+    public Credentials getCredentials() {
+        return new Credentials(getUsername(), getPassword());
+    }
 }

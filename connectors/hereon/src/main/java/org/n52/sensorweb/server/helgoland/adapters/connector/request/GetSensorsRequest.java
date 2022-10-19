@@ -25,33 +25,16 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import javax.inject.Inject;
+import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+public class GetSensorsRequest extends AbstractHereonRequest implements HereonConstants {
 
-@Component
-public class HereonConfigurationFactoriy implements ConnectorConfigurationFactory, HereonConstants {
-
-    @Inject
-    private HereonConfig config;
-
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
-    }
-
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
+    public GetSensorsRequest() {
+        withDistinctValues(true);
+        withGeometry(false);
+        withOutFields(DataFields.SENSOR);
     }
 
 }

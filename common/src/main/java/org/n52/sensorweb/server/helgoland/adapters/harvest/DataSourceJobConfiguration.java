@@ -44,6 +44,7 @@ public class DataSourceJobConfiguration extends JobConfiguration {
     private String version;
     private String connector;
     private String type;
+    private Credentials credentials;
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private boolean supportsGDA;
@@ -90,6 +91,18 @@ public class DataSourceJobConfiguration extends JobConfiguration {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
+    }
+
+    public boolean isSetCredentials() {
+        return getCredentials() != null;
     }
 
     public boolean isSupportsFirstLast() {
@@ -181,6 +194,9 @@ public class DataSourceJobConfiguration extends JobConfiguration {
         dataSourceJobConfiguration.setVersion(config.getVersion());
         dataSourceJobConfiguration.setConnector(config.getConnector());
         dataSourceJobConfiguration.setType(config.getType());
+        if (config.isSetCredentials()) {
+            dataSourceJobConfiguration.setCredentials(new Credentials(config.getUsername(), config.getPassword()));
+        }
         dataSourceJobConfiguration.setSupportsFirstLast(config.isSupportsFirstLast());
         dataSourceJobConfiguration.setDisableHumanReadableName(config.isDisableHumanReadableName());
         dataSourceJobConfiguration.setSupportsGDA(config.isSupportsGDA());
