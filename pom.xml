@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.n52</groupId>
         <artifactId>parent</artifactId>
-        <version>24</version>
+        <version>26</version>
     </parent>
     <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
     <artifactId>helgoland-adapters-parent</artifactId>
@@ -65,16 +65,17 @@
         <hibernate.version>5.6.12.Final</hibernate.version>
         <geolatte.version>1.9.0</geolatte.version>
         <arctic-sea.version>10.0.0-SNAPSHOT</arctic-sea.version>
-        <version.sensorweb-server-helgoland>3.5.0-PR.10</version.sensorweb-server-helgoland>
-        <version.sensorweb-server-db-model>4.0.0-PR.11</version.sensorweb-server-db-model>
-        <version.sensorweb-server-dao-impl>4.0.0-PR.12</version.sensorweb-server-dao-impl>
+        <version.sensorweb-server-helgoland>3.5.0-SNAPSHOT</version.sensorweb-server-helgoland>
+        <version.sensorweb-server-db-model>4.0.0-SNAPSHOT</version.sensorweb-server-db-model>
+        <version.sensorweb-server-dao-impl>4.0.0-SNAPSHOT</version.sensorweb-server-dao-impl>
         <postgresql.version>42.5.0</postgresql.version>
         <postgis.version>2.5.1</postgis.version>
         <xml-commons.version>2.7.0</xml-commons.version>
         <jena.version>4.6.1</jena.version>
         <jts.version>1.19.0</jts.version>
-        <java.compiler.source>11</java.compiler.source>
-        <java.compiler.target>11</java.compiler.target>
+        <version.java>11</version.java>
+        <java.compiler.source>${version.java}</java.compiler.source>
+        <java.compiler.target>${version.java}</java.compiler.target>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <currentYearDynamic>${maven.build.timestamp}</currentYearDynamic>
