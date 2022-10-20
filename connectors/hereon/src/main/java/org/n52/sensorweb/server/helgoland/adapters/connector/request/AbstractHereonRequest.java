@@ -36,7 +36,7 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractGetRequest;
 import org.n52.shetland.util.CollectionHelper;
 
-public class AbstractHereonRequest extends AbstractGetRequest implements HereonConstants {
+public abstract class AbstractHereonRequest extends AbstractGetRequest implements HereonConstants {
 
     private String where;
     private boolean distinctValues;
@@ -96,7 +96,7 @@ public class AbstractHereonRequest extends AbstractGetRequest implements HereonC
     }
 
     private void addFormat(Map<String, String> map) {
-        map.put(Parameter.FORMAT, Formats.GEO_JSON);
+        map.put(Parameter.FORMAT, Formats.JSON);
     }
 
     private void addWhere(Map<String, String> map) {

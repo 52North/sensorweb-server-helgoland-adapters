@@ -90,10 +90,18 @@ public abstract class AbstractConnector {
     }
 
     protected HttpClient getHttpClient() {
-        if (this.httpClient == null) {
-            setHttpClient(new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT)));
+        if (!isHttpClientInitialized()) {
+            setHttpClient(createSimpleClient());
         }
         return httpClient;
+    }
+
+    protected boolean isHttpClientInitialized() {
+        return httpClient != null;
+    }
+
+    protected HttpClient createSimpleClient() {
+        return new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT));
     }
 
     protected void setHttpClient(HttpClient httpClient) {

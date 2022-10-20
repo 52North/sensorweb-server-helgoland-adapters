@@ -25,33 +25,28 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
-
-import javax.inject.Inject;
+package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetThingRequest;
 
-@Component
-public class HereonConfigurationFactory implements ConnectorConfigurationFactory, HereonConstants {
+public class ThingRequestBuilder extends AbstractRequestBuilder<GetThingRequest, Thing> {
 
-    @Inject
-    private HereonConfig config;
-
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
+    public ThingRequestBuilder(HereonConfig hereonConfig) {
+        super(hereonConfig);
     }
 
     @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
+    public GetThingRequest getDefaultRequest() {
+        return new GetThingRequest();
     }
+
+    @Override
+    public Thing getTypeMapping() {
+        return getMapping().getThing();
+    }
+
+
 
 }

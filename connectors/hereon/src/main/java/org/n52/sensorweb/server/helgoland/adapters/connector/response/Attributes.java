@@ -25,33 +25,46 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import javax.inject.Inject;
+package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-@Component
-public class HereonConfigurationFactory implements ConnectorConfigurationFactory, HereonConstants {
+import javax.validation.Valid;
 
-    @Inject
-    private HereonConfig config;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class Attributes implements Serializable {
+    private static final long serialVersionUID = 1839884324462571777L;
+    @JsonIgnore
+    @Valid
+    private Map<String, Object> additionalProperties = new LinkedHashMap<>();
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return Collections.unmodifiableMap(additionalProperties);
     }
 
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+
+    public Attributes withAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+        return this;
+    }
+
+    @JsonIgnore
+    public String getValue(String key) {
+        return getAdditionalProperties().get(key).toString();
     }
 
 }

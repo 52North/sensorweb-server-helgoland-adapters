@@ -38,7 +38,7 @@ public interface HereonConstants extends FeatureServiceConstants {
         // String METADATA_ID = "metadata_id";
     }
 
-    interface MeetadataFields extends Fields {
+    interface MetadataFields extends Fields {
         String METADATA_ID = "metadata_id";
         String PARA_STANDARD_NAME = "para_standard_name";
         String PARA_STANDARD_URL = "para_standard_name_url";

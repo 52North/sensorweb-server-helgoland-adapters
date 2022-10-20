@@ -25,33 +25,10 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
+package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
-import javax.inject.Inject;
+public class Sensor extends AbstractEntity {
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
-
-@Component
-public class HereonConfigurationFactory implements ConnectorConfigurationFactory, HereonConstants {
-
-    @Inject
-    private HereonConfig config;
-
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
-    }
-
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
-    }
+    private static final long serialVersionUID = 1353028724843766720L;
 
 }

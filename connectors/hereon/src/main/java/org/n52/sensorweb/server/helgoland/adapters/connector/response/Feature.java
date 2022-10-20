@@ -25,33 +25,40 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector;
 
-import javax.inject.Inject;
+package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
-import org.quartz.JobExecutionException;
-import org.springframework.stereotype.Component;
+import java.io.Serializable;
 
-@Component
-public class HereonConfigurationFactory implements ConnectorConfigurationFactory, HereonConstants {
+import javax.validation.Valid;
 
-    @Inject
-    private HereonConfig config;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-    @Override
-    public boolean checkDatasource(DataSourceJobConfiguration dataSource) {
-        return dataSource.getType().equalsIgnoreCase(HEREON);
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({ "attributes" })
+@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+public class Feature implements Serializable {
+    private static final long serialVersionUID = 1278813991741382777L;
+    @JsonProperty("attributes")
+    @Valid
+    private Attributes attributes;
+
+    @JsonProperty("attributes")
+    public Attributes getAttributes() {
+        return attributes;
     }
 
-    @Override
-    public ConnectorConfiguration createConfiguration(DataSourceJobConfiguration dataSource)
-            throws JobExecutionException {
-        if (!dataSource.isSetCredentials()) {
-            dataSource.setCredentials(config.getCredentials());
-        }
-        return new ConnectorConfiguration(dataSource);
+    @JsonProperty("attributes")
+    public void setAttributes(Attributes attributes) {
+        this.attributes = attributes;
     }
 
+    public Feature withAttributes(Attributes attributes) {
+        this.attributes = attributes;
+        return this;
+    }
 }

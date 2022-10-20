@@ -23,3 +23,5 @@ console.log
 .idea/
 **/*.iml
 db/
+app/src/main/resources/hereon-config.json
+app/src/main/resources/hereon/

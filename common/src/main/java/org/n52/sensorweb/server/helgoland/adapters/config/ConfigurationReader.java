@@ -30,8 +30,11 @@ package org.n52.sensorweb.server.helgoland.adapters.config;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,19 +43,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ConfigurationReader implements ConfigurationProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
-
     private static final String CONFIG_FILE = "/config-data-sources.json";
+    private static final ObjectMapper OM = new ObjectMapper();
+    private DataSourcesConfiguration intervalConfig;
 
-    private final DataSourcesConfiguration intervalConfig = readConfig();
+    @Value("${service.config.file:}")
+    private String configFile;
+
+    @PostConstruct
+    private void init() {
+        this.intervalConfig = readConfig();
+    }
 
     private DataSourcesConfiguration readConfig() {
-        try (InputStream config = getClass().getResourceAsStream(CONFIG_FILE)) {
-            ObjectMapper om = new ObjectMapper();
-            return om.readValue(config, DataSourcesConfiguration.class);
-        } catch (Exception e) {
-            LOGGER.error("Could not load {). Using empty config.", CONFIG_FILE, e);
-            return new DataSourcesConfiguration();
+        String config = getConfigFile() != null && !getConfigFile().isEmpty() ? getConfigFile() : CONFIG_FILE;
+        DataSourcesConfiguration dataSourcesConfig = readConfig(config);
+        if (dataSourcesConfig == null && !config.equals(CONFIG_FILE)) {
+            dataSourcesConfig = readConfig(CONFIG_FILE);
         }
+        return dataSourcesConfig != null ? dataSourcesConfig : new DataSourcesConfiguration();
+    }
+
+    private DataSourcesConfiguration readConfig(String file) {
+        try (InputStream configStream = getClass().getResourceAsStream(file)) {
+            return OM.readValue(configStream, DataSourcesConfiguration.class);
+        } catch (Exception e) {
+            LOGGER.error("Could not load {}.", file, e);
+            return null;
+        }
+    }
+
+    /**
+     * @return the configFile
+     */
+    private String getConfigFile() {
+        return configFile;
     }
 
     public List<DataSourceConfiguration> getDataSources() {
