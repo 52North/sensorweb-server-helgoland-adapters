@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.n52.bjornoya.schedule.JobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
 import org.n52.sensorweb.server.helgoland.adapters.config.DataSourceConfiguration;
 
 public class DataSourceJobConfiguration extends JobConfiguration {
@@ -102,7 +103,7 @@ public class DataSourceJobConfiguration extends JobConfiguration {
     }
 
     public boolean isSetCredentials() {
-        return getCredentials() != null;
+        return getCredentials() != null && getCredentials().isSetCredentials();
     }
 
     public boolean isSupportsFirstLast() {
@@ -195,7 +196,7 @@ public class DataSourceJobConfiguration extends JobConfiguration {
         dataSourceJobConfiguration.setConnector(config.getConnector());
         dataSourceJobConfiguration.setType(config.getType());
         if (config.isSetCredentials()) {
-            dataSourceJobConfiguration.setCredentials(new Credentials(config.getUsername(), config.getPassword()));
+            dataSourceJobConfiguration.setCredentials(config.getCredentials());
         }
         dataSourceJobConfiguration.setSupportsFirstLast(config.isSupportsFirstLast());
         dataSourceJobConfiguration.setDisableHumanReadableName(config.isDisableHumanReadableName());

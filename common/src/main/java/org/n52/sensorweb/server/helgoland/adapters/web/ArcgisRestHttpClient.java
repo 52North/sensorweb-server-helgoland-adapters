@@ -1,3 +1,30 @@
+/*
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 as published
+ * by the Free Software Foundation.
+ *
+ * If the program is linked with libraries which are licensed under one of
+ * the following licenses, the combination of the program with the linked
+ * library is not considered a "derivative work" of the program:
+ *
+ *     - Apache License, version 2.0
+ *     - Apache Software License, version 1.0
+ *     - GNU Lesser General Public License, version 3
+ *     - Mozilla Public License, versions 1.0, 1.1 and 2.0
+ *     - Common Development and Distribution License (CDDL), version 1.0
+ *
+ * Therefore the distribution of the program linked with libraries licensed
+ * under the aforementioned licenses, is permitted by the copyright holders
+ * if the distribution is compliant with both the GNU General Public License
+ * version 2 and the aforementioned licenses.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ */
 package org.n52.sensorweb.server.helgoland.adapters.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +36,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
+import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +54,7 @@ import java.util.Date;
 public class ArcgisRestHttpClient extends SimpleHttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArcgisRestHttpClient.class);
+    private static final String REFERER = "referer";
 
     private final String username;
     private final String password;
@@ -33,20 +62,24 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
 
     private Date tokenEndOfLife = Date.from(Instant.EPOCH);
 
-    public ArcgisRestHttpClient(String username,
-                                String password,
-                                String tokenUrl) {
+    public ArcgisRestHttpClient(Credentials credentials) {
+        this(credentials.getUsername(), credentials.getPassword(), credentials.getTokenUrl());
+    }
+
+    public ArcgisRestHttpClient(int connectionTimeout, int socketTimeout, Credentials credentials) {
+        this(connectionTimeout, socketTimeout, credentials.getUsername(), credentials.getPassword(),
+                credentials.getTokenUrl());
+    }
+
+    public ArcgisRestHttpClient(String username, String password, String tokenUrl) {
         super();
         this.username = username;
         this.password = password;
         this.tokenUrl = tokenUrl;
     }
 
-    public ArcgisRestHttpClient(int connectionTimeout,
-                                int socketTimeout,
-                                String username,
-                                String password,
-                                String tokenUrl) {
+    public ArcgisRestHttpClient(int connectionTimeout, int socketTimeout, String username, String password,
+            String tokenUrl) {
         super(connectionTimeout, socketTimeout);
         this.username = username;
         this.password = password;
@@ -54,7 +87,8 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
     }
 
     /**
-     * Creates a new client if token is expired. Returns the existing client otherwise.
+     * Creates a new client if token is expired. Returns the existing client
+     * otherwise.
      *
      * @return client
      */
@@ -66,7 +100,6 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
         return super.getClient();
     }
 
-
     @Override
     protected HttpClientBuilder configureClient() {
         HttpClientBuilder baseClient = super.configureClient();
@@ -76,9 +109,9 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
 
         try {
             ArcGISToken accessToken = getAccessToken();
-            this.tokenEndOfLife = accessToken.expires;
-            baseClient.setDefaultHeaders(Collections.singletonList(
-                    new BasicHeader("Authorization", "Bearer " + accessToken.token)));
+            this.tokenEndOfLife = accessToken.getExpires();
+            baseClient.setDefaultHeaders(
+                    Collections.singletonList(new BasicHeader("Authorization", "Bearer " + accessToken.getToken())));
 
         } catch (IOException e) {
             LOGGER.error("Error getting AccessToken", e);
@@ -87,8 +120,8 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
     }
 
     /**
-     * Gets an auth token.
-     * Based on: https://developers.arcgis.com/rest/users-groups-and-items/generate-token.htm
+     * Gets an auth token. Based on:
+     * https://developers.arcgis.com/rest/users-groups-and-items/generate-token.htm
      *
      * @return ArcGISToken
      */
@@ -97,13 +130,9 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
 
         HttpPost request = new HttpPost(tokenUrl);
 
-        NameValuePair[] params = new NameValuePair[]{
-                new BasicNameValuePair("username", this.username),
-                new BasicNameValuePair("password", this.password),
-                new BasicNameValuePair("client", "referer"),
-                new BasicNameValuePair("referer", "www.something.com"),
-                new BasicNameValuePair("f", "json")
-        };
+        NameValuePair[] params = new NameValuePair[] { new BasicNameValuePair("username", this.username),
+                new BasicNameValuePair("password", this.password), new BasicNameValuePair("client", REFERER),
+                new BasicNameValuePair(REFERER, "www.something.com"), new BasicNameValuePair("f", "json") };
 
         request.setEntity(new UrlEncodedFormEntity(Arrays.asList(params)));
         CloseableHttpResponse response = tokenClient.execute(request);
@@ -117,11 +146,35 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
 
     private static class ArcGISToken {
 
-        public String token;
+        private String token;
 
-        public Date expires;
+        private Date expires;
 
-        public boolean ssl;
+        private boolean ssl;
+
+        public String getToken() {
+            return token;
+        }
+
+        public void setToken(String token) {
+            this.token = token;
+        }
+
+        public Date getExpires() {
+            return expires;
+        }
+
+        public void setExpires(Date expires) {
+            this.expires = expires;
+        }
+
+        public boolean isSsl() {
+            return ssl;
+        }
+
+        public void setSsl(boolean ssl) {
+            this.ssl = ssl;
+        }
 
     }
 }

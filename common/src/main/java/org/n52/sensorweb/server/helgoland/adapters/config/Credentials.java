@@ -25,17 +25,27 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.harvest;
+package org.n52.sensorweb.server.helgoland.adapters.config;
 
 public class Credentials {
 
     private String username;
     private String password;
+    private String tokenUrl;
+
+    public Credentials() {
+        super();
+    }
 
     public Credentials(String username, String password) {
+        this(username, password, null);
+    }
+
+    public Credentials(String username, String password, String tokenUrl) {
         super();
         this.username = username;
         this.password = password;
+        this.tokenUrl = tokenUrl;
     }
 
     public String getUsername() {
@@ -47,6 +57,10 @@ public class Credentials {
         return this;
     }
 
+    public boolean isSetUsername() {
+        return getUsername() != null && !getUsername().isEmpty();
+    }
+
     public String getPassword() {
         return password;
     }
@@ -54,6 +68,27 @@ public class Credentials {
     public Credentials setPassword(String password) {
         this.password = password;
         return this;
+    }
+
+    public boolean isSetPassword() {
+        return getPassword() != null && !getPassword().isEmpty();
+    }
+
+    public String getTokenUrl() {
+        return tokenUrl;
+    }
+
+    public Credentials setTokenUrl(String tokenUrl) {
+        this.tokenUrl = tokenUrl;
+        return this;
+    }
+
+    public boolean isSetTokenUrl() {
+        return getTokenUrl() != null && !getTokenUrl().isEmpty();
+    }
+
+    public boolean isSetCredentials() {
+        return isSetUsername() && isSetPassword();
     }
 
 }

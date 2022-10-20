@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpResponse;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
+import org.n52.sensorweb.server.helgoland.adapters.web.HttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.SimpleHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,19 +46,19 @@ import com.google.common.primitives.Ints;
  * @author Jan Schulte
  */
 public abstract class AbstractConnector {
+    public static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    public static final long SOCKET_TIMEOUT = TimeUnit.MINUTES.toMillis(30);
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConnector.class);
-    private static final long CONNECTION_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-    private static final long SOCKET_TIMEOUT = TimeUnit.MINUTES.toMillis(30);
 
     private Map<String, DataSourceJobConfiguration> dataSourceConfigurations = new LinkedHashMap<>();
-    private final SimpleHttpClient httpClient;
+    private HttpClient httpClient;
 
     public AbstractConnector() {
-        this(new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT)));
+        super();
     }
 
-    public AbstractConnector(SimpleHttpClient httpClient) {
-        this.httpClient = httpClient;
+    public AbstractConnector(HttpClient httpClient) {
+        setHttpClient(httpClient);
     }
 
     public abstract AbstractServiceConstellation getConstellation(ConnectorConfiguration configuration);
@@ -83,14 +84,20 @@ public abstract class AbstractConnector {
 
     public boolean matches(String name) {
         if (name != null) {
-            return getClass().getSimpleName().equals(name)
-                    || getClass().getName().equals(name);
+            return getClass().getSimpleName().equals(name) || getClass().getName().equals(name);
         }
         return false;
     }
 
-    protected SimpleHttpClient getHttpClient() {
+    protected HttpClient getHttpClient() {
+        if (this.httpClient == null) {
+            setHttpClient(new SimpleHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT), Ints.checkedCast(SOCKET_TIMEOUT)));
+        }
         return httpClient;
+    }
+
+    protected void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     protected HttpResponse sendGetRequest(String uri) throws IOException {

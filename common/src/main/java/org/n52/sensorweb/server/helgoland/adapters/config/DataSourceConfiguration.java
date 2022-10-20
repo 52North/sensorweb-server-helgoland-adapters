@@ -49,8 +49,7 @@ public class DataSourceConfiguration {
     private boolean supportsFirstLast = true;
     private boolean disableHumanReadableName;
     private boolean supportsGDA;
-    private String username;
-    private String password;
+    private Credentials credentials;
     private List<String> allowedOfferings;
     private List<String> allowedSensors;
     private Map<String, String> getUrls = new LinkedHashMap<>();
@@ -146,32 +145,16 @@ public class DataSourceConfiguration {
         this.disableHumanReadableName = disableHumanReadableName;
     }
 
-    public String getUsername() {
-        return username;
+    public Credentials getCredentials() {
+        return credentials;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public boolean isSetUsername() {
-        return getUsername() != null && !getUsername().isEmpty();
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public boolean isSetPassword() {
-        return getPassword() != null && !getPassword().isEmpty();
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
     }
 
     public boolean isSetCredentials() {
-        return isSetUsername() && isSetPassword();
+        return getCredentials() != null && getCredentials().isSetCredentials();
     }
 
     public List<String> getAllowedOfferings() {
