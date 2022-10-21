@@ -1,0 +1,36 @@
+{
+	"thing": {
+		"identifier": "feature_of_interest",
+		"name": "feature_of_interest",
+		"description": "resp_scien_firstname",
+		"properties": []
+	},
+	"sensor": {
+		"identifier": "resp_scien_firstname",
+		"name": "resp_scien_lastname",
+		"description": "",
+		"properties": []
+	},
+	"observedProperty": {
+		"identifier": "para_standard_name",
+		"name": "para_standard_name",
+		"description": "para_standard_name_url",
+		"properties": []
+	},
+	"feature": {
+		"identifier": "resp_scien_institution",
+		"name": "resp_scien_institution",
+		"description": "resp_scien_institution",
+		"properties": []
+	},
+	"datastream": {
+		"identifier": "metadata_id",
+		"name": "",
+		"description": "",
+		"properties": ["resp_scien_institution"]
+	},
+	"general": {
+		"dataServiceUrl": "",
+		"metadataId": "metadata_id"
+	}
+}
