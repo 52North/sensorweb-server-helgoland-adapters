@@ -28,23 +28,23 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
-import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetThingRequest;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Sensor;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetSensorRequest;
 
-public class ThingRequestBuilder extends AbstractRequestBuilder<GetThingRequest, Thing> {
+public class SensorRequestBuilder extends AbstractRequestBuilder<GetSensorRequest, Sensor> {
 
-    public ThingRequestBuilder(HereonConfig hereonConfig) {
+    public SensorRequestBuilder(HereonConfig hereonConfig) {
         super(hereonConfig);
     }
 
     @Override
-    public GetThingRequest getDefaultRequest() {
-        return new GetThingRequest();
+    public GetSensorRequest getDefaultRequest() {
+        return new GetSensorRequest();
     }
 
     @Override
-    public Thing getTypeMapping() {
-        return getMapping().getThing();
+    public Sensor getTypeMapping() {
+        return getMapping().getSensor();
     }
 
 }

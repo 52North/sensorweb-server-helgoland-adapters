@@ -29,12 +29,10 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-public class GetSensorsRequest extends AbstractHereonRequest implements HereonConstants {
+public class GetObservedPropertyRequest extends AbstractHereonRequest implements HereonConstants {
 
-    public GetSensorsRequest() {
-        withDistinctValues(true);
+    public GetObservedPropertyRequest() {
         withGeometry(false);
-        withOutFields(DataFields.SENSOR);
     }
 
 }

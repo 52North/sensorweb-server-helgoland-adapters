@@ -25,26 +25,14 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
+package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
-import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetThingRequest;
+import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-public class ThingRequestBuilder extends AbstractRequestBuilder<GetThingRequest, Thing> {
+public class GetSensorRequest extends AbstractHereonRequest implements HereonConstants {
 
-    public ThingRequestBuilder(HereonConfig hereonConfig) {
-        super(hereonConfig);
-    }
-
-    @Override
-    public GetThingRequest getDefaultRequest() {
-        return new GetThingRequest();
-    }
-
-    @Override
-    public Thing getTypeMapping() {
-        return getMapping().getThing();
+    public GetSensorRequest() {
+        withGeometry(false);
     }
 
 }

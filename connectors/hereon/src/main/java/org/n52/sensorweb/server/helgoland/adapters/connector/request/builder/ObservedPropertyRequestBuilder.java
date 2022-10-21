@@ -28,23 +28,24 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
-import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetThingRequest;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.ObservedProperty;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetObservedPropertyRequest;
 
-public class ThingRequestBuilder extends AbstractRequestBuilder<GetThingRequest, Thing> {
+public class ObservedPropertyRequestBuilder
+        extends AbstractRequestBuilder<GetObservedPropertyRequest, ObservedProperty> {
 
-    public ThingRequestBuilder(HereonConfig hereonConfig) {
+    public ObservedPropertyRequestBuilder(HereonConfig hereonConfig) {
         super(hereonConfig);
     }
 
     @Override
-    public GetThingRequest getDefaultRequest() {
-        return new GetThingRequest();
+    public GetObservedPropertyRequest getDefaultRequest() {
+        return new GetObservedPropertyRequest();
     }
 
     @Override
-    public Thing getTypeMapping() {
-        return getMapping().getThing();
+    public ObservedProperty getTypeMapping() {
+        return getMapping().getObservedProperty();
     }
 
 }

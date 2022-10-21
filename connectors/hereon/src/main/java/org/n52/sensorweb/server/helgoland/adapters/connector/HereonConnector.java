@@ -36,8 +36,12 @@ import javax.inject.Inject;
 
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.ObservedProperty;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Sensor;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.ObservedPropertyRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.RequestBuilderFactory;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.SensorRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.ThingRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Feature;
@@ -53,7 +57,9 @@ import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.DescribableEntity;
+import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
+import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.parameter.ParameterEntity;
 import org.n52.series.db.beans.parameter.ParameterFactory;
@@ -132,6 +138,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     private void createDatasets(ServiceConstellation serviceConstellation, String url) throws ProxyException {
         LOGGER.debug("Harvesting started!");
         processThings(serviceConstellation, url);
+        processObservedProperties(serviceConstellation, url);
+        processSensors(serviceConstellation, url);
         LOGGER.debug("Harvesting finished!");
 
     }
@@ -157,11 +165,61 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         }
     }
 
-    private Set<ParameterEntity<?>> createParameters(PlatformEntity platform, List<String> properties,
+    private void processObservedProperties(ServiceConstellation serviceConstellation, String url)
+            throws ProxyException {
+        ObservedPropertyRequestBuilder builder = requestBuilderFactory.getObservedPropertyRequestBuilder();
+        Response response = getHttpClient().execute(url, builder.getRequest());
+        try {
+            Metadata metadata = OM.readValue(response.getEntity(), Metadata.class);
+            ObservedProperty observedProperty = builder.getTypeMapping();
+            for (Feature feature : metadata.getFeatures()) {
+                Attributes attribute = feature.getAttributes();
+                PhenomenonEntity phenomenon = createPhenomenon(attribute.getValue(observedProperty.getIdentifier()),
+                        attribute.getValue(observedProperty.getName()),
+                        attribute.getValue(observedProperty.getDescription()), serviceConstellation.getService());
+                if (observedProperty.isSetProperties()) {
+                    phenomenon
+                            .setParameters(createParameters(phenomenon, observedProperty.getProperties(), attribute));
+                }
+                serviceConstellation.putPhenomenon(phenomenon);
+                serviceConstellation.putCategory(createCategory(attribute.getValue(observedProperty.getIdentifier()),
+                        attribute.getValue(observedProperty.getName()),
+                        attribute.getValue(observedProperty.getDescription()), serviceConstellation.getService()));
+            }
+        } catch (JsonProcessingException e) {
+            throw new ProxyException("Error while processing ObservedProperties!").causedBy(e);
+        }
+    }
+
+    private void processSensors(ServiceConstellation serviceConstellation, String url) throws ProxyException {
+        SensorRequestBuilder builder = requestBuilderFactory.getSensorRequestBuilder();
+        Response response = getHttpClient().execute(url, builder.getRequest());
+        try {
+            Metadata metadata = OM.readValue(response.getEntity(), Metadata.class);
+            Sensor sensor = builder.getTypeMapping();
+            for (Feature feature : metadata.getFeatures()) {
+                Attributes attribute = feature.getAttributes();
+                ProcedureEntity procedure = createProcedure(attribute.getValue(sensor.getIdentifier()),
+                        attribute.getValue(sensor.getName()), attribute.getValue(sensor.getDescription()),
+                        serviceConstellation.getService());
+                if (sensor.isSetProperties()) {
+                    procedure.setParameters(createParameters(procedure, sensor.getProperties(), attribute));
+                }
+                serviceConstellation.putProcedure(procedure);
+                serviceConstellation.putOffering(createOffering(attribute.getValue(procedure.getIdentifier()),
+                        attribute.getValue(procedure.getName()), attribute.getValue(procedure.getDescription()),
+                        serviceConstellation.getService()));
+            }
+        } catch (JsonProcessingException e) {
+            throw new ProxyException("Error while processing Sensors!").causedBy(e);
+        }
+    }
+
+    private Set<ParameterEntity<?>> createParameters(DescribableEntity entity, List<String> properties,
             Attributes attribute) {
         Set<ParameterEntity<?>> parameters = new LinkedHashSet<>();
         for (String property : properties) {
-            ParameterEntity<?> parameter = createValueParameter(platform, property, attribute.getValue(property));
+            ParameterEntity<?> parameter = createValueParameter(entity, property, attribute.getValue(property));
             if (parameter != null) {
                 parameters.add(parameter);
             }

@@ -41,4 +41,12 @@ public class RequestBuilderFactory {
     public ThingRequestBuilder getThingRequestBuilder() {
         return new ThingRequestBuilder(hereonConfig);
     }
+
+    public ObservedPropertyRequestBuilder getObservedPropertyRequestBuilder() {
+        return new ObservedPropertyRequestBuilder(hereonConfig);
+    }
+
+    public SensorRequestBuilder getSensorRequestBuilder() {
+        return new SensorRequestBuilder(hereonConfig);
+    }
 }
