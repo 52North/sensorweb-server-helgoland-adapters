@@ -58,7 +58,7 @@
         <spring-boot.version>2.7.5</spring-boot.version>
         <spring-data-entity-graph.version>2.7.10</spring-data-entity-graph.version>
         <logback.version>1.3.4</logback.version>
-        <geotools.version>27.1</geotools.version>
+        <geotools.version>27.2</geotools.version>
         <jackson.version>2.13.4</jackson.version>
         <slf4j.version>2.0.3</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
