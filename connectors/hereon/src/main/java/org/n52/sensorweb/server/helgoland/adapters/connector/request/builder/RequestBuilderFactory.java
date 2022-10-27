@@ -49,4 +49,8 @@ public class RequestBuilderFactory {
     public SensorRequestBuilder getSensorRequestBuilder() {
         return new SensorRequestBuilder(hereonConfig);
     }
+
+    public FeatureRequestBuilder getFeatureRequestBuilder() {
+        return new FeatureRequestBuilder(hereonConfig);
+    }
 }

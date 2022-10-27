@@ -41,6 +41,7 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
     private String where;
     private boolean distinctValues;
     private boolean returnGeometry = true;
+    private String format = Formats.JSON;
     private Set<String> outFields = new LinkedHashSet<>();
 
     @Override
@@ -94,9 +95,17 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
         }
         return this;
     }
+    
+    public AbstractHereonRequest withformat(String format) {
+        if (format != null && !format.isEmpty()) {
+           this.format = format;
+        }
+        return this;
+    }
+    
 
     private void addFormat(Map<String, String> map) {
-        map.put(Parameter.FORMAT, Formats.JSON);
+        map.put(Parameter.FORMAT, format);
     }
 
     private void addWhere(Map<String, String> map) {

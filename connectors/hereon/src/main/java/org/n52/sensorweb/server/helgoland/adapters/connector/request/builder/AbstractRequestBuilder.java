@@ -29,6 +29,7 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.AbstractEntity;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.General;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Mapping;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.AbstractHereonRequest;
 
@@ -57,16 +58,24 @@ public abstract class AbstractRequestBuilder<T extends AbstractHereonRequest, S 
 
     protected abstract S getTypeMapping();
 
-    private String getFields() {
+    protected String getFields() {
         return String.join(",", getTypeMapping().getFields());
     }
 
     private String getIdentifierField() {
-        return getTypeMapping().getIdentifier();
+        return getTypeMapping().getName();
     }
 
     protected Mapping getMapping() {
         return hereonConfig.getMapping();
+    }
+    
+    public General getGeneralMapping() {
+        return getMapping().getGeneral();
+    }
+    
+    protected String getDataServicePrefix() {
+        return getGeneralMapping().getDataServicePrefix();
     }
 
 }

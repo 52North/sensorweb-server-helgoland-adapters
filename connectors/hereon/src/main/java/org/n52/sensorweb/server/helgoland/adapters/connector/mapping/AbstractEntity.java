@@ -36,16 +36,15 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "identifier", "name", "description", "properties" })
+@JsonPropertyOrder({ "name", "description", "properties" })
 public abstract class AbstractEntity implements Serializable {
     private static final  long serialVersionUID = -4168578691389102123L;
-    @JsonProperty("identifier")
-    private String identifier;
     @JsonProperty("name")
     private String name;
     @JsonProperty("description")
@@ -53,22 +52,12 @@ public abstract class AbstractEntity implements Serializable {
     @JsonProperty("properties")
     @Valid
     private List<String> properties = new LinkedList<>();
-
-    @JsonProperty("identifier")
+    
+    @JsonIgnore
     public String getIdentifier() {
-        return identifier;
+        return getName();
     }
-
-    @JsonProperty("identifier")
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public AbstractEntity withIdentifier(String identifier) {
-        this.identifier = identifier;
-        return this;
-    }
-
+    
     @JsonProperty("name")
     public String getName() {
         return name;
@@ -125,7 +114,6 @@ public abstract class AbstractEntity implements Serializable {
 
     public Set<String> getFields() {
         Set<String> fields = new LinkedHashSet<>();
-        add(fields, getIdentifier());
         add(fields, getName());
         add(fields, getDescription());
         getProperties().forEach(p -> add(fields, p));
@@ -133,7 +121,7 @@ public abstract class AbstractEntity implements Serializable {
 
     }
 
-    private Set<String> add(Set<String> fields, String field) {
+    protected Set<String> add(Set<String> fields, String field) {
         if (field != null && !field.isEmpty()) {
             fields.add(field);
         }

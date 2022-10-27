@@ -28,8 +28,38 @@
 
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({ "definition" })
 public class ObservedProperty extends AbstractEntity {
 
     private static final long serialVersionUID = -2200635367972872958L;
 
+    @JsonProperty("definition")
+    private String definition;
+    
+    @JsonProperty("definition")
+    public String getDefinition() {
+        return definition;
+    }
+
+    @JsonProperty("definition")
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
+
+    public AbstractEntity withDefinition(String definition) {
+        this.definition = definition;
+        return this;
+    }
+    
+    @Override
+    public Set<String> getFields() {
+        Set<String> fields = super.getFields();
+        add(getFields(), getDefinition());
+        return fields;
+    }
 }

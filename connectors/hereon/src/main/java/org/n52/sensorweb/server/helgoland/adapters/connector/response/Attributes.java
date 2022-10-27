@@ -64,7 +64,10 @@ public class Attributes implements Serializable {
 
     @JsonIgnore
     public String getValue(String key) {
-        return getAdditionalProperties().get(key).toString();
+        if (getAdditionalProperties().containsKey(key) && getAdditionalProperties().get(key) != null) {
+            return getAdditionalProperties().get(key).toString();
+        }
+        return null;
     }
 
 }

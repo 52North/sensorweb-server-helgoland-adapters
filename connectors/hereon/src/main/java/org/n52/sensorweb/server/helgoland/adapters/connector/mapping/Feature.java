@@ -28,8 +28,49 @@
 
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({ "feature", "encodingType" })
 public class Feature extends AbstractEntity {
 
     private static final long serialVersionUID = -3995244342436529892L;
 
+    @JsonProperty("feature")
+    private String feature;
+    @JsonProperty("encodingType")
+    private String encodingType = "application/geo+json";
+    
+    @JsonProperty("feature")
+    public String getFeature() {
+        return feature;
+    }
+
+    @JsonProperty("feature")
+    public void setFeature(String feature) {
+        this.feature = feature;
+    }
+
+    public AbstractEntity withFeature(String feature) {
+        this.feature = feature;
+        return this;
+    }
+    
+    @JsonProperty("encodingType")
+    public String getEncodingType() {
+        return encodingType;
+    }
+
+    @JsonProperty("encodingType")
+    public void setEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+    }
+
+    public AbstractEntity withEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+        return this;
+    }
+    
 }

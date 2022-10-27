@@ -27,8 +27,55 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({ "metadata", "encodingType" })
 public class Sensor extends AbstractEntity {
 
     private static final long serialVersionUID = 1353028724843766720L;
 
+    @JsonProperty("metadata")
+    private String metadata;
+    @JsonProperty("encodingType")
+    private String encodingType = "text/html";
+    
+    @JsonProperty("metadata")
+    public String getMetadata() {
+        return metadata;
+    }
+
+    @JsonProperty("metadata")
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
+    }
+
+    public AbstractEntity withMetadata(String metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+    
+    @JsonProperty("encodingType")
+    public String getEncodingType() {
+        return encodingType;
+    }
+
+    @JsonProperty("encodingType")
+    public void setEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+    }
+
+    public AbstractEntity withEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+        return this;
+    }
+    
+    @Override
+    public Set<String> getFields() {
+        Set<String> fields = super.getFields();
+        add(getFields(), getMetadata());
+        return fields;
+    }
 }

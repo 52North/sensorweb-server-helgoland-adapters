@@ -28,6 +28,8 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.hereon;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Mapping;
@@ -78,6 +80,19 @@ public class HereonConfig {
             loadMapping();
         }
         return mapping;
+    }
+    
+    public String createTokenUrl(String dataServiceUrl) {
+        if (dataServiceUrl != null && !dataServiceUrl.isEmpty()) {
+            try {
+                URL url = new URL(dataServiceUrl);
+                return new URL(url.getProtocol(), url.getHost(),
+                        getMapping().getGeneral().getDataServiceTokenUrlPostfix()).toString();
+            } catch (MalformedURLException e) {
+                LOGGER.error("Could not create token-URL from {}", dataServiceUrl, e);
+            }
+        }
+        return null;
     }
 
     private String getMappingFile() {

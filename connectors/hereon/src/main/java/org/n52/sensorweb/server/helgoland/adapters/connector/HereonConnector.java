@@ -27,18 +27,27 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import org.locationtech.jts.geom.Geometry;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
+import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
+import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.ObservedProperty;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Sensor;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Thing;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetFeatureGeometryRequest;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.FeatureRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.ObservedPropertyRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.RequestBuilderFactory;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.SensorRequestBuilder;
@@ -53,10 +62,13 @@ import org.n52.sensorweb.server.helgoland.adapters.harvest.DefaultTemporalHarves
 import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.ArcgisRestHttpClient;
+import org.n52.sensorweb.server.helgoland.adapters.web.HttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.series.db.beans.DataEntity;
 import org.n52.series.db.beans.DatasetEntity;
 import org.n52.series.db.beans.DescribableEntity;
+import org.n52.series.db.beans.FeatureEntity;
+import org.n52.series.db.beans.FormatEntity;
 import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
@@ -82,6 +94,10 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
 
     @Inject
     private RequestBuilderFactory requestBuilderFactory;
+    @Inject
+    private HereonConfig hereonConfig;
+    private Credentials credentials;
+    private Map<String, ArcgisRestHttpClient> dataClients = new LinkedHashMap<>();
 
     @Override
     public List<DataEntity<?>> getObservations(DatasetEntity entity, DbQuery query) {
@@ -128,6 +144,9 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     }
 
     private void initHttpClient(ConnectorConfiguration configuration) {
+        if (credentials != null) {
+            this.credentials = configuration.getDataSourceJobConfiguration().getCredentials();
+        }
         if (!isHttpClientInitialized()
                 || isHttpClientInitialized() && !(getHttpClient() instanceof ArcgisRestHttpClient)) {
             setHttpClient(new ArcgisRestHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT),
@@ -140,6 +159,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         processThings(serviceConstellation, url);
         processObservedProperties(serviceConstellation, url);
         processSensors(serviceConstellation, url);
+        processFeature(serviceConstellation, url);
+        processDatasets(serviceConstellation, url);
         LOGGER.debug("Harvesting finished!");
 
     }
@@ -174,7 +195,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
             ObservedProperty observedProperty = builder.getTypeMapping();
             for (Feature feature : metadata.getFeatures()) {
                 Attributes attribute = feature.getAttributes();
-                PhenomenonEntity phenomenon = createPhenomenon(attribute.getValue(observedProperty.getIdentifier()),
+                PhenomenonEntity phenomenon = createPhenomenon(attribute.getValue(observedProperty.getDefinition()),
                         attribute.getValue(observedProperty.getName()),
                         attribute.getValue(observedProperty.getDescription()), serviceConstellation.getService());
                 if (observedProperty.isSetProperties()) {
@@ -197,11 +218,14 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         try {
             Metadata metadata = OM.readValue(response.getEntity(), Metadata.class);
             Sensor sensor = builder.getTypeMapping();
+            FormatEntity format = createFormat(sensor.getEncodingType());
             for (Feature feature : metadata.getFeatures()) {
                 Attributes attribute = feature.getAttributes();
                 ProcedureEntity procedure = createProcedure(attribute.getValue(sensor.getIdentifier()),
                         attribute.getValue(sensor.getName()), attribute.getValue(sensor.getDescription()),
                         serviceConstellation.getService());
+                procedure.setFormat(format);
+                procedure.setDescriptionFile(attribute.getValue(sensor.getMetadata()));
                 if (sensor.isSetProperties()) {
                     procedure.setParameters(createParameters(procedure, sensor.getProperties(), attribute));
                 }
@@ -213,6 +237,45 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         } catch (JsonProcessingException e) {
             throw new ProxyException("Error while processing Sensors!").causedBy(e);
         }
+    }
+
+    private void processFeature(ServiceConstellation serviceConstellation, String url) throws ProxyException {
+        FeatureRequestBuilder builder = requestBuilderFactory.getFeatureRequestBuilder();
+        Response response = getHttpClient().execute(url, builder.getRequest());
+        try {
+            Metadata metadata = OM.readValue(response.getEntity(), Metadata.class);
+            org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Feature mapping = builder.getTypeMapping();
+            FormatEntity format = createFormat(mapping.getEncodingType());
+            for (Feature feature : metadata.getFeatures()) {
+                Attributes attribute = feature.getAttributes();
+                FeatureEntity featureEntity = createFeature(attribute.getValue(mapping.getIdentifier()),
+                        attribute.getValue(mapping.getName()), attribute.getValue(mapping.getDescription()),
+                        serviceConstellation.getService());
+                if (!serviceConstellation.containsFeature(featureEntity.getIdentifier())) {
+                    featureEntity.setFeatureType(format);
+                    featureEntity.setGeometry(queryGeometry(builder, attribute));
+                    serviceConstellation.putFeature(featureEntity);
+                }
+            }
+
+        } catch (JsonProcessingException e) {
+            throw new ProxyException("Error while processing Sensors!").causedBy(e);
+        }
+    }
+
+    private Geometry queryGeometry(FeatureRequestBuilder builder, Attributes attribute) throws ProxyException {
+        GetFeatureGeometryRequest request = builder.getGeomtryRequest();
+        if (builder.isRequestGeometryFromDataService()) {
+            String dataServiceUrl = attribute.getValue(builder.getGeneralMapping().getDataServiceUrl());
+            HttpClient client = getDataServiceClient(dataServiceUrl);
+            Response response = client.execute(dataServiceUrl, request);
+        }
+        return null;
+    }
+
+    private void processDatasets(ServiceConstellation serviceConstellation, String url) {
+        // TODO Auto-generated method stub
+        
     }
 
     private Set<ParameterEntity<?>> createParameters(DescribableEntity entity, List<String> properties,
@@ -246,5 +309,26 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
             return param;
         }
         return null;
+    }
+    
+    private HttpClient getDataServiceClient(String dataServiceUrl) {
+        String tokenUrl = createUrl(dataServiceUrl);
+        if (dataServiceUrl != null && !dataServiceUrl.isEmpty()) {
+            if (tokenUrl.equalsIgnoreCase(credentials.getTokenUrl())) {
+                return getHttpClient();
+            }
+            if (!dataClients.containsKey(tokenUrl)) {
+                dataClients.put(tokenUrl,
+                        new ArcgisRestHttpClient(Ints.checkedCast(CONNECTION_TIMEOUT),
+                                Ints.checkedCast(SOCKET_TIMEOUT),
+                                new Credentials(credentials.getUsername(), credentials.getPassword(), tokenUrl)));
+            }
+            return dataClients.get(tokenUrl);
+        }
+        return null;
+    }
+
+    private String createUrl(String dataServiceUrl) {
+        return hereonConfig.createTokenUrl(dataServiceUrl);
     }
 }
