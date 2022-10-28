@@ -41,7 +41,7 @@ public class Sensor extends AbstractEntity {
     private String metadata;
     @JsonProperty("encodingType")
     private String encodingType = "text/html";
-    
+
     @JsonProperty("metadata")
     public String getMetadata() {
         return metadata;
@@ -56,7 +56,7 @@ public class Sensor extends AbstractEntity {
         this.metadata = metadata;
         return this;
     }
-    
+
     @JsonProperty("encodingType")
     public String getEncodingType() {
         return encodingType;
@@ -71,11 +71,11 @@ public class Sensor extends AbstractEntity {
         this.encodingType = encodingType;
         return this;
     }
-    
+
     @Override
     public Set<String> getFields() {
         Set<String> fields = super.getFields();
-        add(getFields(), getMetadata());
+        add(fields, getMetadata());
         return fields;
     }
 }

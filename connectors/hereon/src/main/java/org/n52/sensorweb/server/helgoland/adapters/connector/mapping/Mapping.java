@@ -29,6 +29,8 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -41,7 +43,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "thing", "sensor", "observedProperty", "feature", "datastream", "general" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
-public class Mapping implements Serializable {
+public class Mapping implements Serializable, Entity {
     private static final long serialVersionUID = 6912484994408704525L;
     @JsonProperty("thing")
     @Valid
@@ -150,6 +152,24 @@ public class Mapping implements Serializable {
     public Mapping withGeneral(General general) {
         this.general = general;
         return this;
+    }
+
+    @Override
+    public Set<String> getFields() {
+        Set<String> fields = new LinkedHashSet<>();
+        fields.addAll(getThing().getFields());
+        fields.addAll(getSensor().getFields());
+        fields.addAll(getObservedProperty().getFields());
+        fields.addAll(getFeature().getFields());
+        fields.addAll(getDatastream().getFields());
+        fields.add(getGeneral().getMetadataId());
+        fields.add(getGeneral().getDataServiceUrl());
+        return fields;
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 
 }

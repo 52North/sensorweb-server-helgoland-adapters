@@ -119,10 +119,6 @@ public class ServiceConstellation extends AbstractServiceConstellation {
                                                       getService()));
     }
 
-    public boolean containsFeature(String id) {
-        return features.containsKey(id);
-    }
-
     public PlatformEntity putPlatform(PlatformEntity platform) {
         platforms.put(platform.getIdentifier(), platform);
         return platform;
@@ -149,12 +145,20 @@ public class ServiceConstellation extends AbstractServiceConstellation {
         return procedures;
     }
 
+    public ProcedureEntity getProcedure(String procedureId) {
+        return procedures.get(procedureId);
+    }
+
     public boolean hasProcedure(String procedureId) {
         return procedures.containsKey(procedureId);
     }
 
     public Map<String, OfferingEntity> getOfferings() {
         return offerings;
+    }
+
+    public OfferingEntity getOffering(String offeringId) {
+        return offerings.get(offeringId);
     }
 
     public boolean hasOffering(String offeringId) {
@@ -165,12 +169,20 @@ public class ServiceConstellation extends AbstractServiceConstellation {
         return categories;
     }
 
+    public CategoryEntity getCategory(String categoryId) {
+        return categories.get(categoryId);
+    }
+
     public boolean hasCategories(String categoryId) {
         return categories.containsKey(categoryId);
     }
 
     public Map<String, PhenomenonEntity> getPhenomena() {
         return phenomena;
+    }
+
+    public PhenomenonEntity getPhenomenon(String phenomenonId) {
+        return phenomena.get(phenomenonId);
     }
 
     public boolean hasPhenomenon(String phenomenonId) {
@@ -181,12 +193,28 @@ public class ServiceConstellation extends AbstractServiceConstellation {
         return features;
     }
 
+    public FeatureEntity getFeature(FeatureEntity feature) {
+        return getFeature(feature.getIdentifier());
+    }
+
+    public FeatureEntity getFeature(String featureId) {
+        return features.get(featureId);
+    }
+
+    public boolean hasFeature(FeatureEntity feature) {
+        return hasFeature(feature.getIdentifier());
+    }
+
     public boolean hasFeature(String featureId) {
         return features.containsKey(featureId);
     }
 
     public Map<String, PlatformEntity> getPlatforms() {
         return platforms;
+    }
+
+    public PlatformEntity getPlatform(String platformId) {
+        return platforms.get(platformId);
     }
 
     public boolean hasPlatforms(String platformId) {

@@ -43,8 +43,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "name", "description", "properties" })
-public abstract class AbstractEntity implements Serializable {
-    private static final  long serialVersionUID = -4168578691389102123L;
+public abstract class AbstractEntity implements Serializable, Entity {
+    private static final long serialVersionUID = -4168578691389102123L;
     @JsonProperty("name")
     private String name;
     @JsonProperty("description")
@@ -52,12 +52,12 @@ public abstract class AbstractEntity implements Serializable {
     @JsonProperty("properties")
     @Valid
     private List<String> properties = new LinkedList<>();
-    
+
     @JsonIgnore
     public String getIdentifier() {
         return getName();
     }
-    
+
     @JsonProperty("name")
     public String getName() {
         return name;
@@ -111,6 +111,8 @@ public abstract class AbstractEntity implements Serializable {
     public boolean isSetProperties() {
         return !getProperties().isEmpty();
     }
+
+
 
     public Set<String> getFields() {
         Set<String> fields = new LinkedHashSet<>();

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2015-2022 52°
-North Spatial Information Research GmbH
+ * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -31,12 +30,14 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "dataServiceUrl", "dataServiceUrlPostfix", "metadataId", "dataServicePrefix", "stringFormatPrefix", "dataServiceTokenUrlPostfix" })
+@JsonPropertyOrder({ "dataServiceUrl", "dataServiceUrlPostfix", "metadataId", "dataServicePrefix",
+        "stringFormatPrefix", "dataServiceTokenUrlPostfix" })
 public class General implements Serializable {
     private static final long serialVersionUID = 3028121006318512305L;
     @JsonProperty("dataServiceUrl")
@@ -51,6 +52,8 @@ public class General implements Serializable {
     private String stringFormatPrefix;
     @JsonProperty("dataServiceTokenUrlPostfix")
     private String dataServiceTokenUrlPostfix;
+    @JsonProperty("resultLimit")
+    private Integer resultLimit;
 
     @JsonProperty("dataServiceUrl")
     public String getDataServiceUrl() {
@@ -66,7 +69,7 @@ public class General implements Serializable {
         this.dataServiceUrl = dataServiceUrl;
         return this;
     }
-    
+
     @JsonProperty("dataServiceUrlPostfix")
     public String getDataServiceUrlPostfix() {
         return dataServiceUrlPostfix;
@@ -81,7 +84,7 @@ public class General implements Serializable {
         this.dataServiceUrlPostfix = dataServiceUrlPostfix;
         return this;
     }
-    
+
     @JsonProperty("metadataId")
     public String getMetadataId() {
         return metadataId;
@@ -96,7 +99,7 @@ public class General implements Serializable {
         this.metadataId = metadataId;
         return this;
     }
-    
+
     @JsonProperty("dataServicePrefix")
     public String getDataServicePrefix() {
         return dataServicePrefix;
@@ -139,6 +142,26 @@ public class General implements Serializable {
 
     public General withDataServiceTokenUrlPostfix(String dataServiceTokenUrlPostfix) {
         this.dataServiceTokenUrlPostfix = dataServiceTokenUrlPostfix;
+        return this;
+    }
+
+    @JsonProperty("resultLimit")
+    public Integer getResultLimit() {
+        return resultLimit;
+    }
+
+    @JsonIgnore
+    public boolean hasResultLimit() {
+        return getResultLimit() != null && getResultLimit() > 0;
+    }
+
+    @JsonProperty("resultLimit")
+    public void setesultLimit(Integer resultLimit) {
+        this.resultLimit = resultLimit;
+    }
+
+    public General withesultLimit(Integer resultLimit) {
+        this.resultLimit = resultLimit;
         return this;
     }
 }

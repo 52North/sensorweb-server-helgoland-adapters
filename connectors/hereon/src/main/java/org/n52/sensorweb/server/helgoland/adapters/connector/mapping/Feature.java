@@ -28,8 +28,6 @@
 
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -42,7 +40,7 @@ public class Feature extends AbstractEntity {
     private String feature;
     @JsonProperty("encodingType")
     private String encodingType = "application/geo+json";
-    
+
     @JsonProperty("feature")
     public String getFeature() {
         return feature;
@@ -57,7 +55,7 @@ public class Feature extends AbstractEntity {
         this.feature = feature;
         return this;
     }
-    
+
     @JsonProperty("encodingType")
     public String getEncodingType() {
         return encodingType;
@@ -72,5 +70,5 @@ public class Feature extends AbstractEntity {
         this.encodingType = encodingType;
         return this;
     }
-    
+
 }

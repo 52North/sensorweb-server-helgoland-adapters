@@ -27,12 +27,13 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
+import org.n52.sensorweb.server.helgoland.adapters.connector.response.MetadataResponse;
 
-public class GetFeatureRequest extends AbstractHereonMetadataRequest implements HereonConstants {
+public abstract class AbstractHereonMetadataRequest extends AbstractHereonRequest
+        implements ResponseClass<MetadataResponse> {
 
-    public GetFeatureRequest() {
-        withGeometry(false);
+    public Class<MetadataResponse> getResponseClass() {
+        return MetadataResponse.class;
     }
 
 }

@@ -29,7 +29,7 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 
-public class GetThingRequest extends AbstractHereonRequest implements HereonConstants {
+public class GetThingRequest extends AbstractHereonMetadataRequest implements HereonConstants {
 
     public GetThingRequest() {
         withGeometry(false);

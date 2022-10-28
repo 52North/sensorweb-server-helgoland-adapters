@@ -33,7 +33,8 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({ "identifier", "identifier", "unit", "phenomenonStartTime", "phenomenonEndTime", "resultTime", "observedArea" })
+@JsonPropertyOrder({ "identifier", "identifier", "unit", "phenomenonStartTime", "phenomenonEndTime", "resultTime",
+        "observedArea" })
 public class Datastream extends AbstractEntity {
 
     private static final long serialVersionUID = 1386105893996142527L;
@@ -49,7 +50,7 @@ public class Datastream extends AbstractEntity {
     private String resultTime;
     @JsonProperty("observedArea")
     private String observedArea;
-    
+
     @JsonProperty("identifier")
     public String getIdentifier() {
         return identifier;
@@ -64,6 +65,7 @@ public class Datastream extends AbstractEntity {
         this.identifier = identifier;
         return this;
     }
+
     @JsonProperty("unit")
     public String getUnit() {
         return unit;
@@ -78,7 +80,7 @@ public class Datastream extends AbstractEntity {
         this.unit = unit;
         return this;
     }
-    
+
     @JsonProperty("phenomenonStartTime")
     public String getPhenomenonStartTime() {
         return phenomenonStartTime;
@@ -93,7 +95,7 @@ public class Datastream extends AbstractEntity {
         this.phenomenonStartTime = phenomenonStartTime;
         return this;
     }
-    
+
     @JsonProperty("phenomenonEndTime")
     public String getPhenomenonEndTime() {
         return phenomenonEndTime;
@@ -108,7 +110,7 @@ public class Datastream extends AbstractEntity {
         this.phenomenonEndTime = phenomenonEndTime;
         return this;
     }
-    
+
     @JsonProperty("resultTime")
     public String getResultTime() {
         return resultTime;
@@ -123,7 +125,7 @@ public class Datastream extends AbstractEntity {
         this.resultTime = resultTime;
         return this;
     }
-    
+
     @JsonProperty("observedArea")
     public String getObservedArea() {
         return observedArea;
@@ -138,11 +140,11 @@ public class Datastream extends AbstractEntity {
         this.observedArea = observedArea;
         return this;
     }
-    
+
     @Override
     public Set<String> getFields() {
         Set<String> fields = super.getFields();
-        add(getFields(), getIdentifier());
+        add(fields, getIdentifier());
         add(fields, getUnit());
         add(fields, getPhenomenonStartTime());
         add(fields, getPhenomenonEndTime());

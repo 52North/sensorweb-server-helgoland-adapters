@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-public class GetMetadataIdRequest extends AbstractHereonRequest {
+public class GetMetadataIdRequest extends AbstractHereonMetadataRequest {
 
     public GetMetadataIdRequest() {
         withDistinctValues(true);

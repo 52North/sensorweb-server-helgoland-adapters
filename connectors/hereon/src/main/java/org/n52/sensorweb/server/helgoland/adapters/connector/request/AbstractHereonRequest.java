@@ -34,15 +34,19 @@ import java.util.Set;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractGetRequest;
+import org.n52.shetland.arcgis.service.feature.FeatureServiceConstants;
 import org.n52.shetland.util.CollectionHelper;
 
-public abstract class AbstractHereonRequest extends AbstractGetRequest implements HereonConstants {
+public abstract class AbstractHereonRequest extends AbstractGetRequest
+        implements HereonConstants, FeatureServiceConstants.WhereOperators {
 
     private String where;
     private boolean distinctValues;
     private boolean returnGeometry = true;
     private String format = Formats.JSON;
     private Set<String> outFields = new LinkedHashSet<>();
+    private Long resultOffset;
+    private Long resultRecordCount;
 
     @Override
     public Map<String, String> getQueryParameters() {
@@ -52,6 +56,9 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
         addDistinctValues(map);
         addReturnGeometry(map);
         addOutFields(map);
+        addQueryParameters(map);
+        addResultOffset(map);
+        addResultRecordCount(map);
         return map;
     }
 
@@ -60,6 +67,11 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
         return Parameter.QUERY;
     }
 
+    /*
+     * ( '<=' | '>=' | '<' | '>' | '=' | '!=' | '<>' | LIKE ) (AND | OR) (IS |
+     * IS_NOT) (IN | NOT_IN) ( '(' ( expr ( ',' expr )* )? ')' ) COLUMN_NAME
+     * BETWEEN LITERAL_VALUE AND LITERAL_VALUE
+     */
     public AbstractHereonRequest withWhere(String where) {
         this.where = where;
         return this;
@@ -71,7 +83,7 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
     }
 
     public AbstractHereonRequest withGeometry(boolean returnGeometry) {
-        this.returnGeometry  = returnGeometry;
+        this.returnGeometry = returnGeometry;
         return this;
     }
 
@@ -95,14 +107,27 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
         }
         return this;
     }
-    
-    public AbstractHereonRequest withformat(String format) {
+
+    public AbstractHereonRequest withFormat(String format) {
         if (format != null && !format.isEmpty()) {
-           this.format = format;
+            this.format = format;
         }
         return this;
     }
-    
+
+    public AbstractHereonRequest withResultOffset(Long resultOffset) {
+        this.resultOffset = resultOffset;
+        return this;
+    }
+
+    public AbstractHereonRequest withResultRecordCount(Long resultRecordCount) {
+        this.resultRecordCount = resultRecordCount;
+        return this;
+    }
+
+    protected void addQueryParameters(Map<String, String> map) {
+
+    }
 
     private void addFormat(Map<String, String> map) {
         map.put(Parameter.FORMAT, format);
@@ -113,11 +138,43 @@ public abstract class AbstractHereonRequest extends AbstractGetRequest implement
     }
 
     private void addDistinctValues(Map<String, String> map) {
-        map.put(Parameter.RETURN_DISTINCT_VALUES, Boolean.toString(distinctValues));
+        if (distinctValues) {
+            map.put(Parameter.RETURN_DISTINCT_VALUES, Boolean.toString(distinctValues));
+        }
     }
 
     private void addReturnGeometry(Map<String, String> map) {
-        map.put(Parameter.RETURN_GEOMETRY,  Boolean.toString(returnGeometry));
+        if (returnGeometry) {
+            map.put(Parameter.RETURN_GEOMETRY, Boolean.toString(returnGeometry));
+        }
+    }
+
+    private void addResultOffset(Map<String, String> map) {
+        if (hasResultOffset()) {
+            map.put(Parameter.RESULT_OFFSET, getResultOffset().toString());
+        }
+    }
+
+    private boolean hasResultOffset() {
+        return getResultOffset() != null && getResultOffset() > 0;
+    }
+
+    private Long getResultOffset() {
+        return resultOffset;
+    }
+
+    private void addResultRecordCount(Map<String, String> map) {
+        if (hasResultRecordCount()) {
+            map.put(Parameter.RESULT_RECORD_COUNT, getResultRecordCount().toString());
+        }
+    }
+
+    private boolean hasResultRecordCount() {
+        return getResultRecordCount() != null && getResultRecordCount() > 0;
+    }
+
+    private Long getResultRecordCount() {
+        return resultRecordCount;
     }
 
     private void addOutFields(Map<String, String> map) {

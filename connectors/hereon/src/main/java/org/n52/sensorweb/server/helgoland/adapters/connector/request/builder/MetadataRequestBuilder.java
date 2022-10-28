@@ -28,54 +28,23 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.request.builder;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
-import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Entity;
-import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.General;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Mapping;
-import org.n52.sensorweb.server.helgoland.adapters.connector.request.AbstractHereonRequest;
+import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetMetadataRequest;
 
-public abstract class AbstractRequestBuilder<T extends AbstractHereonRequest, S extends Entity> {
+public class MetadataRequestBuilder extends AbstractRequestBuilder<GetMetadataRequest, Mapping> {
 
-    private final HereonConfig hereonConfig;
-
-    public AbstractRequestBuilder(HereonConfig hereonConfig) {
-        this.hereonConfig = hereonConfig;
+    public MetadataRequestBuilder(HereonConfig hereonConfig) {
+        super(hereonConfig);
     }
 
-    public T getIdentifierRequest() {
-        return (T) getDefaultRequest().withOutField(getIdentifierField()).withDistinctValues(true);
+    @Override
+    protected GetMetadataRequest getDefaultRequest() {
+        return new GetMetadataRequest();
     }
 
-    public T getRequest() {
-        return (T) getDefaultRequest().withOutField(getFields()).withDistinctValues(true);
-    }
-
-    public T getRequest(String identifier) {
-        return (T) getDefaultRequest().withWhere(getIdentifierField() + "=" + identifier).withOutField(getFields())
-                .withDistinctValues(true);
-    }
-
-    protected abstract T getDefaultRequest();
-
-    protected abstract S getTypeMapping();
-
-    protected String getFields() {
-        return String.join(",", getTypeMapping().getFields());
-    }
-
-    private String getIdentifierField() {
-        return getTypeMapping().getName();
-    }
-
-    protected Mapping getMapping() {
-        return hereonConfig.getMapping();
-    }
-
-    public General getGeneralMapping() {
-        return getMapping().getGeneral();
-    }
-
-    protected String getDataServicePrefix() {
-        return getGeneralMapping().getDataServicePrefix();
+    @Override
+    protected Mapping getTypeMapping() {
+        return getMapping();
     }
 
 }

@@ -28,7 +28,9 @@
 package org.n52.sensorweb.server.helgoland.adapters.connector.constellations;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -40,6 +42,8 @@ import org.n52.series.db.beans.PhenomenonEntity;
 import org.n52.series.db.beans.PlatformEntity;
 import org.n52.series.db.beans.ProcedureEntity;
 import org.n52.series.db.beans.ServiceEntity;
+import org.n52.series.db.beans.parameter.ParameterEntity;
+import org.n52.series.db.beans.parameter.dataset.DatasetParameterEntity;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -62,6 +66,7 @@ public abstract class DatasetConstellation {
     private boolean insitu;
     private Date samplingTimeStart;
     private Date samplingTimeEnd;
+    private Set<ParameterEntity<?>> parameters = new LinkedHashSet<>();
 
     public DatasetConstellation(String procedure, String offering, String phenomenon, String feature) {
         this(procedure, offering, phenomenon, phenomenon, feature, feature);
@@ -129,7 +134,8 @@ public abstract class DatasetConstellation {
         datasetEntity.setPublished(true);
         datasetEntity.setDeleted(false);
         datasetEntity.setService(service);
-        datasetEntity.setGeometryEntity(offering.getGeometryEntity());
+        datasetEntity.setGeometryEntity(
+                offering.isSetGeometry() ? offering.getGeometryEntity() : feature.getGeometryEntity());
 
         FormatEntity omObservationType = new FormatEntity();
         omObservationType.setId(5L);
@@ -138,6 +144,7 @@ public abstract class DatasetConstellation {
 
         getFirst().map(DataEntity::getSamplingTimeStart).ifPresent(datasetEntity::setFirstValueAt);
         getLatest().map(DataEntity::getSamplingTimeEnd).ifPresent(datasetEntity::setLastValueAt);
+        datasetEntity.setParameters(getParameter(datasetEntity));
 
         return datasetEntity;
     }
@@ -196,4 +203,12 @@ public abstract class DatasetConstellation {
         return this;
     }
 
+    private Set<ParameterEntity<?>> getParameter(DatasetEntity datasetEntity) {
+        parameters.forEach(p -> ((DatasetParameterEntity<?>) p).setDataset(datasetEntity));
+        return parameters;
+    }
+
+    public void setParameters(Set<ParameterEntity<?>> parameters) {
+        this.parameters.addAll(parameters);
+    }
 }

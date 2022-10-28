@@ -25,14 +25,11 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -45,57 +42,50 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "features", "exceededTransferLimit" })
-public class Metadata implements Serializable {
-    private static final long serialVersionUID = 565521313246527281L;
-    @JsonProperty("features")
-    @Valid
-    private List<Feature> features = new LinkedList<>();
-    @JsonProperty("exceededTransferLimit")
-    private Boolean exceededTransferLimit;
+@JsonPropertyOrder({ "latestWkid", "wkid" })
+public class SpatialReference implements Serializable {
+    private static final long serialVersionUID = 1760883659086222902L;
+    @JsonProperty("latestWkid")
+    private Integer latestWkid;
+    @JsonProperty("wkid")
+    private Integer wkid;
     @JsonIgnore
     @Valid
-    private Map<String, Object> additionalProperties = new LinkedHashMap<>();
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    @JsonProperty("features")
-    public List<Feature> getFeatures() {
-        return Collections.unmodifiableList(features);
+    @JsonProperty("latestWkid")
+    public Integer getLatestWkid() {
+        return latestWkid;
     }
 
-    @JsonProperty("features")
-    public void setFeatures(List<Feature> features) {
-        this.features.clear();
-        if (features != null) {
-            this.features.addAll(features);
-        }
+    @JsonProperty("latestWkid")
+    public void setLatestWkid(Integer latestWkid) {
+        this.latestWkid = latestWkid;
     }
 
-    public Metadata withFeatures(List<Feature> features) {
-        this.features.clear();
-        if (features != null) {
-            this.features.addAll(features);
-        }
+    public SpatialReference withLatestWkid(Integer latestWkid) {
+        this.latestWkid = latestWkid;
         return this;
     }
 
-    @JsonProperty("exceededTransferLimit")
-    public Boolean getExceededTransferLimit() {
-        return exceededTransferLimit;
+    @JsonProperty("wkid")
+    public Integer getWkid() {
+        return wkid;
     }
 
-    @JsonProperty("exceededTransferLimit")
-    public void setExceededTransferLimit(Boolean exceededTransferLimit) {
-        this.exceededTransferLimit = exceededTransferLimit;
+    @JsonProperty("wkid")
+    public void setWkid(Integer wkid) {
+        this.wkid = wkid;
     }
 
-    public Metadata withExceededTransferLimit(Boolean exceededTransferLimit) {
-        this.exceededTransferLimit = exceededTransferLimit;
+    public SpatialReference withWkid(Integer wkid) {
+        this.wkid = wkid;
         return this;
     }
 
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
-        return Collections.unmodifiableMap(additionalProperties);
+        return Collections.unmodifiableMap(this.additionalProperties);
     }
 
     @JsonAnySetter
@@ -103,9 +93,8 @@ public class Metadata implements Serializable {
         this.additionalProperties.put(name, value);
     }
 
-    public Metadata withAdditionalProperty(String name, Object value) {
+    public SpatialReference withAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
         return this;
     }
-
 }

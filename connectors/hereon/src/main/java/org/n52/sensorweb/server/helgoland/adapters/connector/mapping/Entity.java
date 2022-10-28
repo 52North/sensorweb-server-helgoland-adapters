@@ -25,14 +25,13 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.request;
+package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
+import java.util.Set;
 
-public class GetFeatureRequest extends AbstractHereonMetadataRequest implements HereonConstants {
+public interface Entity {
 
-    public GetFeatureRequest() {
-        withGeometry(false);
-    }
+    Set<String> getFields();
 
+    String getName();
 }

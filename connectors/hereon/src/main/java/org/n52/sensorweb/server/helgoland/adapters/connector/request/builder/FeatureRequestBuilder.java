@@ -37,6 +37,7 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.request.GetFeatureR
 
 public class FeatureRequestBuilder extends AbstractRequestBuilder<GetFeatureRequest, Feature> {
 
+
     public FeatureRequestBuilder(HereonConfig hereonConfig) {
         super(hereonConfig);
     }
@@ -50,12 +51,13 @@ public class FeatureRequestBuilder extends AbstractRequestBuilder<GetFeatureRequ
     public Feature getTypeMapping() {
         return getMapping().getFeature();
     }
-    
+
     @Override
     protected String getFields() {
         Set<String> fields = new LinkedHashSet<>();
         fields.add(super.getFields());
         fields.add(getGeneralMapping().getMetadataId());
+        fields.add(getGeneralMapping().getDataServiceUrl());
         if (!isRequestGeometryFromDataService()) {
             fields.add(getTypeMapping().getFeature());
         }
@@ -66,9 +68,9 @@ public class FeatureRequestBuilder extends AbstractRequestBuilder<GetFeatureRequ
         GetFeatureGeometryRequest request = new GetFeatureGeometryRequest();
         String field = getTypeMapping().getFeature().replace(getDataServicePrefix(), "");
         if (field.equals("extent")) {
-            
+            request.withReturnExtentOnly();
         } else {
-            add
+            request.withOutField(field);
         }
         return request;
     }

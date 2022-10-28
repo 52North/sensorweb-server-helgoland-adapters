@@ -27,12 +27,35 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
+import java.util.Map;
 
-public class GetFeatureRequest extends AbstractHereonMetadataRequest implements HereonConstants {
+public abstract class AbstractDataHereonRequest extends AbstractHereonRequest {
 
-    public GetFeatureRequest() {
-        withGeometry(false);
+    private String metadataId;
+    private boolean returnExtentOnly;
+
+    public AbstractDataHereonRequest withMetadataId(String metadataId) {
+        this.metadataId = metadataId;
+        return this;
     }
 
+    public AbstractDataHereonRequest withReturnExtentOnly() {
+        this.returnExtentOnly = true;
+        return this;
+    }
+
+    @Override
+    protected void addQueryParameters(Map<String, String> map) {
+        if (metadataId != null && !metadataId.isEmpty()) {
+            withWhere(equal(DataFields.METADATA_ID, metadataId));
+        }
+        super.addQueryParameters(map);
+        addReturnExtentOnly(map);
+    }
+
+    private void addReturnExtentOnly(Map<String, String> map) {
+        if (returnExtentOnly) {
+            map.put(Parameter.RETURN_EXTENT_ONLY, Boolean.toString(returnExtentOnly));
+        }
+    }
 }

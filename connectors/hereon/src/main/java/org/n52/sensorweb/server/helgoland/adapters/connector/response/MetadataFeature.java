@@ -25,14 +25,40 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.request;
 
-import org.n52.sensorweb.server.helgoland.adapters.connector.HereonConstants;
+package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
-public class GetFeatureRequest extends AbstractHereonMetadataRequest implements HereonConstants {
+import java.io.Serializable;
 
-    public GetFeatureRequest() {
-        withGeometry(false);
+import javax.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({ "attributes" })
+@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+public class MetadataFeature implements Serializable {
+    private static final long serialVersionUID = 1278813991741382777L;
+    @JsonProperty("attributes")
+    @Valid
+    private Attributes attributes;
+
+    @JsonProperty("attributes")
+    public Attributes getAttributes() {
+        return attributes;
     }
 
+    @JsonProperty("attributes")
+    public void setAttributes(Attributes attributes) {
+        this.attributes = attributes;
+    }
+
+    public MetadataFeature withAttributes(Attributes attributes) {
+        this.attributes = attributes;
+        return this;
+    }
 }

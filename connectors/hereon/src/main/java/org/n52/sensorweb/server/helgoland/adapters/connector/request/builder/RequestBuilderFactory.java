@@ -53,4 +53,8 @@ public class RequestBuilderFactory {
     public FeatureRequestBuilder getFeatureRequestBuilder() {
         return new FeatureRequestBuilder(hereonConfig);
     }
+
+    public MetadataRequestBuilder getMetadataRequestBuilder() {
+        return new MetadataRequestBuilder(hereonConfig);
+    }
 }

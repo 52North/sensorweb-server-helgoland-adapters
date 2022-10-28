@@ -81,7 +81,7 @@ public class HereonConfig {
         }
         return mapping;
     }
-    
+
     public String createTokenUrl(String dataServiceUrl) {
         if (dataServiceUrl != null && !dataServiceUrl.isEmpty()) {
             try {
@@ -112,5 +112,10 @@ public class HereonConfig {
 
     private Mapping createDefaultMapping() {
         return new Mapping();
+    }
+
+    public String createDataServiceUrl(String dataServiceUrl) {
+        String postfix = getMapping().getGeneral().getDataServiceUrlPostfix();
+        return dataServiceUrl.endsWith(postfix) ? dataServiceUrl : dataServiceUrl + postfix;
     }
 }

@@ -40,7 +40,7 @@ public class ObservedProperty extends AbstractEntity {
 
     @JsonProperty("definition")
     private String definition;
-    
+
     @JsonProperty("definition")
     public String getDefinition() {
         return definition;
@@ -55,11 +55,11 @@ public class ObservedProperty extends AbstractEntity {
         this.definition = definition;
         return this;
     }
-    
+
     @Override
     public Set<String> getFields() {
         Set<String> fields = super.getFields();
-        add(getFields(), getDefinition());
+        add(fields, getDefinition());
         return fields;
     }
 }

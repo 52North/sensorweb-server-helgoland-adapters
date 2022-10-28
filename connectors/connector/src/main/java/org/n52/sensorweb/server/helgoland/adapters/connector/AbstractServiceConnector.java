@@ -230,7 +230,7 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
 
     protected String addFeature(AbstractSamplingFeature samplingfeature, ServiceConstellation serviceConstellation) {
         String featureId = samplingfeature.getIdentifier();
-        if (!serviceConstellation.containsFeature(featureId)) {
+        if (!serviceConstellation.hasFeature(featureId)) {
             String featureDescription = samplingfeature.getDescription();
             String featureName =
                     samplingfeature.getFirstName() != null ? samplingfeature.getFirstName().getValue() : featureId;
