@@ -37,6 +37,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import org.joda.time.DateTime;
 import org.locationtech.jts.geom.Geometry;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
@@ -218,13 +219,14 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 throw new ProxyException("Error while processing Metadata!").causedBy(e);
             }
         } while (exceededTransferLimit);
-
         LOGGER.debug("Harvesting finished!");
     }
 
     private QuantityDatasetConstellation addDatasetreamValues(QuantityDatasetConstellation dataset,
             Attributes attribute, Datastream datastream) {
         dataset.setIdentifier(attribute.getValue(datastream.getIdentifier()));
+        dataset.setName(attribute.getValue(datastream.getName()));
+        dataset.setDescription(attribute.getValue(datastream.getDescription()));
         dataset.setUnit(
                 createUnit(attribute.getValue(datastream.getUnit()), attribute.getValue(datastream.getUnit())));
         dataset.setSamplingTimeStart(getDate(attribute.getValue(datastream.getPhenomenonStartTime())));
@@ -247,17 +249,27 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     }
 
     private DatasetParameterEntity<?> createDatasetValueParameter(String name, String value) {
-        DatasetParameterEntity<?> param = (DatasetParameterEntity<?>) ParameterFactory.from(EntityType.DATASET,
-                org.n52.series.db.beans.parameter.ParameterFactory.ValueType.TEXT);
-        if (param != null) {
-            param.setName(name);
-            ((TextParameterEntity) param).setValue(value);
+        if (value != null && !value.isEmpty()) {
+            DatasetParameterEntity<?> param = (DatasetParameterEntity<?>) ParameterFactory.from(EntityType.DATASET,
+                    org.n52.series.db.beans.parameter.ParameterFactory.ValueType.TEXT);
+            if (param != null) {
+                param.setName(name);
+                ((TextParameterEntity) param).setValue(value);
+            }
+            return param;
         }
-        return param;
+        return null;
     }
 
     private Date getDate(String time) {
-        return DateTimeHelper.parseIsoString2DateTime(time).toDate();
+        if (time != null && !time.isEmpty()) {
+            try {
+                return new DateTime(Long.parseLong(time)).toDate();
+            } catch (NumberFormatException nfe) {
+                return DateTimeHelper.parseIsoString2DateTime(time).toDate();
+            }
+        }
+        return null;
     }
 
     private PlatformEntity createThing(ServiceConstellation serviceConstellation, Attributes attribute, Thing thing) {
@@ -326,11 +338,11 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     }
 
     private FeatureEntity createFeature(ServiceConstellation serviceConstellation, Attributes attribute,
-            Feature featureMapping, FormatEntity format, FeatureRequestBuilder builder) {
-        String id = attribute.getValue(featureMapping.getIdentifier());
+            Feature feature, FormatEntity format, FeatureRequestBuilder builder) {
+        String id = attribute.getValue(feature.getIdentifier());
         if (!serviceConstellation.hasFeature(id)) {
-            FeatureEntity featureEntity = createFeature(id, attribute.getValue(featureMapping.getName()),
-                    attribute.getValue(featureMapping.getDescription()), serviceConstellation.getService());
+            FeatureEntity featureEntity = createFeature(id, attribute.getValue(feature.getName()),
+                    attribute.getValue(feature.getDescription()), serviceConstellation.getService());
             featureEntity.setFeatureType(format);
             featureEntity.setGeometry(queryGeometry(builder, attribute));
             serviceConstellation.putFeature(featureEntity);

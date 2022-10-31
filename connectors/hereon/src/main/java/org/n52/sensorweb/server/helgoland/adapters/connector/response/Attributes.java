@@ -31,6 +31,8 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.Valid;
@@ -64,10 +66,26 @@ public class Attributes implements Serializable {
 
     @JsonIgnore
     public String getValue(String key) {
-        if (getAdditionalProperties().containsKey(key) && getAdditionalProperties().get(key) != null) {
-            return getAdditionalProperties().get(key).toString();
+        if (key.contains(",")) {
+            return String.join("-", getValues(key.split(",")));
+        } else {
+            if (getAdditionalProperties().containsKey(key) && getAdditionalProperties().get(key) != null) {
+                return getAdditionalProperties().get(key).toString();
+            }
         }
         return null;
+    }
+
+    @JsonIgnore
+    public List<String> getValues(String... keys) {
+        List<String> values = new LinkedList<>();
+        for (String key : keys) {
+            String value = getValue(key);
+            if (value != null && !value.isEmpty()) {
+                values.add(getValue(key));
+            }
+        }
+        return values;
     }
 
 }

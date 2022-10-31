@@ -62,6 +62,8 @@ public abstract class DatasetConstellation {
     private DataEntity<?> first;
     private DataEntity<?> latest;
     private String identifier;
+    private String name;
+    private String description;
     private boolean mobile;
     private boolean insitu;
     private Date samplingTimeStart;
@@ -113,6 +115,22 @@ public abstract class DatasetConstellation {
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
     }
+    
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     @Override
     public String toString() {
@@ -125,6 +143,8 @@ public abstract class DatasetConstellation {
             ServiceEntity service) {
         DatasetEntity datasetEntity = createDatasetEntity(service);
         datasetEntity.setIdentifier(getIdentifier());
+        datasetEntity.setName(getName());
+        datasetEntity.setDescription(getDescription());
         datasetEntity.setProcedure(procedure);
         datasetEntity.setCategory(category);
         datasetEntity.setFeature(feature);
@@ -189,7 +209,7 @@ public abstract class DatasetConstellation {
     }
 
     public DatasetConstellation setSamplingTimeStart(Date samplingTimeStart) {
-        this.samplingTimeStart = (Date) samplingTimeStart.clone();
+        this.samplingTimeStart = samplingTimeStart != null ? (Date) samplingTimeStart.clone() : null;
         return this;
     }
 
@@ -199,7 +219,7 @@ public abstract class DatasetConstellation {
     }
 
     public DatasetConstellation setSamplingTimeEnd(Date samplingTimeEnd) {
-        this.samplingTimeEnd = (Date) samplingTimeEnd.clone();
+        this.samplingTimeEnd = samplingTimeEnd != null ? (Date) samplingTimeEnd.clone() : null;
         return this;
     }
 
