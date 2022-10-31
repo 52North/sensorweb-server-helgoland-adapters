@@ -301,6 +301,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Logging -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
@@ -311,26 +312,18 @@
 			<artifactId>logback-classic</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
-		<!-- Logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- drop-in replacement for JCL -->
 		<dependency>
-			<!-- drop-in replacement for JCL -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<!-- drop-in replacement for log4j -->
-			<groupId>org.slf4j</groupId>
-			<artifactId>log4j-over-slf4j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
+		<!-- drop-in replacement for log4j -->
 		<!-- Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
