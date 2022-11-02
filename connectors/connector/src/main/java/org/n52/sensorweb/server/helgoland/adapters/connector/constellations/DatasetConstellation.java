@@ -115,7 +115,7 @@ public abstract class DatasetConstellation {
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -123,7 +123,7 @@ public abstract class DatasetConstellation {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDescription() {
         return description;
     }
