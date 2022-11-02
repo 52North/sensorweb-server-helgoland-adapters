@@ -83,6 +83,11 @@ public class SpatialReference implements Serializable {
         return this;
     }
 
+    @JsonIgnore
+    public boolean hasWkid() {
+        return getWkid() != null && getWkid() > 0;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return Collections.unmodifiableMap(this.additionalProperties);

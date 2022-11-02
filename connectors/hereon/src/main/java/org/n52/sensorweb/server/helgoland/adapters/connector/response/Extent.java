@@ -37,6 +37,7 @@ import javax.validation.Valid;
 import org.geotools.geometry.jts.JTS;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Polygon;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -142,6 +143,11 @@ public class Extent implements Serializable {
         return this;
     }
 
+    @JsonIgnore
+    public boolean hasSpatialReference() {
+        return getSpatialReference() != null && getSpatialReference().hasWkid();
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return Collections.unmodifiableMap(this.additionalProperties);
@@ -157,11 +163,19 @@ public class Extent implements Serializable {
         return this;
     }
 
+    @JsonIgnore
     public Envelope getEnvelope() {
         return new Envelope(getXmin(), getXmax(), getYmin(), getYmax());
     }
 
+    @JsonIgnore
     public Geometry getGeometry() {
-        return JTS.toGeometry(getEnvelope());
+        Polygon geometry = JTS.toGeometry(getEnvelope());
+        if (hasSpatialReference()) {
+            geometry.setSRID(getSpatialReference().getWkid());
+        } else {
+            geometry.setSRID(4326);
+        }
+        return geometry;
     }
 }
