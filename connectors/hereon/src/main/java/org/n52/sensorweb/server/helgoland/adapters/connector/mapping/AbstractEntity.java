@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -128,5 +130,9 @@ public abstract class AbstractEntity implements Serializable, Entity {
             fields.add(field);
         }
         return fields;
+    }
+
+    public boolean checkForRequiredFields(Attributes attribute) {
+        return attribute.hasValue(getName());
     }
 }

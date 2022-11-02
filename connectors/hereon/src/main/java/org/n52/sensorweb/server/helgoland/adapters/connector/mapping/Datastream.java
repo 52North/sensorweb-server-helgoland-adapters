@@ -30,6 +30,8 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 import java.util.Set;
 
+import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -150,6 +152,11 @@ public class Datastream extends AbstractEntity {
         add(fields, getPhenomenonEndTime());
         add(fields, getResultTime());
         return fields;
+    }
+
+    @Override
+    public boolean checkForRequiredFields(Attributes attribute) {
+        return super.checkForRequiredFields(attribute) && attribute.hasValue(getUnit());
     }
 
 }

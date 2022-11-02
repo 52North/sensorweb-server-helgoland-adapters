@@ -30,6 +30,8 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 import java.util.Set;
 
+import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -61,5 +63,10 @@ public class ObservedProperty extends AbstractEntity {
         Set<String> fields = super.getFields();
         add(fields, getDefinition());
         return fields;
+    }
+
+    @Override
+    public boolean checkForRequiredFields(Attributes attribute) {
+        return attribute.hasValue(getDefinition()) || super.checkForRequiredFields(attribute);
     }
 }

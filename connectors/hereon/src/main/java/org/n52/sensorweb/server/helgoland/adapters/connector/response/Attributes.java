@@ -70,7 +70,8 @@ public class Attributes implements Serializable {
             return String.join("-", getValues(key.split(",")));
         } else {
             if (getAdditionalProperties().containsKey(key) && getAdditionalProperties().get(key) != null) {
-                return getAdditionalProperties().get(key).toString();
+                String value = getAdditionalProperties().get(key).toString();
+                return value != null && !value.isEmpty() ? value : null;
             }
         }
         return null;
@@ -86,6 +87,22 @@ public class Attributes implements Serializable {
             }
         }
         return values;
+    }
+
+    public boolean hasValue(String key) {
+        if (key.contains(",")) {
+            for (String value : getValues(key.split(","))) {
+                if (value != null && !value.isEmpty()) {
+                    return true;
+                }
+            }
+        } else {
+            if (getAdditionalProperties().containsKey(key)) {
+                return getAdditionalProperties().get(key) != null
+                        && !getAdditionalProperties().get(key).toString().isEmpty();
+            }
+        }
+        return false;
     }
 
 }

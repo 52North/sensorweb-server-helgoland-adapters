@@ -27,6 +27,8 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -44,6 +47,7 @@ import org.n52.sensorweb.server.db.old.dao.DbQuery;
 import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
 import org.n52.sensorweb.server.helgoland.adapters.connector.constellations.QuantityDatasetConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.connector.hereon.HereonConfig;
+import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.AbstractEntity;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Datastream;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Feature;
 import org.n52.sensorweb.server.helgoland.adapters.connector.mapping.ObservedProperty;
@@ -181,6 +185,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         FormatEntity sensorFormat = createFormat(sensor.getEncodingType());
         FormatEntity featureForamt = createFormat(featureMapping.getEncodingType());
         Datastream datastream = hereonConfig.getMapping().getDatastream();
+        Collection<AbstractEntity> mappings =
+                createMappingCollection(thing, observedProperty, sensor, featureMapping, datastream);
 
         long resultOffset = 0;
         long resultLimit = hereonConfig.getMapping().getGeneral().hasResultLimit()
@@ -202,24 +208,40 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 resultOffset += resultLimit > 0 ? resultLimit : metadata.getFeatures().size();
                 for (MetadataFeature metadataFeature : metadata.getFeatures()) {
                     Attributes attribute = metadataFeature.getAttributes();
-                    PlatformEntity platform = createThing(serviceConstellation, attribute, thing);
-                    PhenomenonEntity phenomenon =
-                            creatObservedProperty(serviceConstellation, attribute, observedProperty);
-                    CategoryEntity category = createCategory(serviceConstellation, attribute, observedProperty);
-                    ProcedureEntity procedure = createSensor(serviceConstellation, attribute, sensor, sensorFormat);
-                    OfferingEntity offering = createOffering(serviceConstellation, attribute, sensor);
-                    FeatureEntity feature = createFeature(serviceConstellation, attribute, featureMapping,
-                            featureForamt, featureRequestBuilder);
-                    QuantityDatasetConstellation dataset = new QuantityDatasetConstellation(procedure.getIdentifier(),
-                            offering.getIdentifier(), category.getIdentifier(), phenomenon.getIdentifier(),
-                            feature.getIdentifier(), platform.getIdentifier());
-                    serviceConstellation.add(addDatasetreamValues(dataset, attribute, datastream));
+                    if (checkForRequiredFields(attribute, mappings)) {
+                        PlatformEntity platform = createThing(serviceConstellation, attribute, thing);
+                        PhenomenonEntity phenomenon =
+                                creatObservedProperty(serviceConstellation, attribute, observedProperty);
+                        CategoryEntity category = createCategory(serviceConstellation, attribute, observedProperty);
+                        ProcedureEntity procedure =
+                                createSensor(serviceConstellation, attribute, sensor, sensorFormat);
+                        OfferingEntity offering = createOffering(serviceConstellation, attribute, sensor);
+                        FeatureEntity feature = createFeature(serviceConstellation, attribute, featureMapping,
+                                featureForamt, featureRequestBuilder);
+                        QuantityDatasetConstellation dataset = new QuantityDatasetConstellation(
+                                procedure.getIdentifier(), offering.getIdentifier(), category.getIdentifier(),
+                                phenomenon.getIdentifier(), feature.getIdentifier(), platform.getIdentifier());
+                        serviceConstellation.add(addDatasetreamValues(dataset, attribute, datastream));
+                    }
                 }
             } catch (JsonProcessingException | DecodingException e) {
                 throw new ProxyException("Error while processing Metadata!").causedBy(e);
             }
         } while (exceededTransferLimit);
         LOGGER.debug("Harvesting finished!");
+    }
+
+    private boolean checkForRequiredFields(Attributes attribute, Collection<AbstractEntity> mappings) {
+        for (AbstractEntity abstractEntity : mappings) {
+            if (!abstractEntity.checkForRequiredFields(attribute)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Collection<AbstractEntity> createMappingCollection(AbstractEntity... values) {
+        return Arrays.stream(values).collect(Collectors.toSet());
     }
 
     private QuantityDatasetConstellation addDatasetreamValues(QuantityDatasetConstellation dataset,
@@ -288,6 +310,9 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     private PhenomenonEntity creatObservedProperty(ServiceConstellation serviceConstellation, Attributes attribute,
             ObservedProperty observedProperty) {
         String id = attribute.getValue(observedProperty.getDefinition());
+        if (id == null || id.isEmpty()) {
+            id = attribute.getValue(observedProperty.getName());
+        }
         if (!serviceConstellation.hasPhenomenon(id)) {
             PhenomenonEntity phenomenon = createPhenomenon(id, attribute.getValue(observedProperty.getName()),
                     attribute.getValue(observedProperty.getDescription()), serviceConstellation.getService());
@@ -301,7 +326,10 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
 
     private CategoryEntity createCategory(ServiceConstellation serviceConstellation, Attributes attribute,
             ObservedProperty observedProperty) {
-        String id = attribute.getValue(observedProperty.getIdentifier());
+        String id = attribute.getValue(observedProperty.getDefinition());
+        if (id == null || id.isEmpty()) {
+            id = attribute.getValue(observedProperty.getName());
+        }
         if (!serviceConstellation.hasCategories(id)) {
             CategoryEntity category = createCategory(id, attribute.getValue(observedProperty.getName()),
                     attribute.getValue(observedProperty.getDescription()), serviceConstellation.getService());
