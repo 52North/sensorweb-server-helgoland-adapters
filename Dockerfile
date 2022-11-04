@@ -1,4 +1,4 @@
-FROM maven:3-jdk-8-alpine as BUILD
+FROM 3-eclipse-temurin-11-alpine as BUILD
 
 WORKDIR /app
 
@@ -7,10 +7,10 @@ COPY . ./
 RUN mvn --batch-mode --errors --fail-fast \
     --define maven.javadoc.skip=true \
     --define skipTests=true \
-    --activate-profiles no-download,dcat \
+    --activate-profiles no-download \
     install
 
-FROM adoptopenjdk/openjdk8:alpine-slim
+FROM adoptopenjdk/openjdk11:alpine-slim
 
 WORKDIR /app
 
