@@ -25,71 +25,72 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.response;
+package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
-import javax.validation.Valid;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "extent" })
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
-public class ExtentResponse implements Serializable {
+@JsonPropertyOrder({ "field", "value", "separator" })
+public class Optional implements Serializable {
+    private static final long serialVersionUID = 6350583291157993683L;
+    @JsonProperty("field")
+    private String field;
+    @JsonProperty("value")
+    private String value;
+    @JsonProperty("separator")
+    private String separator = "_";
 
-    private static final long serialVersionUID = -4365698668104607869L;
-
-    @JsonProperty("extent")
-    @Valid
-    private Extent extent;
-    @JsonIgnore
-    @Valid
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-
-    @JsonProperty("extent")
-    public Extent getExtent() {
-        return extent;
+    @JsonProperty("field")
+    public String getField() {
+        return field;
     }
 
-    @JsonProperty("extent")
-    public void setExtent(Extent extent) {
-        this.extent = extent;
+    @JsonProperty("field")
+    public void setField(String field) {
+        this.field = field;
     }
 
-    public ExtentResponse withExtent(Extent extent) {
-        this.extent = extent;
+    public Optional withField(String field) {
+        this.field = field;
         return this;
     }
 
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return Collections.unmodifiableMap(this.additionalProperties);
+    @JsonProperty("value")
+    public String getValue() {
+        return value;
     }
 
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+    @JsonProperty("value")
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public ExtentResponse withAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+    public Optional withValue(String value) {
+        this.value = value;
         return this;
     }
 
-    @JsonIgnore
-    public boolean hasExtent() {
-        return getExtent() != null && getExtent().hasValues();
+    @JsonProperty("separator")
+    public String getSeparator() {
+        return separator;
+    }
+
+    @JsonProperty("separator")
+    public void setSeparator(String separator) {
+        this.separator = separator;
+    }
+
+    public Optional withSeparator(String separator) {
+        this.separator = separator;
+        return this;
+    }
+
+    public boolean isSetSeparator() {
+        return getSeparator() != null && !getSeparator().isEmpty();
     }
 
 }

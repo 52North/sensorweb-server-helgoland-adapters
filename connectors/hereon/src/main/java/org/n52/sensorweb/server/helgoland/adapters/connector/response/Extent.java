@@ -164,8 +164,13 @@ public class Extent implements Serializable {
     }
 
     @JsonIgnore
+    public boolean hasValues() {
+        return getXmin() != null && getXmax() != null && getYmin() != null && getYmax() != null;
+    }
+
+    @JsonIgnore
     public Envelope getEnvelope() {
-        return new Envelope(getXmin(), getXmax(), getYmin(), getYmax());
+        return hasValues() ? new Envelope(getXmin(), getXmax(), getYmin(), getYmax()) : new Envelope();
     }
 
     @JsonIgnore

@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -44,8 +45,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "name", "description", "properties" })
+@JsonPropertyOrder({ "name", "description", "properties", "formats" })
 public abstract class AbstractEntity implements Serializable, Entity {
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
     private static final long serialVersionUID = -4168578691389102123L;
     @JsonProperty("name")
     private String name;
@@ -54,6 +57,9 @@ public abstract class AbstractEntity implements Serializable, Entity {
     @JsonProperty("properties")
     @Valid
     private List<String> properties = new LinkedList<>();
+    @JsonProperty("formats")
+    @Valid
+    private List<Format> formats = new LinkedList<>();
 
     @JsonIgnore
     public String getIdentifier() {
@@ -114,15 +120,68 @@ public abstract class AbstractEntity implements Serializable, Entity {
         return !getProperties().isEmpty();
     }
 
+    @JsonProperty("formats")
+    public List<Format> getFormats() {
+        return Collections.unmodifiableList(formats);
+    }
 
+    @JsonProperty("formats")
+    public void setFormats(List<Format> formats) {
+        this.formats.clear();
+        if (formats != null) {
+            this.formats.addAll(formats);
+        }
+    }
+
+    public AbstractEntity withFormats(List<Format> formats) {
+        if (formats != null) {
+            this.formats.addAll(formats);
+        }
+        return this;
+    }
+
+    @JsonIgnore
+    public boolean isSetFormats() {
+        return !getFormats().isEmpty();
+    }
+
+    @JsonIgnore
+    public Format getNameFormat() {
+        return hasNameFormat() ? getFormat(NAME).get() : null;
+    }
+
+    @JsonIgnore
+    public Format getDescriptionFormat() {
+        return hasDescriptionFormat() ? getFormat(DESCRIPTION).get() : null;
+    }
+
+    @JsonIgnore
+    public boolean hasNameFormat() {
+        return hasFormat(NAME);
+    }
+
+    @JsonIgnore
+    public boolean hasDescriptionFormat() {
+        return hasFormat(DESCRIPTION);
+    }
+
+    @JsonIgnore
+    public boolean hasFormat(String string) {
+        return isSetFormats() && getFormat(string).isPresent();
+    }
+
+    @JsonIgnore
+    private Optional<Format> getFormat(String string) {
+        return getFormats().stream().filter(f -> f.getName().equals(string)).findFirst();
+    }
 
     public Set<String> getFields() {
         Set<String> fields = new LinkedHashSet<>();
         add(fields, getName());
         add(fields, getDescription());
         getProperties().forEach(p -> add(fields, p));
+        getFormats().forEach(f -> add(fields, f.getFields()));
         return fields;
-
     }
 
     protected Set<String> add(Set<String> fields, String field) {

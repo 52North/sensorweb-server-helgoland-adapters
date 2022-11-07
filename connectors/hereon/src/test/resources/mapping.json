@@ -1,36 +1,120 @@
 {
 	"thing": {
-		"identifier": "feature_of_interest",
-		"name": "feature_of_interest",
-		"description": "resp_scien_firstname",
+		"name": "platform",
+		"description": "platform_description",
 		"properties": []
 	},
 	"sensor": {
-		"identifier": "resp_scien_firstname",
-		"name": "resp_scien_lastname",
-		"description": "",
-		"properties": []
+		"name": "sensor",
+		"description": "sensor_description",
+		"metadata": "sensor_url",
+		"encodingType": "text/html",
+		"properties": [
+			"url_maintenance_info"
+		]
 	},
 	"observedProperty": {
-		"identifier": "para_standard_name",
 		"name": "para_standard_name",
-		"description": "para_standard_name_url",
+		"description": "para_standard_name_description",
+		"definition": "para_standard_name_url",
 		"properties": []
 	},
 	"feature": {
-		"identifier": "resp_scien_institution",
-		"name": "resp_scien_institution",
-		"description": "resp_scien_institution",
-		"properties": []
+		"name": "platform,feature_of_interest,transect",
+		"description": "",
+		"encodingType": "application/geo+json",
+		"feature": "data.extent",
+		"properties": [],
+		"formats": [
+			{
+				"name": "name",
+				"fields": "platform,feature_of_interest,transect",
+				"format": {
+					"separator": "_"
+				}
+			},
+			{
+				"name": "description",
+				"format": {
+					"prefix": "Feature for ",
+					"optionals": [
+						{
+							"field": "platform",
+							"value": "Platform: "
+						},
+						{
+							"field": "feature_of_interest",
+							"value": "Feature: "
+						},
+						{
+							"field": "transect",
+							"value": "Transect: "
+						}
+					],
+					"separator": ";"
+				}
+			}
+		]
 	},
 	"datastream": {
 		"identifier": "metadata_id",
-		"name": "",
+		"name": "platform,para_standard_name,sensor,platform,feature_of_interest,transect",
 		"description": "",
-		"properties": ["resp_scien_institution"]
+		"unit": "unit",
+		"phenomenonStartTime": "time_start_harbor",
+		"phenomenonEndTime": "time_end_harbor",
+		"resultTime": "time_end_harbor",
+		"observedArea": "data.extent",
+		"properties": [
+			"link_to_metadata",
+			"url_data_service",
+			"license",
+			"doi_pid",
+			"resp_scien_orcid"
+		],
+		"formats": [
+			{
+				"name": "name",
+				"fields": "platform,para_standard_name,sensor,platform,feature_of_interest,transect",
+				"format": {
+					"separator": "_"
+				}
+			},
+			{
+				"name": "description",
+				"format": {
+					"prefix": "Datastream for ",
+					"optionals": [
+						{
+							"field": "platform",
+							"value": "Platform: "
+						},
+						{
+							"field": "para_standard_name",
+							"value": "Parameter: "
+						},
+						{
+							"field": "sensor",
+							"value": "Sensor: "
+						},
+						{
+							"field": "platform,feature_of_interest,transect",
+							"value": "Feature: ",
+							"separator": "_"
+						}
+					],
+					"separator": ";"
+				}
+			}
+		]
 	},
 	"general": {
-		"dataServiceUrl": "",
-		"metadataId": "metadata_id"
+		"dataServiceUrl": "url_data_service",
+		"dataServiceUrlPostfix": "/0/",
+		"metadataId": "metadata_id",
+		"dataServicePrefix": "data.",
+		"stringFormatPrefix": "format.",
+		"dataServiceTokenUrlPostfix": "/portal/sharing/rest/generateToken",
+		"resultLimit": 0
 	}
 }

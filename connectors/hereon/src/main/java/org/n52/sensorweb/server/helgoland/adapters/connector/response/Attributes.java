@@ -34,6 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -67,7 +69,8 @@ public class Attributes implements Serializable {
     @JsonIgnore
     public String getValue(String key) {
         if (key.contains(",")) {
-            return String.join("-", getValues(key.split(",")));
+            return getValues(key.split(",")).values().stream().filter(Objects::nonNull)
+                    .collect(Collectors.joining("_"));
         } else {
             if (getAdditionalProperties().containsKey(key) && getAdditionalProperties().get(key) != null) {
                 String value = getAdditionalProperties().get(key).toString();
@@ -78,20 +81,25 @@ public class Attributes implements Serializable {
     }
 
     @JsonIgnore
-    public List<String> getValues(String... keys) {
+    public Map<String, String> getValues(String... keys) {
+        Map<String, String> values = new LinkedHashMap<>();
+        for (String key : keys) {
+            values.put(key, getValue(key));
+        }
+        return values;
+    }
+
+    public List<String> getValueList(String... keys) {
         List<String> values = new LinkedList<>();
         for (String key : keys) {
-            String value = getValue(key);
-            if (value != null && !value.isEmpty()) {
-                values.add(getValue(key));
-            }
+            values.add(getValue(key));
         }
         return values;
     }
 
     public boolean hasValue(String key) {
         if (key.contains(",")) {
-            for (String value : getValues(key.split(","))) {
+            for (String value : getValues(key.split(",")).values()) {
                 if (value != null && !value.isEmpty()) {
                     return true;
                 }

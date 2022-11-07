@@ -108,4 +108,8 @@ public class MetadataResponse implements Serializable {
         return this;
     }
 
+    public boolean isSetFeatures() {
+        return getFeatures() != null && !getFeatures().isEmpty();
+    }
+
 }
