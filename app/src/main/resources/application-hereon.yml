@@ -109,6 +109,18 @@ service:
     persistence:
       path: /tmp/catalog.rdf
       enabled: false
+  config:
+    file: /hereon/hereon-config.json
+  connector:
+    # hereon config
+    hereon:
+      # username: test
+      # password: test
+      # url:
+      #	  service:
+      #	  token:
+      mapping:
+        file: /hereon/mapping.json
 
 ##
 ## Job Scheduler and Tasks

@@ -53,8 +53,10 @@ public class HereonConfig {
     private String username;
     @Value("${service.connector.hereon.password:}")
     private String password;
-    @Value("${service.connector.hereon.tokenUrl:}")
+    @Value("${service.connector.hereon.url.token:}")
     private String tokenUrl;
+    @Value("${service.connector.hereon.url.service:}")
+    private String serviceUrl;
     @Value("${service.connector.hereon.mapping.file:}")
     private String mappingFile;
     private Mapping mapping;
@@ -67,8 +69,12 @@ public class HereonConfig {
         return password;
     }
 
-    private String getTokenUrl() {
+    public String getTokenUrl() {
         return tokenUrl;
+    }
+
+    public String getServiceUrl() {
+        return serviceUrl;
     }
 
     public Credentials getCredentials() {

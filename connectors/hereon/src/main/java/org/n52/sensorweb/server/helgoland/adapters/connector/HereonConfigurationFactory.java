@@ -51,6 +51,9 @@ public class HereonConfigurationFactory implements ConnectorConfigurationFactory
         if (!dataSource.isSetCredentials()) {
             dataSource.setCredentials(config.getCredentials());
         }
+        if (dataSource.getUrl() == null || dataSource.getUrl().isEmpty()) {
+            dataSource.setUrl(config.getServiceUrl());
+        }
         return new ConnectorConfiguration(dataSource);
     }
 

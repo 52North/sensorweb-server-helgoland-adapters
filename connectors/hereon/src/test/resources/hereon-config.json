@@ -1,0 +1,21 @@
+{
+	"dataSources": [
+		{
+			"itemName": "Hereon STA-Proxy",
+			"url": "serviceUrl",
+			"type": "Hereon",
+			"connector": "HereonConnector",
+			"credentials": {
+				"username": "username",
+				"password": "password",
+				"tokenUrl": "tokenUrl"
+			},
+			"jobs": [{
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true,
+				"jobType": "full"
+			}]
+		}
+	]
+}
