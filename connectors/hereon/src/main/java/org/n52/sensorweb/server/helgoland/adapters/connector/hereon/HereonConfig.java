@@ -57,6 +57,8 @@ public class HereonConfig {
     private String tokenUrl;
     @Value("${service.connector.hereon.url.service:}")
     private String serviceUrl;
+    @Value("${service.connector.hereon.job.cron:}")
+    private String cronExpression;
     @Value("${service.connector.hereon.mapping.file:}")
     private String mappingFile;
     private Mapping mapping;
@@ -81,6 +83,26 @@ public class HereonConfig {
         return new Credentials(getUsername(), getPassword(), getTokenUrl());
     }
 
+    public boolean isSetCredentials() {
+        return isSetUsername() && isSetPassword();
+    }
+
+    private boolean isSetUsername() {
+        return getUsername() != null && !getUsername().isEmpty();
+    }
+
+    private boolean isSetPassword() {
+        return getPassword() != null && !getPassword().isEmpty();
+    }
+
+    public String getCronExpression() {
+        return cronExpression;
+    }
+    
+    public boolean isSetCronExpression() {
+        return getCronExpression() != null && !getCronExpression().isEmpty();
+    }
+    
     public Mapping getMapping() {
         if (mapping == null) {
             loadMapping();

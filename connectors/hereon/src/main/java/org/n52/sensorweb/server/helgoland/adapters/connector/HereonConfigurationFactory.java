@@ -50,9 +50,16 @@ public class HereonConfigurationFactory implements ConnectorConfigurationFactory
             throws JobExecutionException {
         if (!dataSource.isSetCredentials()) {
             dataSource.setCredentials(config.getCredentials());
+        } else {
+            if (config.isSetCredentials()) {
+                dataSource.setCredentials(config.getCredentials());
+            }
         }
-        if (dataSource.getUrl() == null || dataSource.getUrl().isEmpty()) {
+        if (dataSource.isSetUrl()) {
             dataSource.setUrl(config.getServiceUrl());
+        }
+        if (config.isSetCronExpression()) {
+            dataSource.setCronExpression(config.getCronExpression());
         }
         return new ConnectorConfiguration(dataSource);
     }

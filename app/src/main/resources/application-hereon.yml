@@ -26,8 +26,6 @@ spring:
     username: postgres
     password: postgres
     url: jdbc:postgresql://localhost:5432/proxy
-    #url: jdbc:h2:mem:testdb;MODE=PostgreSQL
-    #data: classpath:/META-INF/data-${spring.datasource.platform}.sql
     initialization-mode: always
   jpa:
     properties:
@@ -69,67 +67,21 @@ logging:
     com.sun.xml: ERROR
 
 
-##
-## REST API SETTINGS
-##
-
-## Deployments behind a Proxy need to know the external URL
-external:
-  url: http://localhost:8081/api/
-
-docs:
-  context: docs
-
-##
-## IO DEFAULTS
-##
-
-## TBD
-
-# gracefully match leap years (P1Y)
-request:
-  interval:
-    restriction: P370D
 
 
 ## Service Configuration
 service:
-  name: My RESTful Dataset Service
-  nodata:
-    # NO_DATA values in database which will return null values
-    values: -9999.0,99999,NO_DATA
-  dcat:
-    catalog:
-      language: en
-      title: Sensor Observation Service Catalog
-      description: Catalog of Sensor Observation Service datasets
-      homepage: https://52north.org
-      publisher: https://52north.org
-      license: https://creativecommons.org/licenses/by/4.0/
-    persistence:
-      path: /tmp/catalog.rdf
-      enabled: false
   config:
     file: /hereon/hereon-config.json
   connector:
     # hereon config
     hereon:
-      # username: test
-      # password: test
-      # url:
-      #	  service:
-      #	  token:
       mapping:
         file: /hereon/mapping.json
-
-##
-## Job Scheduler and Tasks
-##
-
-# disables all jobs
-job:
-  scheduler:
-    enabled: false
-  task:
-    prerendering:
-      enabled: true
+      # username: 
+      # password: 
+      # url:
+      #	  service: 
+      #	  token: 
+      # job:
+      #   cron: 

@@ -70,6 +70,10 @@ public class DataSourceJobConfiguration extends JobConfiguration {
         this.url = url;
     }
 
+    public boolean isSetUrl() {
+        return getUrl() == null || getUrl().isEmpty();
+    }
+
     public String getVersion() {
         return version;
     }
