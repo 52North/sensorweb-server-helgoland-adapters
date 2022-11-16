@@ -1,0 +1,15 @@
+{
+	"dataSources": [
+		{
+			"itemName": "Hereon STA-Proxy",
+			"type": "Hereon",
+			"connector": "HereonConnector",
+			"jobs": [{
+				"cronExpression": "0 0 0/1 * * ?",
+				"enabled": true,
+				"triggerAtStartup": true,
+				"jobType": "full"
+			}]
+		}
+	]
+}
