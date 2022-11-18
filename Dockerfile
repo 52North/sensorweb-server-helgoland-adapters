@@ -1,4 +1,4 @@
-FROM 3-eclipse-temurin-11-alpine as BUILD
+FROM maven:3-eclipse-temurin-11-alpine as BUILD
 
 WORKDIR /app
 
