@@ -52,19 +52,19 @@ debug: true
 logging:
   # config: classpath:logback.xml
   level:
-    root: TRACE
-    org.n52: WARN
+    root: ERROR
+    org.n52: INFO
     ## Spring
-    org.springframework: INFO
-    org.springframework.web.servlet.mvc.method.annotation: INFO
+    #org.springframework: INFO
+    #org.springframework.web.servlet.mvc.method.annotation: INFO
     ## Hibernate
-    org.hibernate: INFO
+    #org.hibernate: INFO
     #org.hibernate.type: TRACE
     #org.hibernate.SQL: DEBUG
     ## other
-    org.apache: WARN
-    org.geotools: WARN
-    com.sun.xml: ERROR
+    #org.apache: WARN
+    #org.geotools: WARN
+    #com.sun.xml: ERROR
 
 
 
