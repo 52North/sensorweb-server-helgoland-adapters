@@ -68,7 +68,7 @@
         <arctic-sea.version>10.0.2</arctic-sea.version>
         <version.sensorweb-server-helgoland>3.5.0-PR.12</version.sensorweb-server-helgoland>
         <version.sensorweb-server-db-model>4.0.0-PR.14</version.sensorweb-server-db-model>
-        <version.sensorweb-server-dao-impl>4.0.0-PR.14</version.sensorweb-server-dao-impl>
+        <version.sensorweb-server-dao-impl>4.0.0-PR.15</version.sensorweb-server-dao-impl>
         <postgresql.version>42.5.0</postgresql.version>
         <postgis.version>2.5.1</postgis.version>
         <xml-commons.version>2.7.0</xml-commons.version>
@@ -636,6 +636,16 @@
                 <artifactId>spring-test</artifactId>
                 <version>${org.springframework.version}</version>
                 <scope>test</scope>
+            </dependency>
+             <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-commons</artifactId>
+                <version>${spring-data.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-jpa</artifactId>
+                <version>${spring-data.version}</version>
             </dependency>
             <dependency>
 				<groupId>com.cosium.spring.data</groupId>
