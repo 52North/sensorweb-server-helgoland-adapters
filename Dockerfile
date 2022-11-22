@@ -18,4 +18,4 @@ COPY --from=BUILD /app/app/target/unpacked/BOOT-INF/lib     /app/lib
 COPY --from=BUILD /app/app/target/unpacked/META-INF         /app/META-INF
 COPY --from=BUILD /app/app/target/unpacked/BOOT-INF/classes /app
 
-ENTRYPOINT ["java", "-cp" ,".:lib/*", "org.n52.helgoland.adapters.Application"]
+ENTRYPOINT ["java", "-cp" ,".:lib/*", "org.n52.sensorweb.server.helgoland.adapters.Application"]
