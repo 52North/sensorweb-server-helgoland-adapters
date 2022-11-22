@@ -98,11 +98,11 @@ public class HereonConfig {
     public String getCronExpression() {
         return cronExpression;
     }
-    
+
     public boolean isSetCronExpression() {
         return getCronExpression() != null && !getCronExpression().isEmpty();
     }
-    
+
     public Mapping getMapping() {
         if (mapping == null) {
             loadMapping();
