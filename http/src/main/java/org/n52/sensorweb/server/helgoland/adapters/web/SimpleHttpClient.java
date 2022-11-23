@@ -63,7 +63,6 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.n52.janmayen.http.MediaType;
 import org.n52.janmayen.http.MediaTypes;
-import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractDeleteRequest;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractGetRequest;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractPostRequest;
@@ -127,12 +126,12 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public Response execute(String url, AbstractRequest request) throws ProxyException {
+    public Response execute(String url, AbstractRequest request) throws ProxyHttpClientException {
         return execute(URI.create(url), request);
     }
 
     @Override
-    public Response execute(URI url, AbstractRequest request) throws ProxyException {
+    public Response execute(URI url, AbstractRequest request) throws ProxyHttpClientException {
         if (request instanceof AbstractGetRequest) {
             return doGet(url, (AbstractGetRequest) request);
         } else if (request instanceof AbstractPostRequest) {
@@ -140,7 +139,7 @@ public class SimpleHttpClient implements HttpClient {
         } else if (request instanceof AbstractDeleteRequest) {
             return doDelete(url, (AbstractDeleteRequest) request);
         }
-        throw new ProxyException("The request type '%s' is unknown!", request.getClass().getTypeName());
+        throw new ProxyHttpClientException("The request type '%s' is unknown!", request.getClass().getTypeName());
     }
 
     @Override
@@ -201,7 +200,7 @@ public class SimpleHttpClient implements HttpClient {
         return this;
     }
 
-    protected Response doGet(URI url, AbstractGetRequest request) throws ProxyException {
+    protected Response doGet(URI url, AbstractGetRequest request) throws ProxyHttpClientException {
         try {
             HttpGet httpGet = new HttpGet(getGetUrl(url, request.getPath(), request.getQueryParameters()));
             if (request.hasHeader()) {
@@ -212,12 +211,12 @@ public class SimpleHttpClient implements HttpClient {
             logRequest(getGetUrl(url, request.getPath(), request.getQueryParameters()));
             return getContent(executeHttpRequest(httpGet));
         } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
+            throw new ProxyHttpClientException().causedBy(e);
         }
     }
 
     protected Response doGet(URI url, String path, Map<String, String> header, Map<String, String> parameter)
-            throws ProxyException {
+            throws ProxyHttpClientException {
         try {
             HttpGet httpGet = new HttpGet(getGetUrl(url, path, parameter));
             if (CollectionHelper.isNotEmpty(header)) {
@@ -228,11 +227,11 @@ public class SimpleHttpClient implements HttpClient {
             logRequest(getGetUrl(url, path, parameter));
             return getContent(executeHttpRequest(httpGet));
         } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
+            throw new ProxyHttpClientException().causedBy(e);
         }
     }
 
-    protected Response doPost(URI url, AbstractPostRequest<?> request) throws ProxyException {
+    protected Response doPost(URI url, AbstractPostRequest<?> request) throws ProxyHttpClientException {
         try {
             HttpPost httpPost = new HttpPost(getPathUrl(url, request.getPath()));
             if (request.hasHeader()) {
@@ -245,11 +244,11 @@ public class SimpleHttpClient implements HttpClient {
             httpPost.setEntity(new StringEntity(content));
             return getContent(executeHttpRequest(httpPost));
         } catch (IOException | URISyntaxException e) {
-            throw new ProxyException().causedBy(e);
+            throw new ProxyHttpClientException().causedBy(e);
         }
     }
 
-    protected Response doPost(URI url, String content, MediaType contentType) throws ProxyException {
+    protected Response doPost(URI url, String content, MediaType contentType) throws ProxyHttpClientException {
         try {
             HttpPost httpPost = new HttpPost(url);
             httpPost.addHeader(HttpHeaders.CONTENT_TYPE, contentType.toString());
@@ -257,17 +256,17 @@ public class SimpleHttpClient implements HttpClient {
             httpPost.setEntity(new StringEntity(content));
             return getContent(executeHttpRequest(httpPost));
         } catch (IOException e) {
-            throw new ProxyException().causedBy(e);
+            throw new ProxyHttpClientException().causedBy(e);
         }
     }
 
-    protected Response doDelete(URI url, AbstractDeleteRequest request) throws ProxyException {
+    protected Response doDelete(URI url, AbstractDeleteRequest request) throws ProxyHttpClientException {
         try {
             HttpDelete httpDelete = new HttpDelete(getPathUrl(url, request.getPath()));
             logRequest(getPathUrl(url, request.getPath()));
             return getContent(executeHttpRequest(httpDelete));
         } catch (URISyntaxException | IOException e) {
-            throw new ProxyException().causedBy(e);
+            throw new ProxyHttpClientException().causedBy(e);
         }
     }
 

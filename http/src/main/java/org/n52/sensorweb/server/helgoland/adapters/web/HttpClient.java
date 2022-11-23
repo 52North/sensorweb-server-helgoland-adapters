@@ -34,7 +34,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.n52.janmayen.http.MediaType;
-import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractRequest;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 
@@ -92,8 +91,8 @@ public interface HttpClient {
      */
     HttpResponse executeMethod(HttpRequestBase method) throws IOException;
 
-    Response execute(URI url, AbstractRequest request) throws ProxyException;
+    Response execute(URI url, AbstractRequest request) throws ProxyHttpClientException;
 
-    Response execute(String url, AbstractRequest request) throws ProxyException;
+    Response execute(String url, AbstractRequest request) throws ProxyHttpClientException;
 
 }

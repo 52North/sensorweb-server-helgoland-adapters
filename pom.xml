@@ -13,6 +13,8 @@
     <packaging>pom</packaging>
 
     <modules>
+    	<module>config</module>
+    	<module>http</module>
     	<module>common</module>
     	<module>connectors</module>
         <module>harvest</module>
@@ -102,6 +104,16 @@
             <dependency>
 	            <groupId>${project.groupId}</groupId>
 	            <artifactId>helgoland-adapters-common</artifactId>
+	            <version>${project.version}</version>
+	        </dependency>
+	         <dependency>
+	            <groupId>${project.groupId}</groupId>
+	            <artifactId>helgoland-adapters-config</artifactId>
+	            <version>${project.version}</version>
+	        </dependency>
+	         <dependency>
+	            <groupId>${project.groupId}</groupId>
+	            <artifactId>helgoland-adapters-http</artifactId>
 	            <version>${project.version}</version>
 	        </dependency>
 	        <dependency>

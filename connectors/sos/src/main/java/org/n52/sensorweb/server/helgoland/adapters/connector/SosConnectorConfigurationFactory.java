@@ -33,7 +33,7 @@ import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.request.GetCapabilitiesGetRequest;
-import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
+import org.n52.sensorweb.server.helgoland.adapters.web.ProxyHttpClientException;
 import org.n52.sensorweb.server.helgoland.adapters.web.SimpleHttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.shetland.ogc.ows.service.GetCapabilitiesResponse;
@@ -78,7 +78,7 @@ public class SosConnectorConfigurationFactory implements ConnectorConfigurationF
             XmlObject xmlResponse = XmlObject.Factory.parse(response.getEntity());
             return (GetCapabilitiesResponse) decoderRepository.getDecoder(CodingHelper.getDecoderKey(xmlResponse))
                     .decode(xmlResponse);
-        } catch (XmlException | DecodingException | ProxyException ex) {
+        } catch (XmlException | DecodingException | ProxyHttpClientException ex) {
             throw new JobExecutionException(ex);
         }
     }
