@@ -79,6 +79,7 @@ import org.n52.sensorweb.server.helgoland.adapters.utils.EntityBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.ArcgisRestHttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.HttpClient;
+import org.n52.sensorweb.server.helgoland.adapters.web.ProxyHttpClientException;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -203,8 +204,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
             if (resultLimit > 0) {
                 request.withResultRecordCount(resultLimit);
             }
-            Response response = getHttpClient().execute(url, request);
             try {
+                Response response = getHttpClient().execute(url, request);
                 MetadataResponse metadata = encodeResponse(response, request.getResponseClass());
                 if (metadata.isSetFeatures()) {
                     exceededTransferLimit = metadata.getExceededTransferLimit();
@@ -233,7 +234,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                         checkError((LinkedHashMap<String, Object>) metadata.getAdditionalProperties().get(ERROR));
                     }
                 }
-            } catch (JsonProcessingException | DecodingException e) {
+            } catch (JsonProcessingException | DecodingException | ProxyHttpClientException  e) {
                 throw new ProxyException("Error while processing Metadata!").causedBy(e);
             }
         } while (exceededTransferLimit);
@@ -411,15 +412,16 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     private void processThings(ServiceConstellation serviceConstellation, String url) throws ProxyException {
         ThingRequestBuilder builder = requestBuilderFactory.getThingRequestBuilder();
         GetThingRequest request = builder.getRequest();
-        Response response = getHttpClient().execute(url, request);
+
         try {
+            Response response = getHttpClient().execute(url, request);
             MetadataResponse metadata = encodeResponse(response, request.getResponseClass());
             Thing thing = builder.getTypeMapping();
             for (MetadataFeature feature : metadata.getFeatures()) {
                 Attributes attribute = feature.getAttributes();
                 createThing(serviceConstellation, attribute, thing);
             }
-        } catch (JsonProcessingException | DecodingException e) {
+        } catch (JsonProcessingException | DecodingException | ProxyHttpClientException e) {
             throw new ProxyException("Error while processing Things!").causedBy(e);
         }
     }
@@ -428,8 +430,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
             throws ProxyException {
         ObservedPropertyRequestBuilder builder = requestBuilderFactory.getObservedPropertyRequestBuilder();
         GetObservedPropertyRequest request = builder.getRequest();
-        Response response = getHttpClient().execute(url, request);
         try {
+            Response response = getHttpClient().execute(url, request);
             MetadataResponse metadata = encodeResponse(response, request.getResponseClass());
             ObservedProperty observedProperty = builder.getTypeMapping();
             for (MetadataFeature feature : metadata.getFeatures()) {
@@ -437,7 +439,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 creatObservedProperty(serviceConstellation, attribute, observedProperty);
                 createCategory(serviceConstellation, attribute, observedProperty);
             }
-        } catch (JsonProcessingException | DecodingException e) {
+        } catch (JsonProcessingException | DecodingException | ProxyHttpClientException e) {
             throw new ProxyException("Error while processing ObservedProperties!").causedBy(e);
         }
     }
@@ -445,8 +447,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     private void processSensors(ServiceConstellation serviceConstellation, String url) throws ProxyException {
         SensorRequestBuilder builder = requestBuilderFactory.getSensorRequestBuilder();
         GetSensorRequest request = builder.getRequest();
-        Response response = getHttpClient().execute(url, request);
         try {
+            Response response = getHttpClient().execute(url, request);
             MetadataResponse metadata = encodeResponse(response, request.getResponseClass());
             Sensor sensor = builder.getTypeMapping();
             FormatEntity format = createFormat(sensor.getEncodingType());
@@ -455,7 +457,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 createSensor(serviceConstellation, attribute, sensor, format);
                 createOffering(serviceConstellation, attribute, sensor);
             }
-        } catch (JsonProcessingException | DecodingException e) {
+        } catch (JsonProcessingException | DecodingException | ProxyHttpClientException e) {
             throw new ProxyException("Error while processing Sensors!").causedBy(e);
         }
     }
@@ -463,8 +465,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
     private void processFeature(ServiceConstellation serviceConstellation, String url) throws ProxyException {
         FeatureRequestBuilder builder = requestBuilderFactory.getFeatureRequestBuilder();
         GetFeatureRequest request = builder.getRequest();
-        Response response = getHttpClient().execute(url, request);
         try {
+            Response response = getHttpClient().execute(url, request);
             MetadataResponse metadata = encodeResponse(response, request.getResponseClass());
             org.n52.sensorweb.server.helgoland.adapters.connector.mapping.Feature mapping = builder.getTypeMapping();
             FormatEntity format = createFormat(mapping.getEncodingType());
@@ -472,7 +474,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 Attributes attribute = feature.getAttributes();
                 createFeature(serviceConstellation, attribute, mapping, format, builder);
             }
-        } catch (JsonProcessingException | DecodingException e) {
+        } catch (JsonProcessingException | DecodingException | ProxyHttpClientException e) {
             throw new ProxyException("Error while processing Features!").causedBy(e);
         }
     }
@@ -486,7 +488,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                 Response response = client.execute(hereonConfig.createDataServiceUrl(dataServiceUrl), request);
                 ExtentResponse extentResponse = encodeResponse(response, request.getResponseClass());
                 return extentResponse.hasExtent() ? extentResponse.getExtent().getGeometry() : null;
-            } catch (ProxyException | JsonProcessingException | DecodingException e) {
+            } catch (ProxyHttpClientException | JsonProcessingException | DecodingException e) {
                 LOGGER.error("Error while processing Feature geometry!", e);
             }
         }
