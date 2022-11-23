@@ -98,6 +98,7 @@ import org.n52.series.db.beans.parameter.ParameterFactory.EntityType;
 import org.n52.series.db.beans.parameter.TextParameterEntity;
 import org.n52.series.db.beans.parameter.dataset.DatasetParameterEntity;
 import org.n52.series.db.beans.parameter.platform.PlatformParameterEntity;
+import org.n52.series.db.beans.sta.LocationEntity;
 import org.n52.shetland.util.DateTimeHelper;
 import org.n52.svalbard.decode.exception.DecodingException;
 import org.slf4j.Logger;
@@ -223,6 +224,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                             OfferingEntity offering = createOffering(serviceConstellation, attribute, sensor);
                             FeatureEntity feature = createFeature(serviceConstellation, attribute, featureMapping,
                                     featureForamt, featureRequestBuilder);
+                            platform.addLocationEntity(createLocation(feature, platform));
                             QuantityDatasetConstellation dataset = new QuantityDatasetConstellation(
                                     procedure.getIdentifier(), offering.getIdentifier(), category.getIdentifier(),
                                     phenomenon.getIdentifier(), feature.getIdentifier(), platform.getIdentifier());
@@ -393,6 +395,16 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
             serviceConstellation.putFeature(featureEntity);
         }
         return serviceConstellation.getFeature(id);
+    }
+
+    private LocationEntity createLocation(FeatureEntity feature, PlatformEntity platform) {
+        LocationEntity location = createLocation(feature.getIdentifier(), feature.getName(),
+                feature.getDescription(), feature.getGeometryEntity(), feature.getService());
+        location.setLocationEncoding(feature.getFeatureType());
+        Set<PlatformEntity> platforms = new LinkedHashSet<>();
+        platforms.add(platform);
+        location.setPlatforms(platforms);
+        return location;
     }
 
     private String createName(AbstractEntity mapping, Attributes attribute) {

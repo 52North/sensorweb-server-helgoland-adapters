@@ -52,6 +52,7 @@ import org.n52.series.db.beans.UnitEntity;
 import org.n52.series.db.beans.dataset.DatasetType;
 import org.n52.series.db.beans.dataset.ObservationType;
 import org.n52.series.db.beans.dataset.ValueType;
+import org.n52.series.db.beans.sta.LocationEntity;
 import org.n52.shetland.ogc.om.OmConstants;
 import org.n52.shetland.ogc.om.features.SfConstants;
 import org.n52.shetland.ogc.sensorML.SensorML20Constants;
@@ -90,6 +91,14 @@ public interface EntityBuilder {
         addDescribeableData(feature, identifier, name, description, service);
         feature.setGeometryEntity(geometry);
         return feature;
+    }
+
+    default LocationEntity createLocation(String identifier, String name, String description, GeometryEntity geometry,
+            ServiceEntity service) {
+        LocationEntity location = new LocationEntity();
+        addDescribeableData(location, identifier, name, description, service);
+        location.setGeometryEntity(geometry);
+        return location;
     }
 
     default OfferingEntity createOffering(String identifier, String name, String description, ServiceEntity service) {

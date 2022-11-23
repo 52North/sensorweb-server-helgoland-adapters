@@ -246,26 +246,21 @@ public class CRUDRepository {
         return unproxy(offeringAssembler.getOrInsertInstance(offering));
     }
 
-
     private ProcedureEntity insertProcedure(ProcedureEntity procedure) {
         return unproxy(procedureAssembler.getOrInsertInstance(procedure));
     }
-
 
     private CategoryEntity insertCategory(CategoryEntity category) {
         return unproxy(categoryAssembler.getOrInsertInstance(category));
     }
 
-
     private PhenomenonEntity insertPhenomenon(PhenomenonEntity phenomenon) {
         return unproxy(phenomenonAssembler.getOrInsertInstance(phenomenon));
     }
 
-
     private PlatformEntity insertPlatform(PlatformEntity platform) {
         return unproxy(platformAssembler.getOrInsertInstance(platform));
     }
-
 
     private Set<TagEntity> insertTags(Collection<TagEntity> tags) {
         return tags.stream()
@@ -274,11 +269,9 @@ public class CRUDRepository {
                 .collect(Collectors.toSet());
     }
 
-
     private TagEntity insertTag(TagEntity tag) {
         return unproxy(tagAssembler.getOrInsertInstance(tag));
     }
-
 
     private UnitEntity insertUnit(UnitEntity unit) {
         if (unit != null && unit.isSetIdentifier()) {
