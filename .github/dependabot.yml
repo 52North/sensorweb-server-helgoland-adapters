@@ -24,3 +24,5 @@ updates:
     versions: ">= 3.x"
   - dependency-name: "com.cosium.spring.data:*"
     versions: ">= 3.x"
+  - dependency-name: "oorg.springframework.boot:*"
+    versions: ">= 3.x"
