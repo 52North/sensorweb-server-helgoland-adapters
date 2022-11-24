@@ -1,12 +1,26 @@
 version: 2
 updates:
-- package-ecosystem: maven
+- package-ecosystem: "maven"
   directory: "/"
   schedule:
-    interval: daily
+    interval: "daily"
     time: "04:00"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: xml-apis:xml-apis
-    versions:
-    - ">= 2.a, < 3"
+  -ignore:
+  - dependency-name: "ch.qos.logback:logback-classic"
+    versions: ">= 1.2, < 1.4"
+  - dependency-name: "xml-apis:xml-apis"
+    versions: ">= 1.2, < 3"
+  - dependency-name: "com.microsoft.sqlserver:mssql-jdbc"
+    versions: "*-preview"
+  - dependency-name: "org.apache.xmlbeans:xmlbeans"
+    versions: ">= 4.x"
+  - dependency-name: "org.springframework:*"
+    versions: ">= 6.x"
+  - dependency-name: "org.springframework.security:*"
+    versions: ">= 6.x"
+  - dependency-name: "org.springframework.data:*"
+    versions: ">= 3.x"
+  - dependency-name: "com.cosium.spring.data:*"
+    versions: ">= 3.x"
