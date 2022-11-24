@@ -54,7 +54,7 @@
 
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
-        <org.springframework.version>5.3.24</org.springframework.version>
+        <org.springframework.version>6.0.1</org.springframework.version>
         <spring-boot.version>2.7.5</spring-boot.version>
         <spring-data.version>2.7.6</spring-data.version>
         <spring-data-entity-graph.version>2.7.10</spring-data-entity-graph.version>
