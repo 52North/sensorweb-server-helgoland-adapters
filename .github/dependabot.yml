@@ -7,7 +7,6 @@ updates:
     time: "04:00"
   open-pull-requests-limit: 10
   ignore:
-  -ignore:
   - dependency-name: "ch.qos.logback:logback-classic"
     versions: ">= 1.2, < 1.4"
   - dependency-name: "xml-apis:xml-apis"
