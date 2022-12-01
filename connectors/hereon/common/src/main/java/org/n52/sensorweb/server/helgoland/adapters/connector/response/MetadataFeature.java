@@ -39,13 +39,17 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "attributes" })
-@SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
+@JsonPropertyOrder({"attributes", "geometry"})
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class MetadataFeature implements Serializable {
     private static final long serialVersionUID = 1278813991741382777L;
     @JsonProperty("attributes")
     @Valid
     private Attributes attributes;
+
+    @JsonProperty
+    @Valid
+    private Geometry geometry;
 
     @JsonProperty("attributes")
     public Attributes getAttributes() {
@@ -61,4 +65,21 @@ public class MetadataFeature implements Serializable {
         this.attributes = attributes;
         return this;
     }
+
+    @JsonProperty("geometry")
+    public Geometry getGeometry() {
+        return geometry;
+    }
+
+    @JsonProperty("geometry")
+    public void setGeometry(Geometry geometry) {
+        this.geometry = geometry;
+    }
+
+    @JsonProperty("geometry")
+    public MetadataFeature withGeometry(Geometry geometry) {
+        this.geometry = geometry;
+        return this;
+    }
+
 }
