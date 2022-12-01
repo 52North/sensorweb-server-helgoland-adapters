@@ -54,7 +54,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 public class Extent implements Serializable {
     private static final long serialVersionUID = 122572278748898272L;
     @JsonProperty("ymin")
-    private Integer ymin;
+    private Double ymin;
     @JsonProperty("xmin")
     private Double xmin;
     @JsonProperty("ymax")
@@ -69,16 +69,16 @@ public class Extent implements Serializable {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ymin")
-    public Integer getYmin() {
+    public Double getYmin() {
         return ymin;
     }
 
     @JsonProperty("ymin")
-    public void setYmin(Integer ymin) {
+    public void setYmin(Double ymin) {
         this.ymin = ymin;
     }
 
-    public Extent withYmin(Integer ymin) {
+    public Extent withYmin(Double ymin) {
         this.ymin = ymin;
         return this;
     }
