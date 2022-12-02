@@ -54,7 +54,7 @@ import org.n52.sensorweb.server.db.old.dao.DefaultDbQueryFactory;
 import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
 import org.n52.sensorweb.server.db.repositories.core.FormatRepository;
-import org.n52.sensorweb.server.db.repositories.core.ServiceRepository;
+import org.n52.sensorweb.server.db.repositories.proxy.ServiceRepository;
 import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.test.CategoryBuilder;
@@ -82,6 +82,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpaRepositoryFactoryBean;
@@ -89,6 +90,7 @@ import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpa
 @DataJpaTest
 @ExtendWith(SpringExtension.class)
 @ImportResource("classpath:arctic-sea-test.xml")
+@ActiveProfiles({ "proxy" })
 public class InsertRespositoryTest extends ProxyTestBase {
 
     @Inject
@@ -330,20 +332,17 @@ public class InsertRespositoryTest extends ProxyTestBase {
 
     private DatasetEntity createQuantityDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                                           .setObservationType(ObservationType.simple)
-                                           .setValueType(ValueType.quantity);
+                .setObservationType(ObservationType.simple).setValueType(ValueType.quantity);
     }
 
     private DatasetEntity createTextDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                                           .setObservationType(ObservationType.simple)
-                                           .setValueType(ValueType.text);
+                .setObservationType(ObservationType.simple).setValueType(ValueType.text);
     }
 
     private DatasetEntity createCountDatasetEntity(ServiceEntity service) {
         return createDatasetEntity(service).setDatasetType(DatasetType.timeseries)
-                                           .setObservationType(ObservationType.simple)
-                                           .setValueType(ValueType.count);
+                .setObservationType(ObservationType.simple).setValueType(ValueType.count);
     }
 
     private DatasetEntity createDatasetEntity(ServiceEntity service) {
@@ -353,12 +352,11 @@ public class InsertRespositoryTest extends ProxyTestBase {
     private DatasetEntity createDatasetEntity() {
         FormatEntity format = formatRepository.saveAndFlush(FormatBuilder.newFormat("format").build());
         return DatasetEntityBuilder.newDataset("dataset").setCategory(CategoryBuilder.newCategory("category").build())
-                                   .setFeature(FeatureBuilder.newFeature("feature").setFormat(format).build())
-                                   .setOffering(OfferingBuilder.newOffering("offering").build())
-                                   .setPhenomenon(PhenomenonBuilder.newPhenomenon("phenomenon").build())
-                                   .setPlatform(PlatformBuilder.newFeature("platform").build())
-                                   .setProcedure(ProcedureBuilder.newProcedure("procedure").setFormat(format).build())
-                                   .build();
+                .setFeature(FeatureBuilder.newFeature("feature").setFormat(format).build())
+                .setOffering(OfferingBuilder.newOffering("offering").build())
+                .setPhenomenon(PhenomenonBuilder.newPhenomenon("phenomenon").build())
+                .setPlatform(PlatformBuilder.newFeature("platform").build())
+                .setProcedure(ProcedureBuilder.newProcedure("procedure").setFormat(format).build()).build();
     }
 
     private DataEntity<?> createQuantityData(DatasetEntity dataset) {
@@ -373,7 +371,8 @@ public class InsertRespositoryTest extends ProxyTestBase {
         return createData(dataset, CountDataEntity::new, 52);
     }
 
-    private <V, T extends DataEntity<? super V>> T createData(DatasetEntity dataset, Supplier<T> dataFactory, V value) {
+    private <V, T extends DataEntity<? super V>> T createData(DatasetEntity dataset, Supplier<T> dataFactory,
+            V value) {
         T data = dataFactory.get();
         data.setIdentifier(UUID.randomUUID().toString());
         data.setDataset(dataset);
@@ -386,12 +385,12 @@ public class InsertRespositoryTest extends ProxyTestBase {
     }
 
     @SpringBootConfiguration
-    @EnableJpaRepositories(basePackageClasses = {DatasetRepository.class},
+    @EnableJpaRepositories(basePackages = { "org.n52.sensorweb.server.db.repositories" },
             repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class)
-    @ComponentScan({ "org.n52.sensorweb.server.db.repository.core", "org.n52.sensorweb.server.db.old",
-            "org.n52.sensorweb.server.db.assembler.core", "org.n52.sensorweb.server.db.assembler.mapper",
-            "org.n52.sensorweb.server.db.factory", "org.n52.sensorweb.server.db.old.dao",
-            "org.n52.sensorweb.server.helgoland.adapters"})
+    @ComponentScan({ "org.n52.sensorweb.server.db.repositories", "org.n52.sensorweb.server.db.repository",
+            "org.n52.sensorweb.server.db.old", "org.n52.sensorweb.server.db.assembler.core",
+            "org.n52.sensorweb.server.db.assembler.mapper", "org.n52.sensorweb.server.db.factory",
+            "org.n52.sensorweb.server.db.old.dao", "org.n52.sensorweb.server.helgoland.adapters" })
     static class Config extends ProxyTestRepositoryConfig<DatasetEntity> {
         public Config() {
             super("/mapping/proxy/persistence.xml");

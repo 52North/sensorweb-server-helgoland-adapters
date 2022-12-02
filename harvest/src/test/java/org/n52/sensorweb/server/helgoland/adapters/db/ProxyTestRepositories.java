@@ -172,7 +172,7 @@ public class ProxyTestRepositories {
 
     private FormatEntity upsertFormat(final String format) {
         return formatRepository.existsByFormat(format)
-               ? formatRepository.findByFormat(format)
+               ? formatRepository.findByFormat(format).get()
                : save(newFormat(format).build());
     }
 

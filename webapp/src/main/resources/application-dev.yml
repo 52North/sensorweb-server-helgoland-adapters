@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: "proxy"
   main:
     allow-circular-references: true
   datasource:

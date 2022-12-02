@@ -66,7 +66,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.n52.janmayen.Optionals;
 import org.n52.janmayen.i18n.MultilingualString;
-import org.n52.sensorweb.server.db.repositories.core.ServiceRepository;
+import org.n52.sensorweb.server.db.repositories.proxy.ServiceRepository;
 import org.n52.sensorweb.server.helgoland.adapters.connector.AbstractServiceConstellation;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.HarvestingListener;
 import org.n52.series.db.beans.ServiceEntity;

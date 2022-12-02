@@ -12,7 +12,6 @@
         <mapping-file>/hbm/proxy/core/LocationResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/OfferingResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/PhenomenonResource.hbm.xml</mapping-file>
-        <mapping-file>/hbm/proxy/core/PlatformResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/ProcedureHistoryResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/ProcedureResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/RelatedDataResource.hbm.xml</mapping-file>
@@ -24,6 +23,7 @@
         <mapping-file>/hbm/proxy/core/UnitResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/core/VerticalMetadataResource.hbm.xml</mapping-file>
 
+		<mapping-file>/hbm/proxy/dataset/PlatformResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/dataset/DataResource.hbm.xml</mapping-file>
         <mapping-file>/hbm/proxy/dataset/DatasetResource.hbm.xml</mapping-file>
 

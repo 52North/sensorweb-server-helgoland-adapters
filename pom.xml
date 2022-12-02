@@ -61,14 +61,14 @@
         <logback.version>1.3.4</logback.version>
         <geotools.version>28.0</geotools.version>
         <jackson.version>2.14.1</jackson.version>
-        <slf4j.version>2.0.5</slf4j.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hibernate.version>5.6.14.Final</hibernate.version>
         <geolatte.version>1.9.0</geolatte.version>
         <arctic-sea.version>10.0.2</arctic-sea.version>
         <version.sensorweb-server-helgoland>3.5.0-PR.12</version.sensorweb-server-helgoland>
-        <version.sensorweb-server-db-model>4.0.0-PR.14</version.sensorweb-server-db-model>
-        <version.sensorweb-server-dao-impl>4.0.0-PR.15</version.sensorweb-server-dao-impl>
+        <version.sensorweb-server-db-model>4.0.0-SNAPSHOT</version.sensorweb-server-db-model>
+        <version.sensorweb-server-dao-impl>4.0.0-SNAPSHOT</version.sensorweb-server-dao-impl>
         <postgresql.version>42.5.1</postgresql.version>
         <postgis.version>2.5.1</postgis.version>
         <xml-commons.version>2.7.0</xml-commons.version>
@@ -179,6 +179,11 @@
             <dependency>
                 <groupId>org.n52.sensorweb-server.db-model</groupId>
                 <artifactId>db-model-types</artifactId>
+                <version>${version.sensorweb-server-db-model}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.n52.sensorweb-server.db-model</groupId>
+                <artifactId>db-model-repos</artifactId>
                 <version>${version.sensorweb-server-db-model}</version>
             </dependency>
             <dependency>
