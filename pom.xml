@@ -209,9 +209,9 @@
                 <version>${version.sensorweb-server-db-model}</version>
             </dependency>
             <dependency>
-                <groupId>org.n52.sensorweb-server.db-model</groupId>
-                <artifactId>db-model-repos</artifactId>
-                <version>${version.sensorweb-server-db-model}</version>
+                <groupId>org.n52.sensorweb-server.dao-impl</groupId>
+                <artifactId>dao-impl-repos</artifactId>
+                <version>${version.sensorweb-server-dao-impl}</version>
             </dependency>
             <dependency>
                 <groupId>org.n52.arctic-sea</groupId>
