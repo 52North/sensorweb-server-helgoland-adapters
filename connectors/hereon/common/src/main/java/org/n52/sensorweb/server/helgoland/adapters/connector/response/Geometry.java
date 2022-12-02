@@ -27,6 +27,8 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -35,7 +37,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"x", "y"})
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
-public class Geometry {
+public class Geometry implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("x")
     private Double x;

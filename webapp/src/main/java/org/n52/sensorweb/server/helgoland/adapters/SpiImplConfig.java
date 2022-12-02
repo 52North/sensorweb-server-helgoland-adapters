@@ -41,9 +41,9 @@ import com.cosium.spring.data.jpa.entity.graph.repository.support.EntityGraphJpa
 @EnableWebMvc
 @Configuration
 @EnableJpaRepositories(repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class,
-basePackages = { "org.n52.sensorweb.server.db.repositories.core" })
+basePackages = { "org.n52.sensorweb.server.db.repositories" })
 @ComponentScan(basePackages = {
-    "org.n52.sensorweb.server.db.repositories.core",
+    "org.n52.sensorweb.server.db.repositories",
     "org.n52.sensorweb.server.db.assembler.core",
     "org.n52.sensorweb.server.db.assembler.mapper",
     "org.n52.sensorweb.server.db.assembler.value",

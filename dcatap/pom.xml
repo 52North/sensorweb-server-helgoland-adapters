@@ -89,6 +89,11 @@
 			</exclusions>
         </dependency>
         <dependency>
+            <groupId>org.n52.sensorweb-server.db-model</groupId>
+            <artifactId>db-model-repos</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
         </dependency>

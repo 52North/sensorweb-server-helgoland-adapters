@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -145,7 +146,10 @@ public class CRUDRepository {
     public synchronized void removeServiceRelatedData(ServiceEntity service) {
         DatasetQuerySpecifications dsQS = getDatasetQuerySpecification();
         for (DatasetEntity dataset : datasetRepository.findAll(dsQS.matchServices(Long.toString(service.getId())))) {
-            dataRepository.deleteByDataset(datasetRepository.getReferenceById(dataset.getId()));
+            Optional<DatasetEntity> optional = datasetRepository.findById(dataset.getId());
+            if (optional.isPresent()) {
+                dataRepository.deleteByDataset(optional.get());
+            }
         }
         datasetRepository.deleteByService(service);
         categoryAssembler.clearUnusedForService(service);
