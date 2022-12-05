@@ -32,12 +32,12 @@ spring:
       hibernate: 
         hbm2ddl:
           # hbm2ddl values: validate | update | create | create-drop
-          auto: create-drop
+          auto: update
         jdbc:
           time_zone: UTC
           # https://hibernate.atlassian.net/browse/HHH-12368
           lob.non_contextual_creation: true
-        format_sql: true
+        format_sql: false
         default_schema: public
         dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
 
@@ -48,7 +48,7 @@ spring:
 ##
 ## LOGGING SETTINGS
 ##
-debug: true
+debug: false
 logging:
   # config: classpath:logback.xml
   level:
