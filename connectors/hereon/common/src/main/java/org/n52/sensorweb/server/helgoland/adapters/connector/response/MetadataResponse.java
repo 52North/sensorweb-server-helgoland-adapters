@@ -30,34 +30,39 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.Valid;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "features", "exceededTransferLimit" })
+@JsonPropertyOrder({"features", "exceededTransferLimit"})
+@JsonIgnoreProperties({
+        "hasM",
+        "hasZ",
+        "globalIdFieldName",
+        "objectIdFieldName",
+        "fields",
+        "geometryType",
+        "spatialReference"})
 public class MetadataResponse implements Serializable {
     private static final long serialVersionUID = 565521313246527281L;
+
     @JsonProperty("features")
     @Valid
     private List<MetadataFeature> features = new LinkedList<>();
+
     @JsonProperty("exceededTransferLimit")
-    private Boolean exceededTransferLimit;
-    @JsonIgnore
     @Valid
-    private Map<String, Object> additionalProperties = new LinkedHashMap<>();
+    private Boolean exceededTransferLimit;
 
     @JsonProperty("features")
+    @Valid
     public List<MetadataFeature> getFeatures() {
         return Collections.unmodifiableList(features);
     }
@@ -90,21 +95,6 @@ public class MetadataResponse implements Serializable {
 
     public MetadataResponse withExceededTransferLimit(Boolean exceededTransferLimit) {
         this.exceededTransferLimit = exceededTransferLimit;
-        return this;
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getAdditionalProperties() {
-        return Collections.unmodifiableMap(additionalProperties);
-    }
-
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
-    }
-
-    public MetadataResponse withAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
         return this;
     }
 

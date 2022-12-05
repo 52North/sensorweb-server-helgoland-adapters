@@ -231,23 +231,12 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                             serviceConstellation.add(addDatasetreamValues(dataset, attribute, datastream));
                         }
                     }
-                } else {
-                    if (metadata.getAdditionalProperties().containsKey(ERROR)) {
-                        checkError((LinkedHashMap<String, Object>) metadata.getAdditionalProperties().get(ERROR));
-                    }
                 }
             } catch (JsonProcessingException | DecodingException | ProxyHttpClientException  e) {
                 throw new ProxyException("Error while processing Metadata!").causedBy(e);
             }
         } while (exceededTransferLimit);
         LOGGER.debug("Harvesting finished!");
-    }
-
-    private void checkError(LinkedHashMap<String, Object> e) throws DecodingException {
-        Error error = new Error();
-        error.setCode(Integer.parseInt(e.get("code").toString()));
-        error.setMessage(e.get("message").toString());
-        throw new DecodingException(error.toString());
     }
 
     private boolean checkForRequiredFields(Attributes attribute, Collection<AbstractEntity> mappings) {
@@ -517,7 +506,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         } catch (JsonProcessingException e) {
             if (!clazz.isInstance(ErrorResponse.class)) {
                 ErrorResponse errorResponse = encodeResponse(response, ErrorResponse.class);
-                throw new DecodingException(errorResponse.toString());
+                throw new DecodingException(errorResponse.getError().toString());
             } else {
                 throw e;
             }
