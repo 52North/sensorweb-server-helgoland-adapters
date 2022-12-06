@@ -134,7 +134,7 @@ public class CRUDRepository {
     }
 
     protected boolean equals(DataSourceJobConfiguration configuration, ServiceEntity service) {
-        return configuration.getUrl().equals(service.getUrl())
+        return (configuration.getUrl() != null ? configuration.getUrl().equals(service.getUrl()) : true)
                 && configuration.getItemName().equals(service.getName());
     }
 
