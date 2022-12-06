@@ -66,7 +66,6 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.Req
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.SensorRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.ThingRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
-import org.n52.sensorweb.server.helgoland.adapters.connector.response.Error;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.ErrorResponse;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.ExtentResponse;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.MetadataFeature;
@@ -187,7 +186,7 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         FeatureRequestBuilder featureRequestBuilder = requestBuilderFactory.getFeatureRequestBuilder();
         Feature featureMapping = featureRequestBuilder.getTypeMapping();
         FormatEntity sensorFormat = createFormat(sensor.getEncodingType());
-        FormatEntity featureForamt = createFormat(featureMapping.getEncodingType());
+        FormatEntity featureFormat = createFormat(featureMapping.getEncodingType());
         Datastream datastream = hereonConfig.getMapping().getDatastream();
         Collection<AbstractEntity> mappings =
                 createMappingCollection(thing, observedProperty, sensor, featureMapping, datastream);
@@ -223,8 +222,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
                                     createSensor(serviceConstellation, attribute, sensor, sensorFormat);
                             OfferingEntity offering = createOffering(serviceConstellation, attribute, sensor);
                             FeatureEntity feature = createFeature(serviceConstellation, attribute, featureMapping,
-                                    featureForamt, featureRequestBuilder);
-                            platform.addLocationEntity(createLocation(feature, platform));
+                                    featureFormat, featureRequestBuilder);
+                            platform.addLocation(createLocation(feature, platform));
                             QuantityDatasetConstellation dataset = new QuantityDatasetConstellation(
                                     procedure.getIdentifier(), offering.getIdentifier(), category.getIdentifier(),
                                     phenomenon.getIdentifier(), feature.getIdentifier(), platform.getIdentifier());
