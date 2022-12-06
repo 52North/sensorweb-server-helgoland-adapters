@@ -1,6 +1,4 @@
 spring:
-  profiles:
-    active: "proxy"
   main:
     allow-circular-references: true
   datasource:
@@ -36,7 +34,7 @@ logging:
   config: classpath:logback.xml
   file: target/logs/dao-series-api.log
   level:
-    org.n52: WARN
+    org.n52: TRACE
     ## Spring
     org.springframework: INFO
     org.springframework.web.servlet.mvc.method.annotation: INFO

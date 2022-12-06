@@ -21,7 +21,7 @@ database:
 
 spring:
   profiles:
-    active: "proxy"
+    active: proxy
   main:
     allow-circular-references: true
   datasource:
@@ -36,7 +36,7 @@ spring:
       hibernate: 
         hbm2ddl:
           # hbm2ddl values: validate | update | create | create-drop
-          auto: create-drop
+          auto: update
         jdbc:
           time_zone: UTC
           # https://hibernate.atlassian.net/browse/HHH-12368
@@ -56,7 +56,7 @@ debug: true
 logging:
   # config: classpath:logback.xml
   level:
-    root: TRACE
+    root: ERROR
     org.n52: WARN
     ## Spring
     org.springframework: INFO
