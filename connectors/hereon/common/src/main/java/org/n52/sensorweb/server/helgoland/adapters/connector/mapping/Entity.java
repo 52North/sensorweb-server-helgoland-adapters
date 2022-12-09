@@ -33,5 +33,4 @@ public interface Entity {
 
     Set<String> getFields();
 
-    String getName();
 }

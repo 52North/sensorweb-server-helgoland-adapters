@@ -41,7 +41,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "thing", "sensor", "observedProperty", "feature", "datastream", "general" })
+@JsonPropertyOrder({ "thing", "sensor", "observedProperty", "feature", "datastream", "observation", "general" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public class Mapping implements Serializable, Entity {
     private static final long serialVersionUID = 6912484994408704525L;
@@ -60,6 +60,9 @@ public class Mapping implements Serializable, Entity {
     @JsonProperty("datastream")
     @Valid
     private Datastream datastream;
+    @JsonProperty("observation")
+    @Valid
+    private Observation observation;
     @JsonProperty("general")
     @Valid
     private General general;
@@ -154,6 +157,21 @@ public class Mapping implements Serializable, Entity {
         return this;
     }
 
+    @JsonProperty("observation")
+    public Observation getObservation() {
+        return observation;
+    }
+
+    @JsonProperty("observation")
+    public void setObservation(Observation observation) {
+        this.observation = observation;
+    }
+
+    public Mapping withObservation(Observation observation) {
+        this.observation = observation;
+        return this;
+    }
+
     @Override
     public Set<String> getFields() {
         Set<String> fields = new LinkedHashSet<>();
@@ -162,12 +180,12 @@ public class Mapping implements Serializable, Entity {
         fields.addAll(getObservedProperty().getFields());
         fields.addAll(getFeature().getFields());
         fields.addAll(getDatastream().getFields());
+        fields.addAll(getObservation().getFields());
         fields.add(getGeneral().getMetadataId());
         fields.add(getGeneral().getDataServiceUrl());
         return fields;
     }
 
-    @Override
     public String getName() {
         return null;
     }

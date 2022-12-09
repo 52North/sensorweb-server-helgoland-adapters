@@ -41,17 +41,8 @@ public abstract class AbstractRequestBuilder<T extends AbstractHereonRequest, S 
         this.hereonConfig = hereonConfig;
     }
 
-    public T getIdentifierRequest() {
-        return (T) getDefaultRequest().withOutField(getIdentifierField()).withDistinctValues(true);
-    }
-
     public T getRequest() {
         return (T) getDefaultRequest().withOutField(getFields()).withDistinctValues(true);
-    }
-
-    public T getRequest(String identifier) {
-        return (T) getDefaultRequest().withWhere(getIdentifierField() + "=" + identifier).withOutField(getFields())
-                .withDistinctValues(true);
     }
 
     protected abstract T getDefaultRequest();
@@ -60,10 +51,6 @@ public abstract class AbstractRequestBuilder<T extends AbstractHereonRequest, S 
 
     protected String getFields() {
         return String.join(",", getTypeMapping().getFields());
-    }
-
-    private String getIdentifierField() {
-        return getTypeMapping().getName();
     }
 
     protected Mapping getMapping() {
