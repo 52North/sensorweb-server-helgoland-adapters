@@ -56,7 +56,11 @@ public class DataSourceHarvestingJobFactory implements Constructable {
     @Override
     public void init() {
         Set<DataSourceJobConfiguration> configuredServices = new LinkedHashSet<>();
+        Boolean removeNonMatchingServices = null;
         for (ConfigurationProvider configurationProvider : configurationProviders) {
+            removeNonMatchingServices =
+                    removeNonMatchingServices != null && removeNonMatchingServices ? removeNonMatchingServices
+                            : configurationProvider.isRemoveNonMatchingServices();
             for (DataSourceConfiguration dataSourceConfiguration : configurationProvider.getDataSources()) {
                 for (JobConfiguration jobConfiguration : dataSourceConfiguration.getJobs()) {
                     if (jobConfiguration.isEnabled()) {
@@ -67,7 +71,9 @@ public class DataSourceHarvestingJobFactory implements Constructable {
 
             }
         }
-        crudRepository.removeNonMatchingServices(configuredServices);
+        if (removeNonMatchingServices) {
+            crudRepository.removeNonMatchingServices(configuredServices);
+        }
 
         Set<ScheduledJob> jobs = configuredServices.stream()
                 .peek(config -> LOGGER.info("{} {}", config.getItemName(), config.getUrl())).map(config -> {
