@@ -48,7 +48,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "parameters"
 })
 public class Observation implements Serializable, Entity {
-    private final static long serialVersionUID = -1131449219115560395L;
+    private static final long serialVersionUID = -1131449219115560395L;
 
     @JsonProperty("phenomenonTime")
     private String phenomenonTime;
