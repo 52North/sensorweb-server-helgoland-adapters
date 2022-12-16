@@ -145,13 +145,16 @@ public class CRUDRepository {
 
     public synchronized void removeServiceRelatedData(ServiceEntity service) {
         DatasetQuerySpecifications dsQS = getDatasetQuerySpecification();
-        for (DatasetEntity dataset : datasetRepository.findAll(dsQS.matchServices(Long.toString(service.getId())))) {
+        for (DatasetEntity dataset : datasetRepository
+                .findAll(dsQS.matchServices(Long.toString(service.getId())).and(dsQS.isNotHidden()))) {
             Optional<DatasetEntity> optional = datasetRepository.findById(dataset.getId());
             if (optional.isPresent()) {
-                dataRepository.deleteByDataset(optional.get());
+                DatasetEntity datasetEntity = optional.get();
+                removeRelatedData(datasetEntity);
+                DatasetEntity save = removeData(datasetEntity);
+                datasetRepository.delete(save);
             }
         }
-        datasetRepository.deleteByService(service);
         categoryAssembler.clearUnusedForService(service);
         offeringAssembler.clearUnusedForService(service);
         procedureAssembler.clearUnusedForService(service);
@@ -160,19 +163,18 @@ public class CRUDRepository {
         platformAssembler.clearUnusedForService(service);
     }
 
-
     public synchronized ServiceEntity insertService(ServiceEntity service) {
         return serviceAssembler.getOrInsertInstance(service);
     }
 
-    public synchronized void removeRelatedData(DatasetEntity dataset) {
+    public synchronized DatasetEntity removeRelatedData(DatasetEntity dataset) {
         DatasetEntity instance = datasetRepository.getReferenceById(dataset.getId());
         if (instance.hasReferenceValues()) {
             for (DatasetEntity refDataset : instance.getReferenceValues()) {
                 removeData(refDataset);
             }
         }
-        dataRepository.deleteByDataset(instance);
+        return removeData(instance);
     }
 
     public void cleanUp(ServiceEntity service, Set<Long> datasetIds, boolean removeService) {
@@ -187,11 +189,12 @@ public class CRUDRepository {
         }
     }
 
-    private void removeData(DatasetEntity dataset) {
+    private DatasetEntity removeData(DatasetEntity dataset) {
         dataset.setFirstObservation(null);
         dataset.setLastObservation(null);
-        datasetRepository.saveAndFlush(dataset);
-        dataRepository.deleteByDataset(dataset);
+        DatasetEntity saved = datasetRepository.saveAndFlush(dataset);
+        dataRepository.deleteByDataset(saved);
+        return saved;
     }
 
     public synchronized void removeFeature(AbstractFeatureEntity<?> entity) {
@@ -224,7 +227,6 @@ public class CRUDRepository {
         }
         return insertDataset(dataset, category, procedure, offering, feature, phenomenon, platform, unit, insertTags);
     }
-
 
     private DatasetEntity insertDataset(DatasetEntity dataset, CategoryEntity category, ProcedureEntity procedure,
             OfferingEntity offering, AbstractFeatureEntity<?> feature, PhenomenonEntity phenomenon,
@@ -267,10 +269,7 @@ public class CRUDRepository {
     }
 
     private Set<TagEntity> insertTags(Collection<TagEntity> tags) {
-        return tags.stream()
-                .filter(Objects::nonNull)
-                .map(t -> insertTag(t))
-                .collect(Collectors.toSet());
+        return tags.stream().filter(Objects::nonNull).map(t -> insertTag(t)).collect(Collectors.toSet());
     }
 
     private TagEntity insertTag(TagEntity tag) {
@@ -296,21 +295,27 @@ public class CRUDRepository {
         data.setDataset(dataset);
         boolean minChanged = false;
         boolean maxChanged = false;
-        if (!dataset.isSetFirstValueAt() || dataset.isSetFirstValueAt() && dataset.getFirstValueAt()
-                .after(data.getSamplingTimeStart())) {
-            minChanged = true;
+        if (!dataset.isSetFirstValueAt()
+                || forceMinChange && dataset.getFirstValueAt() != null && data.getSamplingTimeStart() != null
+                        && dataset.getFirstValueAt().before(data.getSamplingTimeStart())) {
             dataset.setFirstValueAt(data.getSamplingTimeStart());
+            minChanged = true;
+        } else {
+            if (!dataset.isSetFirstValueAt()
+                    || dataset.isSetFirstValueAt() && dataset.getFirstValueAt().after(data.getSamplingTimeStart())) {
+                minChanged = true;
+                dataset.setFirstValueAt(data.getSamplingTimeStart());
+            }
         }
-        if (!dataset.isSetLastValueAt() || dataset.isSetLastValueAt() && dataset.getLastValueAt()
-                .before(data.getSamplingTimeEnd())) {
+        if (!dataset.isSetLastValueAt()
+                || dataset.isSetLastValueAt() && dataset.getLastValueAt().before(data.getSamplingTimeEnd())) {
             maxChanged = true;
             dataset.setLastValueAt(data.getSamplingTimeEnd());
         }
         DataEntity<?> insertedData = null;
         if (minChanged) {
             if (dataset.getFirstObservation() != null) {
-                data.setId(dataset.getFirstObservation()
-                        .getId());
+                data.setId(dataset.getFirstObservation().getId());
             }
             insertedData = (DataEntity<?>) dataRepository.saveAndFlush(data);
             dataset.setFirstObservation(insertedData);
@@ -319,13 +324,10 @@ public class CRUDRepository {
             if (insertedData != null) {
                 dataset.setLastObservation(insertedData);
             } else {
-                if (dataset.getLastObservation() != null && (dataset.getFirstObservation() == null
-                        || dataset.getFirstObservation() != null && !dataset.getFirstObservation()
-                                .getId()
-                                .equals(dataset.getLastObservation()
-                                        .getId()))) {
-                    data.setId(dataset.getLastObservation()
-                            .getId());
+                if (dataset.getLastObservation() != null
+                        && (dataset.getFirstObservation() == null || dataset.getFirstObservation() != null && !dataset
+                                .getFirstObservation().getId().equals(dataset.getLastObservation().getId()))) {
+                    data.setId(dataset.getLastObservation().getId());
                 }
                 insertedData = (DataEntity<?>) dataRepository.saveAndFlush(data);
                 dataset.setLastObservation(insertedData);
@@ -343,18 +345,79 @@ public class CRUDRepository {
         if (minChanged || maxChanged) {
             updateDataset(dataset);
         }
+        updateOffering(dataset.getOffering(), data, forceMinChange);
         return (T) insertedData;
     }
-
 
     public synchronized DatasetEntity updateData(DatasetEntity dataset, DataEntity<?> data) {
         dataRepository.saveAndFlush(data);
         return updateDataset(dataset);
     }
 
-
     public synchronized DatasetEntity updateDataset(DatasetEntity dataset) {
         return unproxy(datasetRepository.saveAndFlush(dataset));
+    }
+
+    public synchronized OfferingEntity updateOffering(OfferingEntity offering, DataEntity<?> data,
+            boolean forceMinChange) {
+
+        boolean modified = false;
+        if (offering.getSamplingTimeStart() == null
+                || forceMinChange && offering.getSamplingTimeStart() != null && data.getSamplingTimeStart() != null
+                        && offering.getSamplingTimeStart().before(data.getSamplingTimeStart())) {
+            offering.setSamplingTimeStart(data.getSamplingTimeStart());
+            modified = true;
+        } else {
+            if (offering.getSamplingTimeStart() == null
+                    || offering.getSamplingTimeStart() != null && data.getSamplingTimeStart() != null
+                            && offering.getSamplingTimeStart().after(data.getSamplingTimeStart())) {
+                offering.setSamplingTimeStart(data.getSamplingTimeStart());
+                modified = true;
+            }
+        }
+        if (offering.getSamplingTimeEnd() == null
+                || offering.getSamplingTimeEnd() != null && data.getSamplingTimeEnd() != null
+                        && offering.getSamplingTimeEnd().before(data.getSamplingTimeEnd())) {
+            offering.setSamplingTimeEnd(data.getSamplingTimeEnd());
+            modified = true;
+        }
+        if (offering.getResultTimeStart() == null || forceMinChange && offering.getResultTimeStart() != null
+                && data.getResultTime() != null && offering.getResultTimeStart().before(data.getResultTime())) {
+            offering.setResultTimeStart(data.getResultTime());
+            modified = true;
+        } else {
+            if (offering.getResultTimeStart() == null || offering.getResultTimeStart() != null
+                    && data.getResultTime() != null && offering.getResultTimeStart().after(data.getResultTime())) {
+                offering.setResultTimeStart(data.getResultTime());
+                modified = true;
+            }
+        }
+        if (offering.getResultTimeEnd() == null || offering.getResultTimeEnd() != null && data.getResultTime() != null
+                && offering.getResultTimeEnd().before(data.getResultTime())) {
+            offering.setResultTimeEnd(data.getResultTime());
+            modified = true;
+        }
+        if (offering.getValidTimeStart() == null || forceMinChange && offering.getValidTimeStart() != null
+                && data.getValidTimeStart() != null && offering.getValidTimeStart().before(data.getValidTimeStart())) {
+            offering.setValidTimeStart(data.getValidTimeStart());
+            modified = true;
+        } else {
+            if (offering.getValidTimeStart() == null
+                    || offering.getValidTimeStart() != null && data.getValidTimeStart() != null
+                            && offering.getValidTimeStart().after(data.getValidTimeStart())) {
+                offering.setValidTimeStart(data.getValidTimeStart());
+                modified = true;
+            }
+        }
+        if (offering.getValidTimeEnd() == null || offering.getValidTimeEnd() != null && data.getValidTimeEnd() != null
+                && offering.getValidTimeEnd().before(data.getValidTimeEnd())) {
+            offering.setValidTimeEnd(data.getValidTimeEnd());
+            modified = true;
+        }
+        if (modified) {
+            return offeringAssembler.updateInstance(offering);
+        }
+        return offering;
     }
 
     public DatasetQuerySpecifications getDatasetQuerySpecification() {
@@ -362,7 +425,7 @@ public class CRUDRepository {
     }
 
     public DatasetQuerySpecifications getDatasetQuerySpecification(IoParameters parameters) {
-        return DatasetQuerySpecifications.of(dbQueryFactory.createFrom(IoParameters.createDefaults()),
+        return DatasetQuerySpecifications.of(dbQueryFactory.createFrom(parameters),
                 datasetAssembler.getEntityManager());
     }
 

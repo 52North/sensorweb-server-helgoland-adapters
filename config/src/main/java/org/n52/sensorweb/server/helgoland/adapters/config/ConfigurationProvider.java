@@ -32,4 +32,8 @@ import java.util.List;
 public interface ConfigurationProvider {
 
     List<DataSourceConfiguration> getDataSources();
+
+    default boolean isRemoveNonMatchingServices() {
+        return false;
+    }
 }

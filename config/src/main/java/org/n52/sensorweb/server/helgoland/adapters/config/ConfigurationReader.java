@@ -50,6 +50,9 @@ public class ConfigurationReader implements ConfigurationProvider {
     @Value("${service.config.file:}")
     private String configFile;
 
+    @Value("${service.config.removenonmatchingservices:false}")
+    private boolean removeNonMatchingServices;
+
     @PostConstruct
     private void init() {
         this.intervalConfig = readConfig();
@@ -82,6 +85,10 @@ public class ConfigurationReader implements ConfigurationProvider {
 
     public List<DataSourceConfiguration> getDataSources() {
         return intervalConfig.getDataSources();
+    }
+
+    public boolean isRemoveNonMatchingServices() {
+        return removeNonMatchingServices;
     }
 
 }

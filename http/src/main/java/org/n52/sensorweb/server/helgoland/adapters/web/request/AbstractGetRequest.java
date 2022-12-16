@@ -47,9 +47,13 @@ public abstract class AbstractGetRequest extends AbstractRequest {
      */
     public abstract Map<String, String> getQueryParameters();
 
-    protected String toCSV(Collection<String> values) {
+    protected String toCSV(Collection<String> values, boolean encode) {
         return String.join(",", values.stream()
-                .map(v -> encode(v))
+                .map(v -> encode ? encode(v) : v)
                 .collect(Collectors.toSet()));
+    }
+
+    protected String toCSV(Collection<String> values) {
+        return toCSV(values, false);
     }
 }
