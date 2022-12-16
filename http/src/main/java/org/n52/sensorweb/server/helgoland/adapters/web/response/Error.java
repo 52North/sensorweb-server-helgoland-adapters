@@ -25,7 +25,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.response;
+package org.n52.sensorweb.server.helgoland.adapters.web.response;
 
 import java.io.Serializable;
 import java.util.ArrayList;

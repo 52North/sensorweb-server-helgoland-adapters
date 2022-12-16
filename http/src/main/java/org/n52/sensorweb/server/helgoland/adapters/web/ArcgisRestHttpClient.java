@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -37,14 +38,18 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
+import org.n52.sensorweb.server.helgoland.adapters.web.response.ArcgisErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Scanner;
 
 /**
  * Client for retrieving Data from ArcGIS Rest API.
@@ -61,6 +66,7 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
     private final String tokenUrl;
 
     private Date tokenEndOfLife = Date.from(Instant.EPOCH);
+    private ObjectMapper mapper = new ObjectMapper();
 
     public ArcgisRestHttpClient(Credentials credentials) {
         this(credentials.getUsername(), credentials.getPassword(), credentials.getTokenUrl());
@@ -140,8 +146,19 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
         if (response.getStatusLine().getStatusCode() != 200) {
             throw new IOException("Unable to retrieve token. status was: " + response.getStatusLine().getStatusCode());
         }
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(response.getEntity().getContent(), ArcGISToken.class);
+        return encodeResponse(response.getEntity().getContent());
+    }
+
+    private ArcGISToken encodeResponse(InputStream inputStream) throws IOException {
+        Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+        String result = s.hasNext() ? s.next() : "";
+        try {
+            return mapper.readValue(result, ArcGISToken.class);
+        } catch (JsonProcessingException e) {
+            ArcgisErrorResponse errorResponse = mapper.readValue(result, ArcgisErrorResponse.class);
+            LOGGER.error(errorResponse.toString());
+            throw new IOException(errorResponse.getError().toString());
+        }
     }
 
     private static class ArcGISToken {

@@ -67,6 +67,10 @@
             <artifactId>jackson-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <scope>provided</scope>
@@ -91,6 +95,32 @@
             <artifactId>spotbugs-annotations</artifactId>
         </dependency>
 
+
+		<dependency>
+		    <groupId>com.squareup.okhttp3</groupId>
+		    <artifactId>mockwebserver</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.squareup.okhttp3</groupId>
+		    <artifactId>okhttp</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		 <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

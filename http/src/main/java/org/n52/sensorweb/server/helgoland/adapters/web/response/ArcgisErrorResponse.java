@@ -25,7 +25,7 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.sensorweb.server.helgoland.adapters.connector.response;
+package org.n52.sensorweb.server.helgoland.adapters.web.response;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -46,7 +46,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "error" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
-public class ErrorResponse implements Serializable {
+public class ArcgisErrorResponse implements Serializable {
     private static final long serialVersionUID = 5994485228555765194L;
     @JsonProperty("error")
     @Valid
@@ -65,7 +65,7 @@ public class ErrorResponse implements Serializable {
         this.error = error;
     }
 
-    public ErrorResponse withError(Error error) {
+    public ArcgisErrorResponse withError(Error error) {
         this.error = error;
         return this;
     }
@@ -80,7 +80,7 @@ public class ErrorResponse implements Serializable {
         this.additionalProperties.put(name, value);
     }
 
-    public ErrorResponse withAdditionalProperty(String name, Object value) {
+    public ArcgisErrorResponse withAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
         return this;
     }

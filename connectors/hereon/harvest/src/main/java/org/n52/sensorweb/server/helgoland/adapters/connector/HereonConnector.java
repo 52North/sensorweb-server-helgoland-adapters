@@ -66,7 +66,6 @@ import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.Req
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.SensorRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.request.builder.ThingRequestBuilder;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
-import org.n52.sensorweb.server.helgoland.adapters.connector.response.ErrorResponse;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.ExtentResponse;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.MetadataFeature;
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.MetadataResponse;
@@ -79,6 +78,7 @@ import org.n52.sensorweb.server.helgoland.adapters.utils.ProxyException;
 import org.n52.sensorweb.server.helgoland.adapters.web.ArcgisRestHttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.HttpClient;
 import org.n52.sensorweb.server.helgoland.adapters.web.ProxyHttpClientException;
+import org.n52.sensorweb.server.helgoland.adapters.web.response.ArcgisErrorResponse;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 import org.n52.series.db.beans.CategoryEntity;
 import org.n52.series.db.beans.DataEntity;
@@ -503,8 +503,8 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
         try {
             return OM.readValue(response, clazz);
         } catch (JsonProcessingException e) {
-            if (!clazz.isInstance(ErrorResponse.class)) {
-                ErrorResponse errorResponse = encodeResponse(response, ErrorResponse.class);
+            if (!clazz.isInstance(ArcgisErrorResponse.class)) {
+                ArcgisErrorResponse errorResponse = encodeResponse(response, ArcgisErrorResponse.class);
                 throw new DecodingException(errorResponse.getError().toString());
             } else {
                 throw e;
