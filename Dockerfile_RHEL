@@ -1,0 +1,31 @@
+FROM registry.access.redhat.com/ubi8/openjdk-11 as BUILD
+USER root
+WORKDIR /app
+
+COPY . ./
+
+RUN mvn --batch-mode --errors --fail-fast \
+    --define maven.javadoc.skip=true \
+    --define skipTests=true \
+    --activate-profiles no-download \
+    install
+
+FROM registry.access.redhat.com/ubi8/openjdk-11-runtime as runstage
+USER 1001
+
+WORKDIR /app
+
+LABEL maintainer="Jan Speckamp <j.speckamp@52north.org>" \
+      org.opencontainers.image.title="52°North Helgoland Adapters" \
+      org.opencontainers.image.description="52°North Helgoland Adapters" \
+      org.opencontainers.image.licenses="GPLv2" \
+      org.opencontainers.image.url="https://github.com/52North/sensorweb-server-helgoland-adapters" \
+      org.opencontainers.image.vendor="52°North GmbH" \
+      org.opencontainers.image.source="https://github.com/52North/sensorweb-server-helgoland-adapters.git" \
+      org.opencontainers.image.authors="Jan Speckamp <j.speckamp@52north.org>"
+
+COPY --from=BUILD /app/app/target/unpacked/BOOT-INF/lib     /app/lib
+COPY --from=BUILD /app/app/target/unpacked/META-INF         /app/META-INF
+COPY --from=BUILD /app/app/target/unpacked/BOOT-INF/classes /app
+
+ENTRYPOINT ["java", "-cp" ,".:lib/*", "org.n52.sensorweb.server.helgoland.adapters.Application"]
