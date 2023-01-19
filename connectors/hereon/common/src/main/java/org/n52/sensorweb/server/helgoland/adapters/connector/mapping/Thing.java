@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2022 52°North Spatial Information Research GmbH
+ * Copyright (C) 2015-2023 52°North Spatial Information Research GmbH
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published
@@ -25,7 +25,6 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
 public class Thing extends AbstractEntity {
