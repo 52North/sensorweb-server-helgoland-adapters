@@ -47,7 +47,7 @@ public abstract class AbstractDataHereonRequest extends AbstractHereonRequest {
     @Override
     protected void addQueryParameters(Map<String, String> map) {
         if (metadataId != null && !metadataId.isEmpty()) {
-            withWhere(equal(DataFields.METADATA_ID, metadataId));
+            withWhere(equal(MetadataFields.METADATA_ID, metadataId));
         }
         super.addQueryParameters(map);
         addReturnExtentOnly(map);
