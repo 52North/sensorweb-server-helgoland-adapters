@@ -66,7 +66,6 @@ public interface HereonConstants extends FeatureServiceConstants {
     }
 
     interface DataFields extends Fields {
-        String METADATA_ID = "METADATA_ID";
         String GLOBAL_ID = "globalid";
         String PLATFORM = "PLATFORM";
         String MEASURE_VAL = "MEASURE_VAL";
