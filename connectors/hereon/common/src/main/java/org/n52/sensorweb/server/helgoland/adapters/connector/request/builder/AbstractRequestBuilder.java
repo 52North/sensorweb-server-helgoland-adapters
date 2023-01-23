@@ -50,7 +50,7 @@ public abstract class AbstractRequestBuilder<T extends AbstractHereonRequest, S 
     protected abstract S getTypeMapping();
 
     protected String getFields() {
-        return String.join(",", getTypeMapping().getFields());
+        return "*";
     }
 
     protected Mapping getMapping() {
