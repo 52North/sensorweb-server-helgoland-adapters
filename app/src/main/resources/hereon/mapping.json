@@ -108,6 +108,38 @@
 			}
 		]
 	},
+	"observation": {
+		"phenomenonTime": "date_time",
+		"resultTime": "",
+		"result": "measure_val",
+		"resultQuality": "",
+		"validTime": "",
+		"parameters": [
+			"method_err_val",
+			"variance",
+			"raw_measure_val",
+			"metadata_id",
+			"platform",
+			"parameter",
+			"flag_man_quality_control",
+			"reason_quality_flag",
+			"max",
+			"objectid",
+			"water_depth",
+			"sensor",
+			"unit",
+			"measure_val",
+			"auto_quality_test_param",
+			"min",
+			"date_time",
+			"quality_flag",
+			"man_quality_test_param",
+			"primaryid",
+			"transect",
+			"infoflag",
+			"std_deviation"
+		]
+	},
 	"general": {
 		"dataServiceUrl": "url_data_service",
 		"dataServiceUrlPostfix": "/0/",
