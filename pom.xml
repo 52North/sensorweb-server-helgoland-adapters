@@ -28,14 +28,6 @@
         <url>https://52north.org</url>
     </organization>
 
-    <developers>
-        <developer>
-            <id>jan</id>
-            <name>Jan Schulte</name>
-            <email>j.schulte@52north.org</email>
-        </developer>
-    </developers>
-
     <licenses>
         <license>
             <name>GNU General Public License, Version 2.0</name>
@@ -44,9 +36,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:https://github.com/52North/series-sos-proxy.git</connection>
-        <developerConnection>scm:git:https://github.com/52North/series-sos-proxy.git</developerConnection>
-        <url>https://github.com/52North/series-sos-proxy</url>
+        <connection>scm:git:https://github.com/52North/sensorweb-server-helgoland-adapters.git</connection>
+        <developerConnection>scm:git:https://github.com/52North/sensorweb-server-helgoland-adapters.git</developerConnection>
+        <url>https://github.com/52North/sensorweb-server-helgoland-adapters</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -56,9 +48,9 @@
 
         <!-- optional properties file -->
         <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
-        <org.springframework.version>5.3.24</org.springframework.version>
+        <org.springframework.version>5.3.27</org.springframework.version>
         <spring-boot.version>2.7.7</spring-boot.version>
-        <spring-data.version>2.7.6</spring-data.version>
+        <spring-data.version>2.7.11</spring-data.version>
         <spring-data-entity-graph.version>2.7.10</spring-data-entity-graph.version>
         <logback.version>1.3.4</logback.version>
         <geotools.version>28.0</geotools.version>
