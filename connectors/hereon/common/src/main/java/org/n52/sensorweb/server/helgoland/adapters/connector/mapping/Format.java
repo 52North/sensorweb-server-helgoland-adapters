@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
 
@@ -48,6 +49,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonPropertyOrder({ "name", "fields", "format" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public class Format implements Serializable {
+    @Serial
     private static final long serialVersionUID = -7328974964055792319L;
     private static final String SEMICOLON = ";";
     private static final String COMMA = ",";

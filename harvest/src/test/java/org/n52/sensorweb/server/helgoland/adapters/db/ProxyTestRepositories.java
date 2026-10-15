@@ -34,7 +34,7 @@ import static org.n52.sensorweb.server.helgoland.adapters.test.OfferingBuilder.n
 import static org.n52.sensorweb.server.helgoland.adapters.test.PhenomenonBuilder.newPhenomenon;
 import static org.n52.sensorweb.server.helgoland.adapters.test.ProcedureBuilder.newProcedure;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.n52.sensorweb.server.db.repositories.core.CategoryRepository;
 import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;

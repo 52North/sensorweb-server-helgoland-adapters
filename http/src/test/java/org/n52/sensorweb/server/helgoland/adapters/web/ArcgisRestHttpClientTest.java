@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.web;
 
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;

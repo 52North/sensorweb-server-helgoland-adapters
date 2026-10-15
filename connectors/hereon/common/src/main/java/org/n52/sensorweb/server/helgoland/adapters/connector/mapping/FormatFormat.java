@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.annotation.Generated;
+import jakarta.annotation.Generated;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "separator", "prefix", "optionals" })
 @Generated("jsonschema2pojo")
 public class FormatFormat implements Serializable {
+    @Serial
     private static final long serialVersionUID = -6940072861756141395L;
     @JsonProperty("separator")
     private String separator = "_";

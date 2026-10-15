@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "field", "value", "separator" })
 public class Optional implements Serializable {
+    @Serial
     private static final long serialVersionUID = 6350583291157993683L;
     @JsonProperty("field")
     private String field;

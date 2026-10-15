@@ -29,14 +29,14 @@ package org.n52.sensorweb.server.helgoland.adapters.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.n52.sensorweb.server.helgoland.adapters.config.Credentials;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.ArcgisErrorResponse;
 import org.slf4j.Logger;
@@ -143,8 +143,8 @@ public class ArcgisRestHttpClient extends SimpleHttpClient {
         request.setEntity(new UrlEncodedFormEntity(Arrays.asList(params)));
         CloseableHttpResponse response = tokenClient.execute(request);
 
-        if (response.getStatusLine().getStatusCode() != 200) {
-            throw new IOException("Unable to retrieve token. status was: " + response.getStatusLine().getStatusCode());
+        if (response.getCode() != 200) {
+            throw new IOException("Unable to retrieve token. status was: " + response.getCode());
         }
         return encodeResponse(response.getEntity().getContent());
     }

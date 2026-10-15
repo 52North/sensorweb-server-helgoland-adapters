@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.harvest;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.n52.sensorweb.server.helgoland.adapters.da.CRUDRepository;
 

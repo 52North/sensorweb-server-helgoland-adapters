@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.util.Set;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "definition" })
 public class ObservedProperty extends AbstractEntity {
 
+    @Serial
     private static final long serialVersionUID = -2200635367972872958L;
 
     @JsonProperty("definition")

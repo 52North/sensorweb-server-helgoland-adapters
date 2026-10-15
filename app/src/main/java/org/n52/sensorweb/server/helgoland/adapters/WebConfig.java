@@ -29,7 +29,7 @@ package org.n52.sensorweb.server.helgoland.adapters;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.n52.janmayen.http.HTTPMethods;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;

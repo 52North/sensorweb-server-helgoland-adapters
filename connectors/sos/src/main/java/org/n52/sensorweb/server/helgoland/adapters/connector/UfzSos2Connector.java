@@ -153,8 +153,7 @@ public class UfzSos2Connector extends SOS2Connector {
                                             // children.add(componentId);
                                             for (SmlIo outputs : process.getOutputs()) {
                                                 SweAbstractDataComponent ioValue = outputs.getIoValue();
-                                                if (ioValue instanceof SweQuantity) {
-                                                    SweQuantity q = (SweQuantity) ioValue;
+                                                if (ioValue instanceof SweQuantity q) {
                                                     String phenomenonId = addPhenomenon(q.getDefinition(),
                                                             q.getLabel(), serviceConstellation);
                                                     UnitEntity unit = createUnit(q.getUom(), q.getUom());
@@ -175,8 +174,7 @@ public class UfzSos2Connector extends SOS2Connector {
                                                     true, false, serviceConstellation);
                                     for (SmlIo outputs : ps.getOutputs()) {
                                         SweAbstractDataComponent ioValue = outputs.getIoValue();
-                                        if (ioValue instanceof SweQuantity) {
-                                            SweQuantity q = (SweQuantity) ioValue;
+                                        if (ioValue instanceof SweQuantity q) {
                                             String phenomenonId = addPhenomenon(q.getDefinition(), q.getLabel(),
                                                     serviceConstellation);
                                             serviceConstellation.add(new QuantityDatasetConstellation(procId,
@@ -234,11 +232,11 @@ public class UfzSos2Connector extends SOS2Connector {
 
     private void setPhenomenonTime(SosObservationOffering offering, QuantityDatasetConstellation constellation) {
         Time phenomenonTime = offering.getPhenomenonTime();
-        if (phenomenonTime instanceof TimePeriod) {
-            constellation.setSamplingTimeStart(((TimePeriod) phenomenonTime).getStart().toDate());
-            constellation.setSamplingTimeEnd(((TimePeriod) phenomenonTime).getEnd().toDate());
-        } else if (phenomenonTime instanceof TimeInstant) {
-            Date date = ((TimeInstant) phenomenonTime).getValue().toDate();
+        if (phenomenonTime instanceof TimePeriod period) {
+            constellation.setSamplingTimeStart(period.getStart().toDate());
+            constellation.setSamplingTimeEnd(period.getEnd().toDate());
+        } else if (phenomenonTime instanceof TimeInstant instant) {
+            Date date = instant.getValue().toDate();
             constellation.setSamplingTimeStart(date);
             constellation.setSamplingTimeEnd(date);
         } else {

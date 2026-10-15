@@ -27,12 +27,15 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
+import java.io.Serial;
+
 /**
  * TODO JavaDoc
  *
  * @author Christian Autermann
  */
 public class ConnectorRequestFailedException extends RuntimeException {
+    @Serial
     private static final long serialVersionUID = 627994337294485258L;
 
     public ConnectorRequestFailedException() {

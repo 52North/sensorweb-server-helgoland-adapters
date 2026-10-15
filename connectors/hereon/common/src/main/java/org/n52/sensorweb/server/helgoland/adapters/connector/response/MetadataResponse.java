@@ -27,12 +27,13 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -50,6 +51,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "geometryType",
         "spatialReference"})
 public class MetadataResponse implements Serializable {
+    @Serial
     private static final long serialVersionUID = 565521313246527281L;
 
     @JsonProperty("features")

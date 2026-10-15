@@ -27,12 +27,13 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.web.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -47,6 +48,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonPropertyOrder({ "error" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public class ArcgisErrorResponse implements Serializable {
+    @Serial
     private static final long serialVersionUID = 5994485228555765194L;
     @JsonProperty("error")
     @Valid

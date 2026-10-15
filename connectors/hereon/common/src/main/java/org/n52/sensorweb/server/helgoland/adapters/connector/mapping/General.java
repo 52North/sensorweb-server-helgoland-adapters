@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "dataServiceUrl", "dataServiceUrlPostfix", "metadataId", "dataServicePrefix",
         "stringFormatPrefix", "dataServiceTokenUrlPostfix" })
 public class General implements Serializable {
+    @Serial
     private static final long serialVersionUID = 3028121006318512305L;
     @JsonProperty("dataServiceUrl")
     private String dataServiceUrl;

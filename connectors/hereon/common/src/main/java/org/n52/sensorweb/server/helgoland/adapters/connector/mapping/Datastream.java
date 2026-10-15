@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.util.Set;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "observedArea" })
 public class Datastream extends AbstractEntity {
 
+    @Serial
     private static final long serialVersionUID = 1386105893996142527L;
     @JsonProperty("identifier")
     private String identifier;

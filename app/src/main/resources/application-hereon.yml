@@ -16,8 +16,6 @@ server:
 database:
   # what CRS persisted geometries do have
   srid: EPSG:4326
-  jpa:
-    persistence-location: "classpath:META-INF/persistence.xml"
 
 spring:
   main:

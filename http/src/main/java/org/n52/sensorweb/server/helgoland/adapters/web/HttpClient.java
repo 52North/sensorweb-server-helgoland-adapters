@@ -30,16 +30,16 @@ package org.n52.sensorweb.server.helgoland.adapters.web;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
 import org.n52.janmayen.http.MediaType;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractRequest;
 import org.n52.sensorweb.server.helgoland.adapters.web.response.Response;
 
 public interface HttpClient {
 
-    HttpResponse executeGet(String uri) throws IOException;
+    ClassicHttpResponse executeGet(String uri) throws IOException;
 
     /**
      * Sends the given payload as content-type text/xml with UTF-8 encoding to the determined URI.
@@ -53,7 +53,7 @@ public interface HttpClient {
      *
      * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, String payloadToSend) throws IOException;
+    ClassicHttpResponse executePost(String uri, String payloadToSend) throws IOException;
 
     /**
      * Sends the given payload (marked to be of a specific content-type) to the determined URI.
@@ -66,7 +66,7 @@ public interface HttpClient {
      *
      * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException;
+    ClassicHttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException;
 
     /**
      * Sends the given payload to the determined URI. Refer to the <a
@@ -80,7 +80,7 @@ public interface HttpClient {
      *
      * @throws IOException if sending the request fails.
      */
-    HttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException;
+    ClassicHttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException;
 
     /**
      * @param method the HTTP method to execute.
@@ -89,7 +89,7 @@ public interface HttpClient {
      *
      * @throws IOException if sending the request fails
      */
-    HttpResponse executeMethod(HttpRequestBase method) throws IOException;
+    ClassicHttpResponse executeMethod(HttpUriRequestBase method) throws IOException;
 
     Response execute(URI url, AbstractRequest request) throws ProxyHttpClientException;
 

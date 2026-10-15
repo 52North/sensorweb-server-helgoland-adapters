@@ -48,6 +48,10 @@
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpcore</artifactId>
 				</exclusion>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-*</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -63,6 +67,10 @@
 					<groupId>org.apache.httpcomponents</groupId>
 					<artifactId>httpcore</artifactId>
 				</exclusion>
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-*</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -95,21 +103,23 @@
 			<artifactId>helgoland-adapters-sos</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>helgoland-adapters-sensorthings</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>helgoland-adapters-hereon-common</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>helgoland-adapters-hereon-harvest</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+    <!--
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>helgoland-adapters-sensorthings</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>helgoland-adapters-hereon-common</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>helgoland-adapters-hereon-harvest</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    -->
 		<dependency>
 			<groupId>org.n52.sensorweb-server.dao-impl</groupId>
 			<artifactId>dao-impl-repos</artifactId>
@@ -182,8 +192,8 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.persistence</groupId>
-			<artifactId>javax.persistence-api</artifactId>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -200,6 +210,10 @@
 					<groupId>javax.enterprise</groupId>
 					<artifactId>cdi-api</artifactId>
 				</exclusion>
+                <exclusion>
+                    <groupId>jakarta.enterprise</groupId>
+                    <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -247,9 +261,10 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
+			<groupId>jakarta.platform</groupId>
+			<artifactId>jakarta.jakartaee-api</artifactId>
 			<scope>provided</scope>
+            <version>9.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -268,15 +283,10 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>net.bytebuddy</groupId>
 			<artifactId>byte-buddy</artifactId>
@@ -303,7 +313,7 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-spatial</artifactId>
 			<scope>runtime</scope>
 			<exclusions>
@@ -316,11 +326,6 @@
 		<dependency>
 			<groupId>org.geolatte</groupId>
 			<artifactId>geolatte-geom</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-ehcache</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 

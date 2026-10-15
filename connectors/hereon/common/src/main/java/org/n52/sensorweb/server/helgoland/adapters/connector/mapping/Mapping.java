@@ -27,11 +27,12 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,6 +44,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonPropertyOrder({ "thing", "sensor", "observedProperty", "feature", "datastream", "observation", "general" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public class Mapping implements Serializable, Entity {
+    @Serial
     private static final long serialVersionUID = 6912484994408704525L;
     @JsonProperty("thing")
     @Valid

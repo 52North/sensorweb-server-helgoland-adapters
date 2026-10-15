@@ -121,8 +121,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
                         if (!serviceConstellation.hasFeature(featureId)) {
                             GetFeatureOfInterestResponse foiResponse = getFeatureOfInterestById(featureId, serviceUri);
                             AbstractFeature abstractFeature = foiResponse.getAbstractFeature();
-                            if (abstractFeature instanceof AbstractSamplingFeature) {
-                                addFeature((AbstractSamplingFeature) abstractFeature, serviceConstellation);
+                            if (abstractFeature instanceof AbstractSamplingFeature feature) {
+                                addFeature(feature, serviceConstellation);
                             }
                         }
                         // TODO maybe not only QuantityDatasetConstellation
@@ -138,8 +138,8 @@ public class NestedOfferingsSOSConnector extends SOS2Connector {
 
     private GetDataAvailabilityResponse getDataAvailabilityForOffering(String uri) throws ProxyException {
         OwsServiceResponse response = (OwsServiceResponse) getSosResponseFor(uri);
-        if (response instanceof GetDataAvailabilityResponse) {
-            return (GetDataAvailabilityResponse) response;
+        if (response instanceof GetDataAvailabilityResponse availabilityResponse) {
+            return availabilityResponse;
         }
         throw new ProxyException("Wrong response - GetDataAvailabilityResponse was expected", response);
     }

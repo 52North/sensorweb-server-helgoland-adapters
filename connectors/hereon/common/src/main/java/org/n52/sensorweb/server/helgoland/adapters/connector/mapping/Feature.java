@@ -30,9 +30,12 @@ package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import java.io.Serial;
+
 @JsonPropertyOrder({ "feature", "encodingType" })
 public class Feature extends AbstractEntity {
 
+    @Serial
     private static final long serialVersionUID = -3995244342436529892L;
 
     @JsonProperty("feature")

@@ -169,8 +169,7 @@ public class SOS2Connector extends AbstractSosConnector {
                         addPhenomenon(phenomenonId, serviceConstellation);
                         String categoryId = addCategory(phenomenonId, serviceConstellation);
                         if (abstractFeature != null) {
-                            if (abstractFeature instanceof FeatureCollection) {
-                                FeatureCollection featureCollection = (FeatureCollection) abstractFeature;
+                            if (abstractFeature instanceof FeatureCollection featureCollection) {
                                 featureCollection.getMembers().forEach((key, feature) -> {
                                     if (feature != null) {
                                         String featureId =
@@ -207,12 +206,10 @@ public class SOS2Connector extends AbstractSosConnector {
             SosObservationOffering offering) {
         if (offering.isSetPhenomenonTime()) {
             Time phenomenonTime = offering.getPhenomenonTime();
-            if (phenomenonTime instanceof TimePeriod) {
-                TimePeriod tp = (TimePeriod) phenomenonTime;
+            if (phenomenonTime instanceof TimePeriod tp) {
                 quantityDatasetConstellation.setSamplingTimeStart(tp.getStart().toDate());
                 quantityDatasetConstellation.setSamplingTimeEnd(tp.getEnd().toDate());
-            } else if (phenomenonTime instanceof TimeInstant) {
-                TimeInstant ti = (TimeInstant) phenomenonTime;
+            } else if (phenomenonTime instanceof TimeInstant ti) {
                 quantityDatasetConstellation.setSamplingTimeStart(ti.getValue().toDate());
                 quantityDatasetConstellation.setSamplingTimeEnd(ti.getValue().toDate());
             }

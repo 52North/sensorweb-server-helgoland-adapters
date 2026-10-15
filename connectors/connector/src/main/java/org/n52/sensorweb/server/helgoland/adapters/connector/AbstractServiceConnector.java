@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector;
 
+import org.geotools.api.referencing.FactoryException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.locationtech.jts.geom.Envelope;
@@ -61,7 +62,6 @@ import org.n52.shetland.ogc.sos.SosObservationOffering;
 import org.n52.shetland.ogc.sos.gda.GetDataAvailabilityResponse.DataAvailability;
 import org.n52.shetland.util.JTSHelper;
 import org.n52.shetland.util.ReferencedEnvelope;
-import org.opengis.referencing.FactoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,11 +115,11 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
             Time time = obsOff.getPhenomenonTime();
             DateTime start = null;
             DateTime end = null;
-            if (time instanceof TimePeriod) {
-                start = ((TimePeriod) time).getStart();
-                end = ((TimePeriod) time).getEnd();
-            } else if (time instanceof TimeInstant) {
-                start = ((TimeInstant) time).getValue();
+            if (time instanceof TimePeriod period) {
+                start = period.getStart();
+                end = period.getEnd();
+            } else if (time instanceof TimeInstant instant) {
+                start = instant.getValue();
                 end = start;
             }
             entity.setSamplingTimeStart(start != null ? start.toDate() : null);
@@ -129,11 +129,11 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
             Time time = obsOff.getResultTime();
             DateTime start = null;
             DateTime end = null;
-            if (time instanceof TimePeriod) {
-                start = ((TimePeriod) time).getStart();
-                end = ((TimePeriod) time).getEnd();
-            } else if (time instanceof TimeInstant) {
-                start = ((TimeInstant) time).getValue();
+            if (time instanceof TimePeriod period1) {
+                start = period1.getStart();
+                end = period1.getEnd();
+            } else if (time instanceof TimeInstant instant1) {
+                start = instant1.getValue();
                 end = start;
             }
             entity.setResultTimeStart(start != null ? start.toDate() : null);
@@ -216,10 +216,10 @@ public abstract class AbstractServiceConnector extends AbstractConnector impleme
 
     protected void addFeature(AbstractFeature feature, ServiceConstellation serviceConstellation) {
         if (feature != null) {
-            if (feature instanceof AbstractSamplingFeature) {
-                addFeature((AbstractSamplingFeature) feature, serviceConstellation);
-            } else if (feature instanceof FeatureCollection) {
-                ((FeatureCollection) feature).forEach(featureEntry -> {
+            if (feature instanceof AbstractSamplingFeature samplingFeature) {
+                addFeature(samplingFeature, serviceConstellation);
+            } else if (feature instanceof FeatureCollection collection) {
+                collection.forEach(featureEntry -> {
                     if (featureEntry != null) {
                         addFeature(featureEntry, serviceConstellation);
                     }

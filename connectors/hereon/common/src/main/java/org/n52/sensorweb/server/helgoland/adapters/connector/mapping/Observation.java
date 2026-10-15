@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,6 +49,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
         "parameters"
 })
 public class Observation implements Serializable, Entity {
+    @Serial
     private static final long serialVersionUID = -1131449219115560395L;
 
     @JsonProperty("phenomenonTime")

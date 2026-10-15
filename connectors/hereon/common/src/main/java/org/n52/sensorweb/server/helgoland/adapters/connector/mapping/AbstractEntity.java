@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.n52.sensorweb.server.helgoland.adapters.connector.response.Attributes;
 
@@ -49,6 +50,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public abstract class AbstractEntity implements Serializable, Entity {
     public static final String NAME = "name";
     public static final String DESCRIPTION = "description";
+    @Serial
     private static final long serialVersionUID = -4168578691389102123L;
     @JsonProperty("name")
     private String name;

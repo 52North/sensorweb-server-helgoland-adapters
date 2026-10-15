@@ -38,7 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.joda.time.DateTime;
 import org.locationtech.jts.geom.Geometry;
@@ -536,10 +536,10 @@ public class HereonConnector extends AbstractServiceConnector implements ValueCo
 
     private ParameterEntity<?> createParameterEntity(DescribableEntity entity,
             org.n52.series.db.beans.parameter.ParameterFactory.ValueType valueType) {
-        if (entity instanceof PlatformEntity) {
+        if (entity instanceof PlatformEntity platformEntity) {
             PlatformParameterEntity<?> param =
                     (PlatformParameterEntity<?>) ParameterFactory.from(EntityType.PLATFORM, valueType);
-            param.setPlatform((PlatformEntity) entity);
+            param.setPlatform(platformEntity);
             return param;
         }
         return null;

@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.config;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

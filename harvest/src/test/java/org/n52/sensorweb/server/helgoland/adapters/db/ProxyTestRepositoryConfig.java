@@ -29,7 +29,7 @@ package org.n52.sensorweb.server.helgoland.adapters.db;
 
 import java.io.IOException;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.n52.sensorweb.server.db.factory.HibernatePersistenceLoadingLocalContainerEntityManagerFactoryBean;
@@ -39,6 +39,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 /**
  * Configures a {@link HibernatePersistenceLoadingLocalContainerEntityManagerFactoryBean} which scans for a
@@ -55,10 +56,9 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
  */
 public abstract class ProxyTestRepositoryConfig<T extends DatasetEntity> {
 
-    private final String xmlPersistenceLocation;
+    private static final String PROXY_ORM_MAPPING = "orm/profile-proxy/profile-proxy.orm.xml";
 
-    public ProxyTestRepositoryConfig(final String xmlPersistenceLocation) {
-        this.xmlPersistenceLocation = xmlPersistenceLocation;
+    public ProxyTestRepositoryConfig() {
     }
 
     @Bean
@@ -68,16 +68,21 @@ public abstract class ProxyTestRepositoryConfig<T extends DatasetEntity> {
     public EntityManagerFactory entityManagerFactory(final DataSource datasource, final JpaProperties properties)
             throws IOException {
         final LocalContainerEntityManagerFactoryBean emf = createEntityManagerFactoryBean(datasource,
-                                                                                    properties,
-                                                                                    xmlPersistenceLocation);
+                                                                                    properties);
         return emf.getNativeEntityManagerFactory();
     }
 
     private LocalContainerEntityManagerFactoryBean createEntityManagerFactoryBean(final DataSource datasource,
-                                                                                  final JpaProperties properties,
-                                                                                  final String xmlPersistenceLocation) {
-        return new HibernatePersistenceLoadingLocalContainerEntityManagerFactoryBean(datasource,
-                                                                                     properties,
-                                                                                     xmlPersistenceLocation);
+                                                                                  final JpaProperties properties) {
+        // same setup as HibernatePersistenceLoadingLocalContainerEntityManagerFactoryBean, which cannot be used
+        // here as it initializes itself in the constructor. The proxy orm.xml maps the conditional ServiceEntity
+        final LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
+        emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        emf.setJpaPropertyMap(properties.getProperties());
+        emf.setPackagesToScan("org.n52.series.db.beans");
+        emf.setMappingResources(PROXY_ORM_MAPPING);
+        emf.setDataSource(datasource);
+        emf.afterPropertiesSet();
+        return emf;
     }
 }

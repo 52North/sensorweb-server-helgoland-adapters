@@ -36,7 +36,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.hibernate.Hibernate;
 import org.n52.io.request.IoParameters;
@@ -180,7 +180,7 @@ public class CRUDRepository {
     public void cleanUp(ServiceEntity service, Set<Long> datasetIds, boolean removeService) {
         if (datasetIds != null && !datasetIds.isEmpty()) {
             for (Long id : datasetIds) {
-                dataRepository.deleteByDataset(datasetRepository.getReferenceById(id));
+                removeData(datasetRepository.getReferenceById(id));
             }
             datasetRepository.deleteByIdIn(datasetIds);
         }
@@ -334,12 +334,12 @@ public class CRUDRepository {
             }
         }
 
-        if (insertedData instanceof QuantityDataEntity) {
+        if (insertedData instanceof QuantityDataEntity entity) {
             if (minChanged) {
-                dataset.setFirstQuantityValue(((QuantityDataEntity) insertedData).getValue());
+                dataset.setFirstQuantityValue(entity.getValue());
             }
             if (maxChanged) {
-                dataset.setLastQuantityValue(((QuantityDataEntity) insertedData).getValue());
+                dataset.setLastQuantityValue(entity.getValue());
             }
         }
         if (minChanged || maxChanged) {

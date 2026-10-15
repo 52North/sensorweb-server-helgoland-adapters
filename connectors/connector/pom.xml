@@ -37,7 +37,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <scope>runtime</scope>
             <exclusions>
@@ -48,7 +48,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-spatial</artifactId>
             <scope>runtime</scope>
             <exclusions>
@@ -59,8 +59,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>javax.persistence-api</artifactId>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -190,7 +190,7 @@
         </dependency>
          <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
+           <artifactId>gt-api</artifactId>
         </dependency>
 
         <dependency>
@@ -247,12 +247,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.opengeo</groupId>
-            <artifactId>geodb</artifactId>
-            <version>0.9</version>
             <scope>test</scope>
         </dependency>
 

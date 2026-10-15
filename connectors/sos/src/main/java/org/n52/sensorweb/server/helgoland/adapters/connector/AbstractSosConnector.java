@@ -39,9 +39,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-
-import org.apache.http.HttpResponse;
+import jakarta.inject.Inject;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.joda.time.DateTime;
@@ -143,9 +142,9 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
 
     @Override
     public boolean matches(ConnectorConfiguration configuration) {
-        if (configuration instanceof SosConnectorConfiguration) {
+        if (configuration instanceof SosConnectorConfiguration connectorConfiguration) {
             return matches(configuration.getDataSourceJobConfiguration(),
-                    ((SosConnectorConfiguration) configuration).getCapabilities());
+                    connectorConfiguration.getCapabilities());
         }
         return super.matches(configuration);
     }
@@ -156,9 +155,9 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
 
     @Override
     public AbstractServiceConstellation getConstellation(ConnectorConfiguration connectorConfig) {
-        if (connectorConfig instanceof SosConnectorConfiguration) {
+        if (connectorConfig instanceof SosConnectorConfiguration configuration) {
             return getConstellation(connectorConfig.getDataSourceJobConfiguration(),
-                    ((SosConnectorConfiguration) connectorConfig).getCapabilities());
+                    configuration.getCapabilities());
         }
         return getConstellation(connectorConfig.getDataSourceJobConfiguration(), new GetCapabilitiesResponse());
     }
@@ -230,7 +229,7 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
         }
     }
 
-    protected Object decodeResponse(HttpResponse response) {
+    protected Object decodeResponse(ClassicHttpResponse response) {
         try (InputStream content = response.getEntity().getContent()) {
             XmlObject xmlResponse = XmlObject.Factory.parse(content);
             DecoderKey decoderKey = CodingHelper.getDecoderKey(xmlResponse);
@@ -239,8 +238,8 @@ public abstract class AbstractSosConnector extends AbstractServiceConnector {
                 throw new NoDecoderForKeyException(decoderKey);
             }
             Object decode = decoder.decode(xmlResponse);
-            if (decode instanceof OwsExceptionReport) {
-                throw new ConnectorRequestFailedException((OwsExceptionReport) decode);
+            if (decode instanceof OwsExceptionReport report) {
+                throw new ConnectorRequestFailedException(report);
             }
             return decode;
         } catch (IOException ex) {

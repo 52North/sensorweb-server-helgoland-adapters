@@ -36,9 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.joda.time.DateTime;
 import org.n52.sensorweb.server.db.assembler.value.ValueConnector;
 import org.n52.sensorweb.server.db.old.dao.DbQuery;
@@ -144,7 +143,7 @@ public class SensorThingsConnector extends AbstractServiceConnector
 
     private Object doGetRequest(String urlString, Class<?> clazz) {
         try {
-            HttpResponse response = sendGetRequest(urlString);
+            ClassicHttpResponse response = sendGetRequest(urlString);
             try (Reader reader = new InputStreamReader(response.getEntity().getContent(), getEncoding(response))) {
                 return gson.fromJson(reader, clazz);
             }
@@ -230,8 +229,8 @@ public class SensorThingsConnector extends AbstractServiceConnector
         return dataEntity;
     }
 
-    private Charset getEncoding(HttpResponse response) {
-        ContentType contentType = ContentType.getLenient(response.getEntity());
+    private Charset getEncoding(ClassicHttpResponse response) {
+        ContentType contentType = ContentType.parseLenient(response.getEntity().getContentEncoding());
         if (contentType != null && contentType.getCharset() != null) {
             return contentType.getCharset();
         } else {

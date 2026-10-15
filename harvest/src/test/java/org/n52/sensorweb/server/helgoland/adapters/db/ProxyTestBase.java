@@ -27,9 +27,9 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.db;
 
-import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.n52.io.request.IoParameters;

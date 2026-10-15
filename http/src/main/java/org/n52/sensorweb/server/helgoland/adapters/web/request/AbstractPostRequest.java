@@ -27,7 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.web.request;
 
-import org.apache.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.n52.janmayen.http.MediaType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

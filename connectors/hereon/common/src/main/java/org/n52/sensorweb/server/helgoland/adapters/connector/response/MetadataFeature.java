@@ -27,9 +27,10 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,6 +42,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonPropertyOrder({"attributes", "geometry"})
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class MetadataFeature implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1278813991741382777L;
     @JsonProperty("attributes")
     @Valid

@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
@@ -454,10 +454,9 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private Stream<DateTime> toDateTimeStream(Time time) {
-        if (time instanceof TimeInstant && ((TimeInstant) time).isSetValue()) {
-            return Stream.of(((TimeInstant) time).getValue());
-        } else if (time instanceof TimePeriod) {
-            TimePeriod period = (TimePeriod) time;
+        if (time instanceof TimeInstant instant && instant.isSetValue()) {
+            return Stream.of(instant.getValue());
+        } else if (time instanceof TimePeriod period) {
             if (period.isSetStart() && period.isSetEnd()) {
                 return Stream.of(period.getStart(), period.getEnd());
             } else if (period.isSetStart()) {
@@ -478,12 +477,10 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
     }
 
     private Optional<Resource> createTime(Time time) {
-        if (time instanceof TimePeriod) {
-            TimePeriod timePeriod = (TimePeriod) time;
+        if (time instanceof TimePeriod timePeriod) {
             return createTimeInterval(createTimeInstant(timePeriod.getStart()).orElse(null),
                     createTimeInstant(timePeriod.getEnd()).orElse(null));
-        } else if (time instanceof TimeInstant) {
-            TimeInstant instant = (TimeInstant) time;
+        } else if (time instanceof TimeInstant instant) {
             return createTimeInstant(instant.getValue());
         }
         return Optional.empty();
@@ -615,8 +612,7 @@ public class CatalogTransformer implements HarvestingListener, CatalogProvider {
             throw new NoDecoderForKeyException(decoderKey);
         }
         Object decode = decoder.decode(xmlResponse);
-        if (decode instanceof OwsExceptionReport) {
-            OwsExceptionReport exceptionReport = (OwsExceptionReport) decode;
+        if (decode instanceof OwsExceptionReport exceptionReport) {
             throw new DecodingException(exceptionReport);
         }
 

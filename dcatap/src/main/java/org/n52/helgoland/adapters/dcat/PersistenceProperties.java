@@ -32,7 +32,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 @Configuration
@@ -40,7 +39,7 @@ import java.util.Optional;
 public class PersistenceProperties {
     private boolean enabled = true;
 
-    private Path path = Paths.get(Optional.ofNullable(StandardSystemProperty.JAVA_IO_TMPDIR.value())
+    private Path path = Path.of(Optional.ofNullable(StandardSystemProperty.JAVA_IO_TMPDIR.value())
                                           .orElse("/tmp"), "catalog.rdf");
 
     public Path getPath() {

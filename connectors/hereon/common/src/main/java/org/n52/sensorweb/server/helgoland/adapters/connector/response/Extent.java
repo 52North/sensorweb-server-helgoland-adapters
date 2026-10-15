@@ -27,12 +27,13 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.geotools.geometry.jts.JTS;
 import org.locationtech.jts.geom.Envelope;
@@ -52,6 +53,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @JsonPropertyOrder({ "ymin", "xmin", "ymax", "xmax", "spatialReference" })
 @SuppressFBWarnings({ "EI_EXPOSE_REP", "EI_EXPOSE_REP2" })
 public class Extent implements Serializable {
+    @Serial
     private static final long serialVersionUID = 122572278748898272L;
     @JsonProperty("ymin")
     private Double ymin;

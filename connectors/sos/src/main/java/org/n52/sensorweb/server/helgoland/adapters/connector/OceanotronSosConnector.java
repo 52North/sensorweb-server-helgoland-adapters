@@ -111,8 +111,7 @@ public class OceanotronSosConnector extends SOS2Connector {
             if (observationValue.getValue() instanceof SweDataArrayValue) {
                 SweDataArray dataArray = ((SweDataArrayValue) observationValue.getValue()).getValue();
                 SweAbstractDataComponent elementType = dataArray.getElementType();
-                if (elementType instanceof SweDataRecord) {
-                    SweDataRecord sweDataRecord = (SweDataRecord) elementType;
+                if (elementType instanceof SweDataRecord sweDataRecord) {
                     List<SweField> fields = sweDataRecord.getFields();
                     if (fields.size() == 2) {
                         return createUnitEntity(fields.get(1), seriesEntity.getService());
@@ -216,8 +215,8 @@ public class OceanotronSosConnector extends SOS2Connector {
             sensorML.getMembers().forEach((AbstractProcess member) -> {
                 obsOff.getObservableProperties().forEach((String obsProp) -> {
                     if (!obsProp.equals("sea_water_salinity")) {
-                        if (member instanceof System) {
-                            List<SmlComponent> components = ((System) member).getComponents();
+                        if (member instanceof System system) {
+                            List<SmlComponent> components = system.getComponents();
                             for (int i = 0; i < components.size(); i++) {
                                 LOGGER.info("Still get " + (components.size() - i) + " components");
                                 addElem(components.get(i), obsProp, offeringId, servConst, url);
@@ -263,11 +262,10 @@ public class OceanotronSosConnector extends SOS2Connector {
     }
 
     private String addAbstractFeature(AbstractFeature feature, ServiceConstellation servConst) {
-        if (feature instanceof SamplingFeature) {
+        if (feature instanceof SamplingFeature samplingFeature) {
             String foiId = feature.getGmlId();
             String foiName = feature.getFirstName() != null ? feature.getFirstName().getValue() : feature.getGmlId();
             String foiDescription = feature.getDescription();
-            SamplingFeature samplingFeature = (SamplingFeature) feature;
             servConst.putFeature(foiId, foiName, foiDescription, samplingFeature.getGeometry());
             servConst.putPlatform(foiId, foiName, foiDescription);
             return foiId;

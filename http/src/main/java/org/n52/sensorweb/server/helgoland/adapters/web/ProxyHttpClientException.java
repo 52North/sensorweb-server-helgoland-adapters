@@ -29,7 +29,10 @@ package org.n52.sensorweb.server.helgoland.adapters.web;
 
 import org.n52.janmayen.exception.LocationHintException;
 
+import java.io.Serial;
+
 public class ProxyHttpClientException extends LocationHintException {
+    @Serial
     private static final long serialVersionUID = 4911974894543858481L;
 
     public ProxyHttpClientException() {

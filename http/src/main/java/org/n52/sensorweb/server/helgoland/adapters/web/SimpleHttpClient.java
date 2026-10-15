@@ -38,29 +38,35 @@ import java.security.NoSuchAlgorithmException;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.config.RequestConfig.Builder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.RequestConfig.Builder;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.n52.janmayen.http.MediaType;
 import org.n52.janmayen.http.MediaTypes;
 import org.n52.sensorweb.server.helgoland.adapters.web.request.AbstractDeleteRequest;
@@ -80,8 +86,8 @@ public class SimpleHttpClient implements HttpClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleHttpClient.class);
     private static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
-    private static final RetryPolicy<HttpResponse> RETRY_POLICY =
-            new RetryPolicy<HttpResponse>().withDelay(10, 900, ChronoUnit.SECONDS).handle(ConnectException.class);
+    private static final RetryPolicy<ClassicHttpResponse> RETRY_POLICY =
+            new RetryPolicy<ClassicHttpResponse>().withDelay(10, 900, ChronoUnit.SECONDS).handle(ConnectException.class);
     private CloseableHttpClient httpclient;
     private int connectionTimeout;
     private int socketTimeout;
@@ -132,36 +138,36 @@ public class SimpleHttpClient implements HttpClient {
 
     @Override
     public Response execute(URI url, AbstractRequest request) throws ProxyHttpClientException {
-        if (request instanceof AbstractGetRequest) {
-            return doGet(url, (AbstractGetRequest) request);
-        } else if (request instanceof AbstractPostRequest) {
-            return doPost(url, (AbstractPostRequest<?>) request);
-        } else if (request instanceof AbstractDeleteRequest) {
-            return doDelete(url, (AbstractDeleteRequest) request);
+        if (request instanceof AbstractGetRequest getRequest) {
+            return doGet(url, getRequest);
+        } else if (request instanceof AbstractPostRequest<?> postRequest) {
+            return doPost(url, postRequest);
+        } else if (request instanceof AbstractDeleteRequest deleteRequest) {
+            return doDelete(url, deleteRequest);
         }
         throw new ProxyHttpClientException("The request type '%s' is unknown!", request.getClass().getTypeName());
     }
 
     @Override
-    public HttpResponse executeGet(String uri) throws IOException {
+    public ClassicHttpResponse executeGet(String uri) throws IOException {
         LOGGER.debug("executing GET method '{}'", uri);
         return executeMethod(new HttpGet(uri));
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend) throws IOException {
+    public ClassicHttpResponse executePost(String uri, String payloadToSend) throws IOException {
         return executePost(uri, payloadToSend, MediaTypes.TEXT_XML);
     }
 
     @Override
-    public HttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException {
+    public ClassicHttpResponse executePost(String uri, String payloadToSend, MediaType contentType) throws IOException {
         StringEntity requestEntity = new StringEntity(payloadToSend, getContentType(contentType));
         LOGGER.trace("payload to send: {}", payloadToSend);
         return executePost(uri, requestEntity);
     }
 
     @Override
-    public HttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException {
+    public ClassicHttpResponse executePost(String uri, HttpEntity payloadToSend) throws IOException {
         LOGGER.debug("executing POST method to '{}'.", uri);
         HttpPost post = new HttpPost(uri);
         post.setEntity(payloadToSend);
@@ -169,7 +175,7 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     @Override
-    public HttpResponse executeMethod(HttpRequestBase method) throws IOException {
+    public ClassicHttpResponse executeMethod(HttpUriRequestBase method) throws IOException {
         return executeHttpRequest(method);
     }
 
@@ -270,7 +276,7 @@ public class SimpleHttpClient implements HttpClient {
         }
     }
 
-    private CloseableHttpResponse executeHttpRequest(HttpRequestBase request) throws IOException {
+    private CloseableHttpResponse executeHttpRequest(HttpUriRequestBase request) throws IOException {
         int counter = 4;
         CloseableHttpResponse response = null;
         long start = System.currentTimeMillis();
@@ -290,10 +296,16 @@ public class SimpleHttpClient implements HttpClient {
 
     private Response getContent(CloseableHttpResponse response) throws IOException {
         try {
-            return response != null
-                    ? new Response(response.getStatusLine().getStatusCode(),
-                            response.getEntity() != null ? EntityUtils.toString(response.getEntity(), "UTF-8") : null)
-                    : new Response(200, null);
+            if (response != null) {
+              String res = null;
+              try {
+                res = EntityUtils.toString(response.getEntity(), "UTF-8");
+              } catch (ParseException ignored) {
+              }
+              return new Response(response.getCode(), res);
+            } else {
+              return new Response(200, null);
+            }
         } finally {
             if (response != null) {
                 response.close();
@@ -347,22 +359,30 @@ public class SimpleHttpClient implements HttpClient {
     protected HttpClientBuilder configureClient() {
         return HttpClientBuilder.create()
                 .setDefaultRequestConfig(getRequestConfig())
-                .setSSLSocketFactory(getSSLSocketFactory())
-                .setDefaultSocketConfig(getSocketConfig())
-                .setMaxConnTotal(200)
-                .setMaxConnPerRoute(50)
+                .setConnectionManager(getConnectionManager())
                 .useSystemProperties();
     }
 
-    private SSLConnectionSocketFactory getSSLSocketFactory() {
+    private HttpClientConnectionManager getConnectionManager() {
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setTlsSocketStrategy(getTlsSocketStrategy())
+                .setDefaultSocketConfig(getSocketConfig())
+                .setMaxConnTotal(200)
+                .setMaxConnPerRoute(50)
+                .useSystemProperties()
+                .build();
+    }
+
+    private TlsSocketStrategy getTlsSocketStrategy() {
         if (isIgnoreSSLHostnameValidation()) {
             LOGGER.debug("Noop hostname verifier enabled!");
             try {
-                return new SSLConnectionSocketFactory(
+                return new DefaultClientTlsStrategy(
                         SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                        HostnameVerificationPolicy.CLIENT,
                         NoopHostnameVerifier.INSTANCE);
             } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-                LOGGER.error("Error creating SSL connnection socket factory!", e);
+                LOGGER.error("Error creating TLS socket strategy!", e);
             }
         }
         return null;
@@ -374,7 +394,7 @@ public class SimpleHttpClient implements HttpClient {
 
     private RequestConfig getRequestConfig() {
         Builder builder =
-                RequestConfig.custom().setConnectTimeout(this.connectionTimeout).setSocketTimeout(this.socketTimeout);
+                RequestConfig.custom().setConnectTimeout(this.connectionTimeout, TimeUnit.MILLISECONDS).setResponseTimeout(this.socketTimeout, TimeUnit.MILLISECONDS);
         if (isSetProxy()) {
             builder.setProxy(getProxy());
         }
@@ -382,7 +402,7 @@ public class SimpleHttpClient implements HttpClient {
     }
 
     private SocketConfig getSocketConfig() {
-        return SocketConfig.custom().setSoTimeout(this.socketTimeout).build();
+        return SocketConfig.custom().setSoTimeout(this.socketTimeout, TimeUnit.MILLISECONDS).build();
     }
 
     private HttpHost getProxy() {

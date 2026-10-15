@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.web.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "code", "message", "details" })
 public class Error implements Serializable {
+    @Serial
     private static final long serialVersionUID = 8740569596605353407L;
     private static final String NEW_LINE = "\n";
     @JsonProperty("code")

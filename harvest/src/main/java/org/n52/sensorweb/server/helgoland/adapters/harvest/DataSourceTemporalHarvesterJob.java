@@ -68,8 +68,8 @@ public class DataSourceTemporalHarvesterJob extends AbstractDataSourceHarvesterJ
                     HarvesterResponse response = harvester.process(result.getHavesterContext(mergedJobDataMap)
                             .setLastUpdateTime(getLastUpdateTime(context)));
                     context.getJobDetail().getJobDataMap().put(LAST_UPDATE_TIME,
-                            response instanceof TemporalHarvesterResponse
-                                    ? getNextTime(((TemporalHarvesterResponse) response).getNextToken(), now)
+                            response instanceof TemporalHarvesterResponse thr
+                                    ? getNextTime(thr.getNextToken(), now)
                                     : now);
                     submitEvent(result.getEvent());
                 }

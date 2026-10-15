@@ -30,7 +30,7 @@ package org.n52.sensorweb.server.helgoland.adapters.config;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -27,8 +27,11 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.mapping;
 
+import java.io.Serial;
+
 public class Thing extends AbstractEntity {
 
+    @Serial
     private static final long serialVersionUID = -2999094192069317946L;
 
 }

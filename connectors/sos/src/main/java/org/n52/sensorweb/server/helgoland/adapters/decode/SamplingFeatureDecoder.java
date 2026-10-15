@@ -138,8 +138,8 @@ public class SamplingFeatureDecoder extends AbstractGmlDecoderv321<XmlObject, Ab
                 }
                 if (abstractFeature != null) {
                     final Object decodedObject = decodeXmlObject(abstractFeature);
-                    if (decodedObject instanceof AbstractFeature) {
-                        sampledFeatures.add((AbstractFeature) decodedObject);
+                    if (decodedObject instanceof AbstractFeature feature) {
+                        sampledFeatures.add(feature);
                     }
                 }
                 throw new DecodingException(Sos2Constants.InsertObservationParams.observation,
@@ -185,8 +185,8 @@ public class SamplingFeatureDecoder extends AbstractGmlDecoderv321<XmlObject, Ab
             try {
                 ShapeDocument shapeDoc = (ShapeDocument) XmlObject.Factory.parse(shapes[0].getDomNode());
                 Object decodedObject = decodeXmlElement(shapeDoc.getShape().getAbstractGeometry());
-                if (decodedObject instanceof Geometry) {
-                    return (Geometry) decodedObject;
+                if (decodedObject instanceof Geometry geometry) {
+                    return geometry;
                 }
             } catch (XmlException ex) {
                 throw new DecodingException(

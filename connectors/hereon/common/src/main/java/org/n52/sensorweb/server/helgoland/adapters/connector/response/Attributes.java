@@ -27,6 +27,7 @@
  */
 package org.n52.sensorweb.server.helgoland.adapters.connector.response;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -36,7 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Attributes implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1839884324462571777L;
     @JsonIgnore
     @Valid

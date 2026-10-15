@@ -43,14 +43,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.n52.sensorweb.server.db.old.dao.DbQueryFactory;
-import org.n52.sensorweb.server.db.old.dao.DefaultDbQueryFactory;
 import org.n52.sensorweb.server.db.repositories.core.DataRepository;
 import org.n52.sensorweb.server.db.repositories.core.DatasetRepository;
 import org.n52.sensorweb.server.db.repositories.core.FormatRepository;
@@ -76,10 +74,11 @@ import org.n52.series.db.beans.TextDataEntity;
 import org.n52.series.db.beans.dataset.DatasetType;
 import org.n52.series.db.beans.dataset.ObservationType;
 import org.n52.series.db.beans.dataset.ValueType;
+import org.n52.series.db.old.SeriesHibernateSessionHolder;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
@@ -385,25 +384,19 @@ public class InsertRespositoryTest extends ProxyTestBase {
     }
 
     @SpringBootConfiguration
-    @EnableJpaRepositories(basePackages = { "org.n52.sensorweb.server.db.repositories" },
-            repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class)
-    @ComponentScan({ "org.n52.sensorweb.server.db.repositories", "org.n52.sensorweb.server.db.repository",
-            "org.n52.sensorweb.server.db.old", "org.n52.sensorweb.server.db.assembler.core",
-            "org.n52.sensorweb.server.db.assembler.mapper", "org.n52.sensorweb.server.db.factory",
-            "org.n52.sensorweb.server.db.old.dao", "org.n52.sensorweb.server.helgoland.adapters" })
+    @EnableJpaRepositories(basePackages = "org.n52.sensorweb.server.db",
+        repositoryFactoryBeanClass = EntityGraphJpaRepositoryFactoryBean.class)
+    @ComponentScan(basePackages = { "org.n52.sensorweb.server.db.assembler", "org.n52.sensorweb.server.db.factory",
+        "org.n52.sensorweb.server.helgoland.adapters" })
+    @Import(SeriesHibernateSessionHolder.class)
     static class Config extends ProxyTestRepositoryConfig<DatasetEntity> {
         public Config() {
-            super("/mapping/proxy/persistence.xml");
+            super();
         }
 
         @Override
         public ProxyTestRepositories testRepositories() {
             return new ProxyTestRepositories();
-        }
-
-        @Bean
-        public DbQueryFactory dbQueryFactory() {
-            return new DefaultDbQueryFactory();
         }
     }
 }

@@ -31,8 +31,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.xmlbeans.XmlObject;
 import org.n52.sensorweb.server.helgoland.adapters.harvest.DataSourceJobConfiguration;
 import org.n52.sensorweb.server.helgoland.adapters.web.HttpClient;
@@ -108,12 +107,12 @@ public abstract class AbstractConnector {
         this.httpClient = httpClient;
     }
 
-    protected HttpResponse sendGetRequest(String uri) throws IOException {
+    protected ClassicHttpResponse sendGetRequest(String uri) throws IOException {
         LOGGER.debug("Executing GET request {}", uri);
         return getHttpClient().executeGet(uri);
     }
 
-    protected HttpResponse sendPostRequest(XmlObject request, String uri) throws IOException {
+    protected ClassicHttpResponse sendPostRequest(XmlObject request, String uri) throws IOException {
         LOGGER.debug("Executing POST request to {}\n{}", uri, request.xmlText());
         return getHttpClient().executePost(uri, request.xmlText());
     }

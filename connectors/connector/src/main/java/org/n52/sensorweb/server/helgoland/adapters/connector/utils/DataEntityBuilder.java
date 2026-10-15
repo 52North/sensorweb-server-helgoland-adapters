@@ -58,8 +58,8 @@ public final class DataEntityBuilder {
     public static QuantityDataEntity createQuantityDataEntity(OmObservation observation) {
         QuantityDataEntity dataEntity = new QuantityDataEntity();
         getNumericValue(observation).map(x -> {
-            if (x instanceof BigDecimal) {
-                return (BigDecimal) x;
+            if (x instanceof BigDecimal decimal) {
+                return decimal;
             } else {
                 return BigDecimal.valueOf(x.doubleValue());
             }
@@ -84,8 +84,8 @@ public final class DataEntityBuilder {
     private static Optional<Number> getNumericValue(OmObservation observation) {
         SingleObservationValue<?> singleValue = (SingleObservationValue) observation.getValue();
         Object value = singleValue.getValue().getValue();
-        if (value instanceof Number) {
-            return Optional.of((Number) value);
+        if (value instanceof Number number) {
+            return Optional.of(number);
         } else {
             return Optional.empty();
         }
@@ -94,8 +94,8 @@ public final class DataEntityBuilder {
     private static Optional<String> getStringValue(OmObservation observation) {
         SingleObservationValue<?> singleValue = (SingleObservationValue) observation.getValue();
         Object value = singleValue.getValue().getValue();
-        if (value instanceof String) {
-            return Optional.of((String) value);
+        if (value instanceof String string) {
+            return Optional.of(string);
         } else {
             return Optional.empty();
         }
@@ -119,13 +119,11 @@ public final class DataEntityBuilder {
             dataEntity.setResultTime(resultTime.getValue().toDate());
         } else {
             Time phenomenonTime = observation.getPhenomenonTime();
-            if (phenomenonTime instanceof TimeInstant) {
-                TimeInstant instant = (TimeInstant) phenomenonTime;
+            if (phenomenonTime instanceof TimeInstant instant) {
                 if (instant.isSetValue()) {
                     dataEntity.setResultTime(instant.getValue().toDate());
                 }
-            } else if (phenomenonTime instanceof TimePeriod) {
-                TimePeriod period = (TimePeriod) phenomenonTime;
+            } else if (phenomenonTime instanceof TimePeriod period) {
                 if (period.isSetStart()) {
                     dataEntity.setResultTime(period.getStart().toDate());
                 } else if (period.isSetEnd()) {
@@ -137,12 +135,10 @@ public final class DataEntityBuilder {
 
     private static void setPhenomenonTime(OmObservation observation, DataEntity<?> dataEntity) {
         Time phenomenonTime = observation.getPhenomenonTime();
-        if (phenomenonTime instanceof TimeInstant) {
-            TimeInstant instant = (TimeInstant) phenomenonTime;
+        if (phenomenonTime instanceof TimeInstant instant) {
             dataEntity.setSamplingTimeStart(instant.getValue().toDate());
             dataEntity.setSamplingTimeEnd(instant.getValue().toDate());
-        } else if (phenomenonTime instanceof TimePeriod) {
-            TimePeriod period = (TimePeriod) phenomenonTime;
+        } else if (phenomenonTime instanceof TimePeriod period) {
             dataEntity.setSamplingTimeStart(period.getStart().toDate());
             dataEntity.setSamplingTimeEnd(period.getEnd().toDate());
         } else {
