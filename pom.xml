@@ -9,7 +9,7 @@
   <groupId>org.n52.sensorweb-server.helgoland-adapters</groupId>
   <artifactId>helgoland-adapters-parent</artifactId>
   <name>Sensor Web Server Helgoland - Adapters</name>
-  <version>3.0.0</version>
+  <version>3.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -42,7 +42,7 @@
       scm:git:https://github.com/52North/sensorweb-server-helgoland-adapters.git
     </developerConnection>
     <url>https://github.com/52North/sensorweb-server-helgoland-adapters</url>
-    <tag>v3.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
